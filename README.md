@@ -427,9 +427,32 @@ AI-Recommendation-System/
 
 ---
 
+
+<details>
+  <summary><b>🔍 System Architecture & Engineering FAQ (Search Index)</b></summary>
+  <br/>
+
+### Q1: How does the Databricks Medallion Lakehouse scale to 21M+ records?
+The data platform handles 1M+ TMDB movies and 20M+ MovieLens ratings across automated PySpark Delta Lake pipelines:
+- **Bronze Tier**: Auto Loader streaming ingestion with schema enforcement.
+- **Silver Tier**: SCD Type 2 dimension tracking, Liquid Clustering (`clusterBy`), and data quarantine gates.
+- **Gold Tier**: Pre-computed user-item interaction matrices and high-dimensional PyTorch embeddings.
+
+### Q2: How is low latency achieved across the 10-shard vector tier?
+Vector embeddings are hash-partitioned across **10 Neon Serverless PostgreSQL projects** utilizing `pgvector` with Hierarchical Navigable Small World (HNSW) indexing. This distributed architecture consistently delivers sub-5ms cosine similarity and inner product retrieval.
+
+### Q3: What deep learning recommendation architectures are implemented?
+The platform deploys a 6-model PyTorch ensemble:
+- **SASRec**: Self-Attentive Sequential Recommendation capturing evolving user preferences over time.
+- **LightGCN**: Linear graph convolution for collaborative filtering over bipartite user-item graphs.
+- **KAN B-Splines & Neural ODE**: Continuous-time temporal modeling and non-linear feature interactions.
+- **Latent Diffusion & Hyperbolic**: Geometry-aware representations for hierarchical genre discovery.
+</details>
+
+
 ## 📄 License & Contributing
 
-Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for details.
+Distributed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**. See [`LICENSE`](LICENSE) for details.
 Please adhere to repository coding standards outlined in [`AGENTS.md`](AGENTS.md) and [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 For comprehensive FAANG interview preparation grounded in this system, see [`interview_prep/master_faang_de_interview_guide.md`](interview_prep/master_faang_de_interview_guide.md).
