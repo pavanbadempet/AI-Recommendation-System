@@ -43,7 +43,8 @@ tags:
   <img src="https://img.shields.io/badge/Bun-1.2.0-F9F1E1?style=flat&logo=bun&logoColor=black" alt="Bun 1.2" />
   <img src="https://img.shields.io/badge/Python-3.12+-3776AB?style=flat&logo=python&logoColor=white" alt="Python 3.12" />
   <img src="https://img.shields.io/badge/PySpark-4.2-E25A1C?style=flat&logo=apachespark&logoColor=white" alt="PySpark 4.2" />
-  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License" />
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-AGPL_v3-blue.svg" alt="AGPL v3 License" /></a>
+  <a href="https://github.com/sponsors/pavanbadempet"><img src="https://img.shields.io/badge/Sponsor-%E2%9D%A4-ea4aaa.svg?logo=github" alt="Sponsor Pavan Badempet" /></a>
 </p>
 
 > [!TIP]
