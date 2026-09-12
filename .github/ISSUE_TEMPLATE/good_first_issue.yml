@@ -1,0 +1,47 @@
+name: "🌱 Good First Issue Specification"
+description: "Template for maintainers to outline a beginner-friendly or starter issue"
+title: "[Good First Issue]: <Short Summary>"
+labels: ["good first issue", "help wanted"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template to define a scoped, well-documented issue suitable for new open-source contributors or GSoC applicants.
+
+  - type: textarea
+    id: problem_description
+    attributes:
+      label: Problem Description
+      description: Explain what needs to be fixed or implemented.
+      placeholder: "A clear description of the enhancement or bug..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_outcome
+    attributes:
+      label: Expected Outcome & Deliverables
+      description: What will the resolved state look like?
+      placeholder: "Deliverable details and acceptance criteria..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: code_pointers
+    attributes:
+      label: Code Pointers & Starting Files
+      description: Specific files, functions, or lines to guide the contributor.
+      placeholder: "- File: backend/pipeline/recommender.py\n- Relevant test: tests/test_recommender.py"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: difficulty
+    attributes:
+      label: Difficulty Level
+      options:
+        - "Beginner (1-3 hours)"
+        - "Intermediate (1-2 days)"
+        - "Advanced"
+    validations:
+      required: true

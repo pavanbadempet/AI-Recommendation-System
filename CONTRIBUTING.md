@@ -1,11 +1,14 @@
 # Contributing to APEX
 
-Thanks for your interest. This document covers everything you need to get from zero to a working dev environment and submit a quality PR.
+Thanks for your interest in contributing to **APEX**! We welcome contributions from developers, researchers, and students worldwide.
+
+This document covers everything you need to get from zero to a working development environment, pick up beginner-friendly issues, and submit high-quality pull requests.
 
 ---
 
 ## Table of Contents
 
+- [🌱 Finding Good First Issues](#-finding-good-first-issues)
 - [Philosophy](#philosophy)
 - [Local Development Setup](#local-development-setup)
 - [Project Structure](#project-structure)
@@ -13,6 +16,16 @@ Thanks for your interest. This document covers everything you need to get from z
 - [Running Tests](#running-tests)
 - [Submitting a PR](#submitting-a-pr)
 - [Adding a New ML Model](#adding-a-new-ml-model)
+- [Community Governance & Conduct](#community-governance--conduct)
+
+---
+
+## 🌱 Finding Good First Issues
+
+If you are a newcomer to open source or APEX:
+- Check out issues tagged with [`good first issue`](https://github.com/pavanbadempet/Movie-Recommendation-System/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) for well-scoped starter tasks (1-3 hours).
+- Check issues tagged with [`help wanted`](https://github.com/pavanbadempet/Movie-Recommendation-System/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) for intermediate opportunities.
+- Comment on the issue asking to be assigned before starting work to avoid duplicate effort.
 
 ---
 
@@ -265,3 +278,11 @@ mutmut results
    ```bash
    python scripts/causal_debias_training.py --skip-lgcn
    ```
+
+---
+
+## Community Governance & Conduct
+
+- **Governance**: Learn about our project governance, maintainer team, and decision-making model in [`GOVERNANCE.md`](GOVERNANCE.md).
+- **Code of Conduct**: All contributors, mentors, and maintainers must uphold our [Code of Conduct](CODE_OF_CONDUCT.md) (Contributor Covenant 2.1).
+- **Security**: To report a security vulnerability, please follow our disclosure policy in [`SECURITY.md`](SECURITY.md).
