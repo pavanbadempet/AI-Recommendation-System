@@ -13,7 +13,7 @@ use crate::vector_store::{find_candidate_file, VectorStore};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EventRecord {
     pub event_id: String,
-    pub user_id: i64,
+    pub user_id: String,
     #[serde(default)]
     pub movie_id: Option<i64>,
     pub event_type: String,
@@ -127,7 +127,7 @@ mod tests {
         let state = AppState::init().expect("AppState::init failed");
         state.record_event(EventRecord {
             event_id: "evt_test_1".to_string(),
-            user_id: 12345,
+            user_id: "12345".to_string(),
             movie_id: Some(27205),
             event_type: "click".to_string(),
             timestamp: 1700000000,

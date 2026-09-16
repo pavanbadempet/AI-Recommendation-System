@@ -56,7 +56,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // Metadata & Health
         .route("/", get(routes::root_handler))
         .route("/health", get(routes::health_handler))
-        // Recommendations
+        // Recommendations & Personalization
         .route(
             "/v1/recommendations/id/:id",
             get(routes::get_recommendations_by_id_handler),
@@ -68,6 +68,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route(
             "/v1/recommendations",
             post(routes::post_recommendations_handler),
+        )
+        .route(
+            "/v1/recommendations/user/:user_id",
+            get(routes::get_user_recommendations_handler),
+        )
+        .route(
+            "/recommendations/user/:user_id",
+            get(routes::get_user_recommendations_handler),
+        )
+        .route(
+            "/api/v1/recommendations/user/:user_id",
+            get(routes::get_user_recommendations_handler),
+        )
+        .route(
+            "/v1/recommendations/visually-similar/:id",
+            get(routes::get_visually_similar_recommendations_handler),
+        )
+        .route(
+            "/v1/recommendations/knowledge-graph/:id",
+            get(routes::get_knowledge_graph_recommendations_handler),
         )
         // Search
         .route("/v1/search", get(routes::get_search_handler).post(routes::post_search_handler))
@@ -84,8 +104,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             "/v1/recommendations/id/:id/enriched",
             get(routes::get_recommendations_by_id_handler),
         )
-        // Telemetry Events
+        // Telemetry Events & Behavior
         .route("/v1/events", post(routes::post_events_handler))
+        .route("/v1/events/features", get(routes::get_events_features_handler))
+        .route("/v1/events/features/:user_id", get(routes::get_events_features_handler))
+        // Video Cache Status
+        .route("/v1/videos/cache-status/:youtube_id", get(routes::get_video_cache_status_handler))
         // Authentication
         .route("/v1/auth/token", post(routes::post_auth_token_handler))
         .route("/api/v1/auth/token", post(routes::post_auth_token_handler))
@@ -96,11 +120,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/v1/auth/register", post(routes::post_auth_register_handler))
         .route("/api/v1/auth/register", post(routes::post_auth_register_handler))
         .route("/auth/register", post(routes::post_auth_register_handler))
-        // System & Benchmarks
+        // Platform, System & Benchmarks
+        .route("/v1/platform/status", get(routes::get_platform_status_handler))
+        .route("/v1/platform/readiness", get(routes::get_platform_readiness_handler))
+        .route("/v1/platform/slo", get(routes::get_platform_slo_handler))
+        .route("/v1/artifacts/health", get(routes::get_artifact_health_handler))
         .route("/v1/admin/status", get(routes::get_admin_status_handler))
         .route(
             "/v1/evaluation/benchmark",
             get(routes::get_evaluation_benchmark_handler),
+        )
+        .route(
+            "/v1/evaluation/semantic-benchmark",
+            get(routes::get_semantic_benchmark_handler),
         )
         .route("/v1/billing/usage", get(routes::get_billing_usage_handler))
         .route("/v1/pipeline/run", post(routes::post_pipeline_run_handler))
