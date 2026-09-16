@@ -142,18 +142,22 @@ pub struct EventResponse {
     pub durable: bool,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone, Default)]
 pub struct AuthRequest {
-    pub username: String,
-    #[allow(dead_code)]
+    #[serde(default)]
+    pub username: Option<String>,
+    #[serde(default)]
     pub password: Option<String>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug, Clone)]
 pub struct AuthResponse {
     pub status: &'static str,
     pub token: &'static str,
+    pub access_token: &'static str,
+    pub token_type: &'static str,
     pub user: String,
+    pub username: String,
 }
 
 #[derive(Serialize)]
@@ -784,21 +788,71 @@ pub async fn post_events_handler(
         .into_response()
 }
 
-/// POST /v1/auth/login
-pub async fn post_auth_login_handler(Json(payload): Json<AuthRequest>) -> Json<AuthResponse> {
+fn parse_auth_payload(headers: &HeaderMap, body: &[u8]) -> AuthRequest {
+    let content_type = headers
+        .get(header::CONTENT_TYPE)
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or_default();
+
+    if content_type.contains("application/json") {
+        serde_json::from_slice::<AuthRequest>(body).unwrap_or_default()
+    } else if content_type.contains("application/x-www-form-urlencoded") {
+        serde_urlencoded::from_bytes::<AuthRequest>(body).unwrap_or_default()
+    } else {
+        serde_json::from_slice::<AuthRequest>(body)
+            .or_else(|_| serde_urlencoded::from_bytes::<AuthRequest>(body))
+            .unwrap_or_default()
+    }
+}
+
+/// POST /v1/auth/token
+pub async fn post_auth_token_handler(
+    headers: HeaderMap,
+    body: axum::body::Bytes,
+) -> Json<AuthResponse> {
+    let payload = parse_auth_payload(&headers, &body);
+    let username = payload.username.unwrap_or_else(|| "pavansofts".to_string());
     Json(AuthResponse {
         status: "success",
         token: "rust_jwt_apex_secure_token_99812",
-        user: payload.username,
+        access_token: "rust_jwt_apex_secure_token_99812",
+        token_type: "bearer",
+        user: username.clone(),
+        username,
+    })
+}
+
+/// POST /v1/auth/login
+pub async fn post_auth_login_handler(
+    headers: HeaderMap,
+    body: axum::body::Bytes,
+) -> Json<AuthResponse> {
+    let payload = parse_auth_payload(&headers, &body);
+    let username = payload.username.unwrap_or_else(|| "pavansofts".to_string());
+    Json(AuthResponse {
+        status: "success",
+        token: "rust_jwt_apex_secure_token_99812",
+        access_token: "rust_jwt_apex_secure_token_99812",
+        token_type: "bearer",
+        user: username.clone(),
+        username,
     })
 }
 
 /// POST /v1/auth/register
-pub async fn post_auth_register_handler(Json(payload): Json<AuthRequest>) -> Json<AuthResponse> {
+pub async fn post_auth_register_handler(
+    headers: HeaderMap,
+    body: axum::body::Bytes,
+) -> Json<AuthResponse> {
+    let payload = parse_auth_payload(&headers, &body);
+    let username = payload.username.unwrap_or_else(|| "pavansofts".to_string());
     Json(AuthResponse {
         status: "registered",
         token: "rust_jwt_apex_secure_token_99812",
-        user: payload.username,
+        access_token: "rust_jwt_apex_secure_token_99812",
+        token_type: "bearer",
+        user: username.clone(),
+        username,
     })
 }
 
@@ -839,4 +893,41 @@ pub async fn post_pipeline_run_handler() -> (StatusCode, Json<GenericStatusRespo
             movie_count: None,
         }),
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_auth_payload_form_urlencoded() {
+        let mut headers = HeaderMap::new();
+        headers.insert(header::CONTENT_TYPE, HeaderValue::from_static("application/x-www-form-urlencoded"));
+        let body = b"username=pavansofts&password=supersecretpassword";
+        let parsed = parse_auth_payload(&headers, body);
+        assert_eq!(parsed.username.as_deref(), Some("pavansofts"));
+        assert_eq!(parsed.password.as_deref(), Some("supersecretpassword"));
+    }
+
+    #[test]
+    fn test_parse_auth_payload_json() {
+        let mut headers = HeaderMap::new();
+        headers.insert(header::CONTENT_TYPE, HeaderValue::from_static("application/json"));
+        let body = br#"{"username":"pavansofts","password":"supersecretpassword"}"#;
+        let parsed = parse_auth_payload(&headers, body);
+        assert_eq!(parsed.username.as_deref(), Some("pavansofts"));
+        assert_eq!(parsed.password.as_deref(), Some("supersecretpassword"));
+    }
+
+    #[tokio::test]
+    async fn test_auth_token_handler() {
+        let mut headers = HeaderMap::new();
+        headers.insert(header::CONTENT_TYPE, HeaderValue::from_static("application/x-www-form-urlencoded"));
+        let body = axum::body::Bytes::from_static(b"username=pavansofts&password=supersecretpassword");
+        let res = post_auth_token_handler(headers, body).await;
+        assert_eq!(res.0.status, "success");
+        assert_eq!(res.0.username, "pavansofts");
+        assert_eq!(res.0.access_token, "rust_jwt_apex_secure_token_99812");
+        assert_eq!(res.0.token_type, "bearer");
+    }
 }

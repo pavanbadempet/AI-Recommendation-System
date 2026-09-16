@@ -87,8 +87,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // Telemetry Events
         .route("/v1/events", post(routes::post_events_handler))
         // Authentication
+        .route("/v1/auth/token", post(routes::post_auth_token_handler))
+        .route("/api/v1/auth/token", post(routes::post_auth_token_handler))
+        .route("/auth/token", post(routes::post_auth_token_handler))
         .route("/v1/auth/login", post(routes::post_auth_login_handler))
+        .route("/api/v1/auth/login", post(routes::post_auth_login_handler))
+        .route("/auth/login", post(routes::post_auth_login_handler))
         .route("/v1/auth/register", post(routes::post_auth_register_handler))
+        .route("/api/v1/auth/register", post(routes::post_auth_register_handler))
+        .route("/auth/register", post(routes::post_auth_register_handler))
         // System & Benchmarks
         .route("/v1/admin/status", get(routes::get_admin_status_handler))
         .route(

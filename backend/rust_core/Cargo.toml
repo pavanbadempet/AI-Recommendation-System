@@ -23,6 +23,7 @@ tower-http = { version = "0.5", features = ["cors", "fs", "trace"] }
 memmap2 = "0.9"
 parking_lot = "0.12"
 byteorder = "1.5"
+serde_urlencoded = "0.7"
 
 [profile.release]
 opt-level = 3
