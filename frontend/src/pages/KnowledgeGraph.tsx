@@ -502,9 +502,47 @@ export function KnowledgeGraphPage({ titles }: { titles: MovieTitle[] }) {
       {/* Graph area */}
       <div className="kg-content">
         {!selectedId && (
-          <div className="kg-empty" role="status">
-            <Film size={40} aria-hidden="true" />
-            <p>Select a movie above to explore its knowledge graph connections.</p>
+          <div className="kg-empty" role="status" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "16px", padding: "40px 20px" }}>
+            <Film size={44} aria-hidden="true" style={{ color: "var(--quiet)" }} />
+            <div style={{ textAlign: "center", maxWidth: "480px" }}>
+              <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text)", marginBottom: "6px" }}>Explore Semantic Graph Reasoning</h3>
+              <p style={{ fontSize: "0.88rem", color: "var(--muted)", lineHeight: 1.5 }}>Select a movie above or click a curated seed below to explore its multi-hop neural connections:</p>
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "center", maxWidth: "560px" }}>
+              {[
+                { id: 27205, title: "Inception" },
+                { id: 155, title: "The Dark Knight" },
+                { id: 157336, title: "Interstellar" },
+                { id: 603, title: "The Matrix" },
+                { id: 680, title: "Pulp Fiction" },
+                { id: 550, title: "Fight Club" },
+                { id: 238, title: "The Godfather" },
+                { id: 120, title: "The Lord of the Rings" },
+              ].map((seed) => (
+                <button
+                  key={seed.id}
+                  type="button"
+                  onClick={() => selectTitle(seed)}
+                  style={{
+                    background: "rgba(124, 58, 237, 0.12)",
+                    border: "1px solid rgba(124, 58, 237, 0.35)",
+                    borderRadius: "20px",
+                    padding: "8px 16px",
+                    color: "#c4b5fd",
+                    fontSize: "0.82rem",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  <Film size={12} />
+                  <span>{seed.title}</span>
+                </button>
+              ))}
+            </div>
           </div>
         )}
         {selectedId && loading && (

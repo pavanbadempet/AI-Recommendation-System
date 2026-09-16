@@ -3,6 +3,7 @@ import * as ort from "onnxruntime-web";
 import { loadTitles } from "./api";
 import { WordPieceTokenizer } from "./tokenizer";
 import type { Movie, MovieTitle } from "./types";
+import { loadVectorBuffer, storeVectorBuffer } from "./indexedDbStorage";
 
 // Configure WASM paths for onnxruntime-web
 if (typeof window !== "undefined") {
@@ -25,12 +26,6 @@ let isLoaded = false;
  * Caches SBERT ONNX session and vocabulary in memory.
  */
 export async function initClientVectorEngine(): Promise<boolean> {
-  // Remote deployment bypass to avoid downloading massive vector files (230MB+) over the internet.
-  if (typeof window !== "undefined" && !["localhost", "127.0.0.1", "::1"].includes(window.location.hostname)) {
-    console.log("[APEX] Remote deployment detected; bypassing client-side vector engine.");
-    return false;
-  }
-
   if (isLoaded) return true;
   if (isLoading) {
     while (isLoading) {
@@ -50,13 +45,16 @@ export async function initClientVectorEngine(): Promise<boolean> {
     }
     cachedTitles = titlesResult.data;
 
-    // 2. Fetch raw binary vector array buffer from FastAPI server
-    const response = await fetch("/movies/vectors");
-    if (!response.ok) {
-      throw new Error(`Failed to load binary vectors: ${response.statusText}`);
+    // 2. Fetch raw binary vector array buffer from IndexedDB cache or FastAPI server
+    let buffer = await loadVectorBuffer("movie_vectors");
+    if (!buffer) {
+      const response = await fetch("/movies/vectors");
+      if (!response.ok) {
+        throw new Error(`Failed to load binary vectors: ${response.statusText}`);
+      }
+      buffer = await response.arrayBuffer();
+      void storeVectorBuffer("movie_vectors", buffer);
     }
-    
-    const buffer = await response.arrayBuffer();
     cachedVectors = new Float32Array(buffer);
     
     // Pre-normalize all movie vectors for high-performance dot product similarity
@@ -173,6 +171,60 @@ export async function encodeQueryClient(query: string): Promise<Float32Array | n
   return embedding;
 }
 
+let workerInstance: Worker | null = null;
+let workerInitialized = false;
+
+function getSearchWorker(): Worker | null {
+  if (typeof Worker === "undefined" || typeof window === "undefined") return null;
+  if (!workerInstance) {
+    try {
+      workerInstance = new Worker(new URL("./vectorWorker.ts", import.meta.url), { type: "module" });
+    } catch {
+      workerInstance = null;
+    }
+  }
+  return workerInstance;
+}
+
+async function searchVectorsWorker(queryVector: Float32Array, topK: number): Promise<{ id: number; score: number }[] | null> {
+  const worker = getSearchWorker();
+  const titles = cachedTitles;
+  const vectors = cachedVectors;
+  if (!worker || !titles || !vectors) return null;
+
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(null), 100);
+
+    const onMsg = (e: MessageEvent) => {
+      if (e.data && e.data.type === "RESULTS") {
+        clearTimeout(timer);
+        worker.removeEventListener("message", onMsg);
+        resolve(e.data.matches || null);
+      }
+    };
+
+    worker.addEventListener("message", onMsg);
+
+    if (!workerInitialized) {
+      const movieIds = titles.map((t) => t.id);
+      worker.postMessage({
+        type: "SEARCH",
+        queryVector,
+        topK,
+        vectors,
+        movieIds,
+      });
+      workerInitialized = true;
+    } else {
+      worker.postMessage({
+        type: "SEARCH",
+        queryVector,
+        topK,
+      });
+    }
+  });
+}
+
 /**
  * Calculates semantic search recommendations for a text query in the client browser.
  * Bypasses network request, SBERT server encoding, and backend computation.
@@ -184,6 +236,28 @@ export async function getClientTextSearch(query: string, limit = 10): Promise<Mo
   // Encode query text to vector
   const queryVector = await encodeQueryClient(query);
   if (!queryVector) return null;
+
+  // Attempt search via dedicated Web Worker for non-blocking execution (<5ms SLA)
+  const workerMatches = await searchVectorsWorker(queryVector, limit);
+  if (workerMatches && workerMatches.length > 0) {
+    const results: Movie[] = [];
+    for (const match of workerMatches) {
+      const titleMeta = cachedTitles.find((m) => m.id === match.id) as any;
+      if (!titleMeta) continue;
+      results.push({
+        id: titleMeta.id,
+        title: titleMeta.title,
+        genres: Array.isArray(titleMeta.genres) ? titleMeta.genres.join("|") : titleMeta.genres || "",
+        overview: `Highly relevant semantic search match matching relevance ${(match.score * 100).toFixed(1)}%.`,
+        release_date: titleMeta.release_date || "",
+        popularity: titleMeta.popularity || 1.0,
+        retrieval_stage: `client_webgpu_search_${match.score.toFixed(3)}`,
+        vote_average: 7.5,
+        vote_count: 100,
+      });
+    }
+    return results;
+  }
 
   // Run optimized Cosine Similarity loop across all vectors
   const numMovies = cachedTitles.length;
@@ -250,6 +324,30 @@ export async function getClientRecommendations(movieId: number, limit = 10): Pro
 
   const offset = targetIdx * 384;
   const targetVector = cachedVectors.subarray(offset, offset + 384);
+
+  // Attempt search via dedicated Web Worker for non-blocking execution (<5ms SLA)
+  const workerMatches = await searchVectorsWorker(targetVector, limit + 1);
+  if (workerMatches && workerMatches.length > 0) {
+    const results: Movie[] = [];
+    for (const match of workerMatches) {
+      if (match.id === movieId) continue;
+      if (results.length >= limit) break;
+      const titleMeta = cachedTitles.find((m) => m.id === match.id) as any;
+      if (!titleMeta) continue;
+      results.push({
+        id: titleMeta.id,
+        title: titleMeta.title,
+        genres: Array.isArray(titleMeta.genres) ? titleMeta.genres.join("|") : titleMeta.genres || "",
+        overview: `Highly relevant recommendation matching similarity score ${(match.score * 100).toFixed(1)}%.`,
+        release_date: titleMeta.release_date || "",
+        popularity: titleMeta.popularity || 1.0,
+        retrieval_stage: `client_vector_engine_${match.score.toFixed(3)}`,
+        vote_average: 7.5,
+        vote_count: 100,
+      });
+    }
+    return results;
+  }
 
   const numMovies = cachedTitles.length;
   const scores: { index: number; score: number }[] = new Array(numMovies);

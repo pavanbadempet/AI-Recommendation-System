@@ -26,13 +26,24 @@ import contextlib
 
 import torch
 
+try:
+    torch.set_num_threads(1)
+    try:
+        torch.set_num_interop_threads(1)
+    except (RuntimeError, AttributeError):
+        pass
+except (ImportError, Exception):
+    pass
+
 from backend.intelligence.knowledge_graph import KnowledgeGraphEngine
 from backend.intelligence.semantic_twin import build_semantic_twin
 
 logger = logging.getLogger(__name__)
 
-# Resolve paths relative to this file
-MODELS_DIR = Path(__file__).parent.parent / "models"
+# Resolve paths relative to this file or repository root
+_repo_models = Path("models")
+_pkg_models = Path(__file__).parent.parent / "models"
+MODELS_DIR = _repo_models if (_repo_models / "sbert_encoder.quant.onnx").exists() else _pkg_models
 DATA_DIR = Path(__file__).parent.parent / "data" / "processed"
 
 
@@ -47,9 +58,9 @@ class ONNXSBERTEncoder:
         import onnxruntime as ort
         from transformers import AutoTokenizer
 
-        # Set thread constraints for CPU inference optimization
+        # Set single-threaded constraints for CPU inference optimization on 2-vCPU nodes
         opts = ort.SessionOptions()
-        opts.intra_op_num_threads = max(1, os.cpu_count() // 2)
+        opts.intra_op_num_threads = int(os.getenv("ORT_INTRA_OP_NUM_THREADS", "1"))
         opts.inter_op_num_threads = 1
         opts.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
         opts.enable_mem_pattern = True
@@ -58,7 +69,15 @@ class ONNXSBERTEncoder:
         opts.add_session_config_entry("session.intra_op.allow_spinning", "0")
 
         self.session = ort.InferenceSession(onnx_path, sess_options=opts)
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        try:
+            self.tokenizer = AutoTokenizer.from_pretrained(model_name, local_files_only=True)
+        except Exception as exc:
+            logger.warning(
+                "Offline tokenizer load for %s failed (%s); attempting standard load.",
+                model_name,
+                exc,
+            )
+            self.tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     def encode(self, sentences: list[str] | str, convert_to_numpy: bool = True) -> np.ndarray:
         if isinstance(sentences, str):
@@ -130,6 +149,13 @@ class Recommender:
     """
 
     def __init__(self):
+        try:
+            from backend.serving.app_startup import configure_cpu_threading
+
+            configure_cpu_threading(int(os.getenv("NOVA_CPU_THREADS", "1")))
+        except Exception:
+            pass
+
         self._index: Any | None = None
         self._vectorizer: Any | None = None
         self._item_vectorizer: Any | None = None
@@ -449,23 +475,33 @@ class Recommender:
         return []
 
     def _get_query_encoder(self):
-        """Load the query bi-encoder lazily when the deployment opts in."""
+        """Load the query bi-encoder with dimension-aware ONNX or SentenceTransformer."""
         if self._query_encoder is None:
             expected_model = "all-mpnet-base-v2"
             if hasattr(self, "manifest") and self.manifest:
                 expected_model = self.manifest.get("model_name", "all-mpnet-base-v2")
 
             onnx_path = MODELS_DIR / "sbert_encoder.quant.onnx"
+            # If the index is MiniLM (384-D) or ONNX is explicitly configured, use ONNX
             if onnx_path.exists() and "minilm" in expected_model.lower():
-                model_name = os.getenv("NOVA_QUERY_ENCODER_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
-                self._query_encoder = ONNXSBERTEncoder(str(onnx_path), model_name)
-                logger.info("Loaded ONNX query SBERT encoder from %s", onnx_path)
-            else:
+                try:
+                    model_name = os.getenv("NOVA_QUERY_ENCODER_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
+                    self._query_encoder = ONNXSBERTEncoder(str(onnx_path), model_name)
+                    logger.info("Loaded direct ONNX query SBERT encoder from %s", onnx_path)
+                    return self._query_encoder
+                except Exception as exc:
+                    logger.warning("Failed to load ONNX query SBERT encoder from %s: %s", onnx_path, exc)
+
+            try:
                 from sentence_transformers import SentenceTransformer
 
-                model_name = os.getenv("NOVA_QUERY_ENCODER_MODEL", expected_model)
-                self._query_encoder = SentenceTransformer(model_name)
-                logger.info("Loaded PyTorch query SBERT encoder: %s", model_name)
+                pytorch_model_name = os.getenv("NOVA_QUERY_ENCODER_MODEL", expected_model)
+                self._query_encoder = SentenceTransformer(pytorch_model_name)
+                logger.info("Loaded PyTorch query SBERT encoder: %s", pytorch_model_name)
+            except Exception as exc:
+                logger.error("Failed to load SentenceTransformer: %s", exc)
+                self._query_encoder = None
+
         return self._query_encoder
 
     def _get_cross_encoder(self):
@@ -1036,6 +1072,34 @@ class Recommender:
         movie_idx = self._index_for_movie_id(movie_id)
         if movie_idx is None:
             return []
+
+        # O(1) Precomputed fast-path
+        if not hasattr(self, "_precomputed_topk"):
+            self._precomputed_topk = None
+            try:
+                precomputed_path = MODELS_DIR / "precomputed_topk.json"
+                if precomputed_path.exists():
+                    import json
+                    with open(precomputed_path, "r", encoding="utf-8") as f:
+                        self._precomputed_topk = json.load(f)
+            except Exception:
+                self._precomputed_topk = None
+
+        if self._precomputed_topk is not None:
+            movie_key = str(movie_id)
+            if movie_key in self._precomputed_topk:
+                precomputed_list = self._precomputed_topk[movie_key][:n]
+                results = []
+                for rec_id, score in precomputed_list:
+                    rec_idx = self._index_for_movie_id(rec_id)
+                    if rec_idx is not None and self._movies is not None:
+                        item = self._movies.iloc[rec_idx].to_dict()
+                        item["similarity_score"] = float(score)
+                        from backend.pipeline.recommender_core import candidate_to_dict
+                        results.append(candidate_to_dict(self, item))
+                if results:
+                    return results
+
         import time as _time
 
         if not hasattr(self, "_rec_cache"):

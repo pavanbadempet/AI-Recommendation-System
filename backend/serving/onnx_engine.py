@@ -6,6 +6,7 @@ the C++ backend of ONNX Runtime, completely bypassing the Python GIL.
 """
 
 import logging
+import os
 from pathlib import Path
 
 import numpy as np
@@ -28,9 +29,10 @@ REQUIRED_TIER2_MODELS = frozenset(
 
 
 class ONNXEngine:
-    def __init__(self, cpu_cores: int = 0):
+    def __init__(self, cpu_cores: int = 1):
         self.sessions = {}
-        self._cpu_cores = cpu_cores
+        # If cpu_cores <= 0, default to single-threaded execution for zero-latency CPU serving
+        self._cpu_cores = cpu_cores if cpu_cores > 0 else int(os.getenv("ORT_INTRA_OP_NUM_THREADS", "1"))
 
         # We use CPUExecutionProvider for maximum multi-threading throughput on standard nodes
         self.providers = ["CPUExecutionProvider"]
@@ -174,12 +176,42 @@ class ONNXEngine:
         return outputs[0]
 
 
+    def prewarm_all_sessions(self) -> int:
+        """Execute a dummy forward pass through all loaded ONNX sessions.
+
+        Returns:
+            int: Number of successfully pre-warmed ONNX sessions.
+        """
+        warmed = 0
+        for name, session in self.sessions.items():
+            try:
+                dummy_inputs = {}
+                for inp in session.get_inputs():
+                    shape = [dim if (isinstance(dim, int) and dim > 0) else 1 for dim in inp.shape]
+                    if "int64" in inp.type:
+                        dummy_inputs[inp.name] = np.zeros(shape, dtype=np.int64)
+                    elif "int" in inp.type:
+                        dummy_inputs[inp.name] = np.zeros(shape, dtype=np.int32)
+                    elif "float" in inp.type:
+                        dummy_inputs[inp.name] = np.zeros(shape, dtype=np.float32)
+                    elif "double" in inp.type:
+                        dummy_inputs[inp.name] = np.zeros(shape, dtype=np.float64)
+                    else:
+                        dummy_inputs[inp.name] = np.zeros(shape, dtype=np.float32)
+                session.run(None, dummy_inputs)
+                warmed += 1
+                logger.debug("Pre-warmed ONNX session: %s", name)
+            except Exception as exc:
+                logger.warning("Pre-warm forward pass failed for ONNX model %s: %s", name, exc)
+        return warmed
+
+
 # Singleton Global Engine
 _onnx_engine = None
 _onnx_engine_lock = None  # initialised lazily to avoid import-time threading overhead
 
 
-def get_onnx_engine(cpu_cores: int = 0) -> ONNXEngine:
+def get_onnx_engine(cpu_cores: int = 1) -> ONNXEngine:
     """Return the module-level ONNXEngine singleton (thread-safe)."""
     global _onnx_engine, _onnx_engine_lock
     # Lazy-init the lock itself (safe: GIL protects simple assignment at module level)

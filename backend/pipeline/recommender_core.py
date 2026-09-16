@@ -2009,6 +2009,35 @@ def visual_search(rec, movie_id: int, n: int = 10) -> list:
 
 def candidate_to_dict(rec, item) -> dict:
     """Convert a FinalItem from the pipeline to the response dict shape."""
+    if isinstance(item, dict):
+        movie_id = item.get("movie_id", item.get("id"))
+        movie = rec.get_movie_by_id(movie_id) if (rec is not None and movie_id is not None) else None
+        if movie is None:
+            movie = dict(item)
+            if movie_id is not None:
+                movie.setdefault("id", movie_id)
+        else:
+            movie = dict(movie)
+        similarity = float(item.get("similarity_score", 0.0))
+        movie["similarity_score"] = similarity
+        movie["retrieval_stage"] = item.get("retrieval_stage", "precomputed")
+        retrieval_signals = item.get("retrieval_signals", {}) or {}
+        movie["retrieval_signals"] = {
+            "dense": round(similarity, 4),
+            "ensemble": round(similarity, 4),
+            "ranker": round(similarity, 4),
+            "diversity": 0.0,
+            **retrieval_signals,
+        }
+        explanation = item.get("explanation", None)
+        if explanation:
+            movie["explanation"] = explanation if isinstance(explanation, list) else [explanation]
+            movie["explanation_text"] = movie["explanation"][0] if movie["explanation"] else ""
+        else:
+            movie.setdefault("explanation", ["Similar themes and plot"])
+            movie.setdefault("explanation_text", "Similar themes and plot")
+        return movie
+
     movie = rec.get_movie_by_id(item.movie_id)
     if movie is None:
         movie = dict(item.metadata)

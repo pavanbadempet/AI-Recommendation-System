@@ -900,14 +900,19 @@ def create_search_movie_router(deps: RouterDeps):
     @router.get("/v1/search/ai", response_model=list[Movie])
     @cached_endpoint(ttl=60.0)
     async def ai_search_movies(
-        q: str = Query(..., min_length=1),
+        q: str | None = Query(default=None),
+        query: str | None = Query(default=None),
         limit: int = Query(default=20, ge=1, le=100),
         top_k: int | None = Query(default=None, ge=1, le=100),
+        n: int | None = Query(default=None, ge=1, le=100),
         context=Depends(resolve_tenant_context),
     ):
-        result_limit = top_k or limit
+        search_query = q or query
+        if not search_query or not search_query.strip():
+            raise HTTPException(status_code=422, detail="Query parameter 'q' or 'query' is required.")
+        result_limit = n or top_k or limit
         remote_payload = await remote_payload_or_raise(
-            "/v1/search/ai", params={"q": q, "limit": limit, "top_k": result_limit}, context=context
+            "/v1/search/ai", params={"q": search_query, "limit": result_limit, "top_k": result_limit}, context=context
         )
         if remote_payload is not None:
             record_usage(
@@ -919,7 +924,7 @@ def create_search_movie_router(deps: RouterDeps):
             )
             return remote_payload
         rec = await run_in_threadpool(get_rec)
-        results = rec.ai_search(q, n=result_limit)
+        results = rec.ai_search(search_query, n=result_limit)
         record_usage(
             "search.ai", context.tenant_id, context.catalog_id, plan=context.plan, authenticated=context.authenticated
         )

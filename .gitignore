@@ -14,6 +14,11 @@ flutter_app/
 .vscode/
 *.swp
 *.swo
+.agents/
+ORIGINAL_REQUEST.md
+PROJECT.md
+TEST_INFRA.md
+TEST_READY.md
 # Environment variables
 .env
 frontend/.env
@@ -58,11 +63,13 @@ models/*.npy
 models/*.joblib
 models/*.joblib.metadata.json
 models/*.pth
+*movies_catalog.json
 models/*.gpickle
 models/*.tq
 models/*.onnx
 models/onnx/
 models/pipeline_manifest.json
+models/precomputed_topk.*
 # Backend-local model artifact copies (same files, duplicated into package)
 backend/models/*.index
 backend/models/*.npy

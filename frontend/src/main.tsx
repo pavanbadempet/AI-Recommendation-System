@@ -88,6 +88,8 @@ function SuspenseFallback() {
 const imageBase = import.meta.env.VITE_TMDB_IMAGE_BASE || "https://image.tmdb.org/t/p/w500";
 const RECENT_STORAGE_KEY = "nova_recent_movies_v2";
 const SESSION_STORAGE_KEY = "nova_session_id_v1";
+const SHOWCASE_STORAGE_KEY = "nova_cached_showcase_movies_v1";
+const LATEST_STORAGE_KEY = "nova_cached_latest_movies_v1";
 const TITLE_CATALOG_LIMIT = 5000;
 
 type AppPage = "home" | "search" | "vector-space" | "data-platform" | "profile" | "dashboard" | "knowledge-graph" | "evaluation" | "admin" | "landing" | "signup" | "pricing" | "getting-started" | "status";
@@ -96,6 +98,46 @@ type CatalogState = "booting" | "warming" | "ready" | "error";
 type ResultsKind = "idle" | "search" | "recommendations";
 type SelectionSource = "title_search" | "semantic_search" | "search_result" | "recommendation_card" | "recent_pick";
 type FeedbackValue = "positive" | "negative";
+
+export function getPageFromPath(pathname: string): AppPage {
+  const clean = pathname.toLowerCase().replace(/\/+$/, "") || "/";
+  if (clean === "/search") return "search";
+  if (clean === "/discover") return "search";
+  if (clean === "/3d-galaxy" || clean === "/vector-space" || clean === "/galaxy") return "vector-space";
+  if (clean === "/data-platform" || clean === "/platform" || clean === "/pipeline") return "data-platform";
+  if (clean === "/watchlist" || clean === "/profile") return "profile";
+  if (clean === "/dashboard") return "dashboard";
+  if (clean === "/knowledge-graph" || clean === "/graph") return "knowledge-graph";
+  if (clean === "/evaluation" || clean === "/eval") return "evaluation";
+  if (clean === "/admin") return "admin";
+  if (clean === "/landing") return "landing";
+  if (clean === "/signup") return "signup";
+  if (clean === "/pricing") return "pricing";
+  if (clean === "/getting-started") return "getting-started";
+  if (clean === "/status") return "status";
+  return "home";
+}
+
+export function pageToPath(targetPage: AppPage, searchMode?: SearchMode): string {
+  switch (targetPage) {
+    case "home": return "/";
+    case "search": return searchMode === "semantic" ? "/discover" : "/search";
+    case "vector-space": return "/3d-galaxy";
+    case "data-platform": return "/data-platform";
+    case "profile": return "/watchlist";
+    case "dashboard": return "/dashboard";
+    case "knowledge-graph": return "/knowledge-graph";
+    case "evaluation": return "/evaluation";
+    case "admin": return "/admin";
+    case "landing": return "/landing";
+    case "signup": return "/signup";
+    case "pricing": return "/pricing";
+    case "getting-started": return "/getting-started";
+    case "status": return "/status";
+    default: return "/";
+  }
+}
+
 
 function posterUrl(path?: string | null): string {
   if (!path) return "https://placehold.co/500x750/141418/f8fafc?text=Movie";
@@ -257,6 +299,151 @@ function saveRecentMovies(movies: Movie[]) {
   } catch {
     // Local storage is optional; the app still works without it.
   }
+}
+
+const SEED_SHOWCASE_MOVIES: Movie[] = [
+  {
+    id: 157336,
+    title: "Interstellar",
+    overview: "The adventures of a group of explorers who make use of a newly discovered wormhole to surpass the limitations on human space travel and conquer the vast distances involved in an interstellar voyage.",
+    genres: "Adventure, Drama, Science Fiction",
+    vote_average: 8.4,
+    vote_count: 35000,
+    popularity: 150.2,
+    release_date: "2014-11-05",
+    poster_path: "/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",
+    director: "Christopher Nolan",
+    runtime: 169,
+  },
+  {
+    id: 27205,
+    title: "Inception",
+    overview: "Cobb, a skilled thief who commits corporate espionage by infiltrating the subconscious of his targets, is offered a chance to regain his old life as payment for a task considered to be impossible: 'inception'.",
+    genres: "Action, Science Fiction, Adventure",
+    vote_average: 8.4,
+    vote_count: 36000,
+    popularity: 140.5,
+    release_date: "2010-07-15",
+    poster_path: "/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg",
+    director: "Christopher Nolan",
+    runtime: 148,
+  },
+  {
+    id: 155,
+    title: "The Dark Knight",
+    overview: "Batman raises the stakes in his war on crime. With the help of Lt. Jim Gordon and District Attorney Harvey Dent, Batman sets out to dismantle the remaining criminal organizations that plague the streets.",
+    genres: "Drama, Action, Crime, Thriller",
+    vote_average: 8.5,
+    vote_count: 32000,
+    popularity: 130.0,
+    release_date: "2008-07-16",
+    poster_path: "/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
+    director: "Christopher Nolan",
+    runtime: 152,
+  },
+  {
+    id: 680,
+    title: "Pulp Fiction",
+    overview: "A burger-loving hit man, his philosophical partner, a drug-addled gangster's moll and a washed-up boxer converge in this sprawling, comedic crime caper.",
+    genres: "Thriller, Crime",
+    vote_average: 8.5,
+    vote_count: 27000,
+    popularity: 120.0,
+    release_date: "1994-09-10",
+    poster_path: "/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg",
+    director: "Quentin Tarantino",
+    runtime: 154,
+  },
+  {
+    id: 238,
+    title: "The Godfather",
+    overview: "Spanning the years 1945 to 1955, a chronicle of the fictional Italian-American Corleone crime family. When organized crime family patriarch, Vito Corleone barely survives an attempt on his life, his youngest son, Michael steps in to take care of the would-be killers.",
+    genres: "Drama, Crime",
+    vote_average: 8.7,
+    vote_count: 20000,
+    popularity: 160.0,
+    release_date: "1972-03-14",
+    poster_path: "/3bhkrj58Vtu7enYsRolD1fZdja1.jpg",
+    director: "Francis Ford Coppola",
+    runtime: 175,
+  },
+  {
+    id: 299536,
+    title: "Avengers: Infinity War",
+    overview: "As the Avengers and their allies have continued to protect the world from threats too large for any one hero to handle, a new danger has emerged from the cosmic shadows: Thanos.",
+    genres: "Adventure, Action, Science Fiction",
+    vote_average: 8.3,
+    vote_count: 29000,
+    popularity: 180.0,
+    release_date: "2018-04-25",
+    poster_path: "/7WsyChQLEftFiDOVTGkv3hFpyyt.jpg",
+    director: "Anthony Russo, Joe Russo",
+    runtime: 149,
+  },
+  {
+    id: 19995,
+    title: "Avatar",
+    overview: "In the 22nd century, a paraplegic Marine is dispatched to the moon Pandora on a unique mission, but becomes torn between following orders and protecting an alien civilization.",
+    genres: "Action, Adventure, Fantasy, Science Fiction",
+    vote_average: 7.6,
+    vote_count: 31000,
+    popularity: 110.0,
+    release_date: "2009-12-15",
+    poster_path: "/kyeqWdyUXW608qlYkRqosgbbnKR.jpg",
+    director: "James Cameron",
+    runtime: 162,
+  },
+  {
+    id: 550,
+    title: "Fight Club",
+    overview: "A ticking-time-bomb insomniac and a slippery soap salesman channel primal male aggression into a shocking new form of therapy. Their concept catches on, with underground 'fight clubs' forming in every town.",
+    genres: "Drama",
+    vote_average: 8.4,
+    vote_count: 28000,
+    popularity: 115.0,
+    release_date: "1999-10-15",
+    poster_path: "/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg",
+    director: "David Fincher",
+    runtime: 139,
+  }
+];
+
+function loadCachedShowcaseMovies(): Movie[] {
+  try {
+    const raw = typeof window !== "undefined" ? window.localStorage.getItem(SHOWCASE_STORAGE_KEY) : null;
+    if (raw) {
+      const parsed = JSON.parse(raw) as Movie[];
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed.slice(0, 10);
+    }
+  } catch {}
+  return SEED_SHOWCASE_MOVIES;
+}
+
+function saveCachedShowcaseMovies(movies: Movie[]) {
+  try {
+    if (typeof window !== "undefined" && movies.length > 0) {
+      window.localStorage.setItem(SHOWCASE_STORAGE_KEY, JSON.stringify(movies.slice(0, 10)));
+    }
+  } catch {}
+}
+
+function loadCachedLatestMovies(): Movie[] {
+  try {
+    const raw = typeof window !== "undefined" ? window.localStorage.getItem(LATEST_STORAGE_KEY) : null;
+    if (raw) {
+      const parsed = JSON.parse(raw) as Movie[];
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed.slice(0, 10);
+    }
+  } catch {}
+  return SEED_SHOWCASE_MOVIES.slice().reverse();
+}
+
+function saveCachedLatestMovies(movies: Movie[]) {
+  try {
+    if (typeof window !== "undefined" && movies.length > 0) {
+      window.localStorage.setItem(LATEST_STORAGE_KEY, JSON.stringify(movies.slice(0, 10)));
+    }
+  } catch {}
 }
 
 function createSessionId(): string {
@@ -491,6 +678,21 @@ function QualityPanel({ report }: { report: SemanticBenchmark | null }) {
   );
 }
 
+const prefetchedMovieIds = new Set<number>();
+let prefetchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+export function prefetchMovie(movieId: number): void {
+  if (!movieId || prefetchedMovieIds.has(movieId)) return;
+  if (prefetchDebounceTimer) {
+    clearTimeout(prefetchDebounceTimer);
+  }
+  prefetchDebounceTimer = setTimeout(() => {
+    prefetchedMovieIds.add(movieId);
+    void apiGet("/movie/" + movieId);
+    void apiGet("/v1/recommendations/id/" + movieId, { n: 5 });
+  }, 50);
+}
+
 const MoviePoster = React.memo(function MoviePoster({
   movie,
   onSelect,
@@ -499,7 +701,13 @@ const MoviePoster = React.memo(function MoviePoster({
   onSelect: (movie: Movie) => void;
 }) {
   return (
-    <button className="poster-card" type="button" onClick={() => onSelect(movie)} title={movie.title}>
+    <button
+      className="poster-card"
+      type="button"
+      onClick={() => onSelect(movie)}
+      onPointerEnter={() => prefetchMovie(movie.id)}
+      title={movie.title}
+    >
       <img src={posterUrl(movie.poster_path)} alt={movie.title} loading="lazy" />
     </button>
   );
@@ -1297,6 +1505,7 @@ const HomePage = React.memo(function HomePage({
   homeMode,
   onToggleMode,
   onNavigate,
+  onHoverMovie,
 }: {
   movies: Movie[];
   heroIndex: number;
@@ -1312,11 +1521,17 @@ const HomePage = React.memo(function HomePage({
   homeMode: "foryou" | "latest" | "trending";
   onToggleMode: (mode: "foryou" | "latest" | "trending") => void;
   onNavigate?: (page: AppPage) => void;
+  onHoverMovie?: (movieId?: number) => void;
 }) {
   const hasForYou = recentMovies.length > 0 || forYouMovies.length > 0;
-  const activeMovies = homeMode === "foryou" && hasForYou ? forYouMovies : homeMode === "latest" ? latestMovies : movies;
-  const hero = activeMovies[heroIndex] || activeMovies[0] || null;
-  const isLoading = homeMode === "foryou" ? forYouLoading : homeMode === "latest" ? latestLoading : loading;
+  const activeMovies = (homeMode === "foryou" && forYouMovies.length > 0)
+    ? forYouMovies
+    : (homeMode === "latest" && latestMovies.length > 0)
+      ? latestMovies
+      : movies;
+  const hero = activeMovies[heroIndex] || activeMovies[0] || movies[0] || null;
+  const isCurrentModeLoading = homeMode === "foryou" ? forYouLoading : homeMode === "latest" ? latestLoading : loading;
+  const isLoading = isCurrentModeLoading && activeMovies.length === 0;
   const heroMeta = hero
     ? [movieScore(hero) !== "NR" ? `Rating ${movieScore(hero)}` : "", compactGenres(hero.genres), hero.runtime ? `${hero.runtime} min` : ""]
         .filter(Boolean)
@@ -1366,6 +1581,9 @@ const HomePage = React.memo(function HomePage({
                     className={movie.id === hero.id ? "active" : ""}
                     type="button"
                     key={`trending-${movie.id}`}
+                    onPointerEnter={() => prefetchMovie(movie.id)}
+                    onMouseEnter={() => onHoverMovie?.(movie.id)}
+                    onFocus={() => onHoverMovie?.(movie.id)}
                     onClick={() => {
                       onToggleMode("trending");
                       onHeroIndex(index);
@@ -1389,6 +1607,9 @@ const HomePage = React.memo(function HomePage({
                       className={movie.id === hero.id ? "active" : ""}
                       type="button"
                       key={`foryou-${movie.id}`}
+                      onPointerEnter={() => prefetchMovie(movie.id)}
+                      onMouseEnter={() => onHoverMovie?.(movie.id)}
+                      onFocus={() => onHoverMovie?.(movie.id)}
                       onClick={() => {
                         onToggleMode("foryou");
                         onHeroIndex(index);
@@ -1412,6 +1633,9 @@ const HomePage = React.memo(function HomePage({
                     className={movie.id === hero.id ? "active" : ""}
                     type="button"
                     key={`latest-${movie.id}`}
+                    onPointerEnter={() => prefetchMovie(movie.id)}
+                    onMouseEnter={() => onHoverMovie?.(movie.id)}
+                    onFocus={() => onHoverMovie?.(movie.id)}
                     onClick={() => {
                       onToggleMode("latest");
                       onHeroIndex(index);
@@ -1541,7 +1765,7 @@ function AuthModal({
 function App() {
   const [token, setToken] = React.useState<string | null>(window.localStorage.getItem("nova_jwt_token"));
   const [username, setUsername] = React.useState<string | null>(window.localStorage.getItem("nova_username"));
-  const [page, setPage] = React.useState<AppPage>("home");
+  const [page, setPage] = React.useState<AppPage>(() => typeof window !== "undefined" ? getPageFromPath(window.location.pathname) : "home");
   const [showAuthModal, setShowAuthModal] = React.useState(false);
   const [titles, setTitles] = React.useState<MovieTitle[]>([]);
   const [titleQuery, setTitleQuery] = React.useState("");
@@ -1569,13 +1793,13 @@ function App() {
   const [recommendationSource, setRecommendationSource] = React.useState<Movie | null>(null);
   const [dialogMovie, setDialogMovie] = React.useState<Movie | null>(null);
   const [titleSelectOpen, setTitleSelectOpen] = React.useState(false);
-  const [homeMovies, setHomeMovies] = React.useState<Movie[]>([]);
+  const [homeMovies, setHomeMovies] = React.useState<Movie[]>(() => loadCachedShowcaseMovies());
   const [homeHeroIndex, setHomeHeroIndex] = React.useState(0);
   const [homeLoading, setHomeLoading] = React.useState(false);
   const [homeError, setHomeError] = React.useState("");
   const [forYouMovies, setForYouMovies] = React.useState<Movie[]>([]);
   const [forYouLoading, setForYouLoading] = React.useState(false);
-  const [latestMovies, setLatestMovies] = React.useState<Movie[]>([]);
+  const [latestMovies, setLatestMovies] = React.useState<Movie[]>(() => loadCachedLatestMovies());
   const [latestLoading, setLatestLoading] = React.useState(false);
   const [homeMode, setHomeMode] = React.useState<"foryou" | "latest" | "trending">(() => loadRecentMovies().length > 0 ? "foryou" : "trending");
   const [sessionId] = React.useState(() => getSessionId());
@@ -1699,6 +1923,7 @@ function App() {
         const movies = dedupeMovies(showcaseResponse.data).slice(0, 8);
         setBackend(showcaseResponse.baseUrl);
         setHomeMovies(movies);
+        saveCachedShowcaseMovies(movies);
         setHomeHeroIndex(0);
         setCatalogState("ready");
         setHomeLoading(false);
@@ -1711,7 +1936,7 @@ function App() {
             const recMovies = dedupeMovies(recResponse.data.recommendations || []).slice(0, 8);
             if (recMovies.length > 0) {
               setHomeMovies(recMovies);
-              setHomeHeroIndex(0);
+              saveCachedShowcaseMovies(recMovies);
             }
           })
           .catch(() => { /* Showcase already visible, ML upgrade is optional */ });
@@ -1728,13 +1953,16 @@ function App() {
         const movies = dedupeMovies(searchResponse.data).slice(0, 8);
         setBackend(searchResponse.baseUrl);
         setHomeMovies(movies);
+        saveCachedShowcaseMovies(movies);
         setHomeHeroIndex(0);
         setCatalogState("ready");
-      } else {
+      } else if (homeMovies.length === 0) {
         setHomeError("No movies found in catalog.");
       }
     } catch (error) {
-      setHomeError(error instanceof Error ? error.message : "Movies unavailable during warmup.");
+      if (homeMovies.length === 0) {
+        setHomeError(error instanceof Error ? error.message : "Movies unavailable during warmup.");
+      }
     } finally {
       setHomeLoading(false);
     }
@@ -1743,22 +1971,32 @@ function App() {
   async function loadForYouShowcase(userId?: string) {
     setForYouLoading(true);
     try {
-      if (userId) {
-        const response = await getUserRecommendations(userId, 8);
-        const movies = dedupeMovies(response.data || []).slice(0, 8);
-        setForYouMovies(movies);
-        setBackend(response.baseUrl);
-        setHomeHeroIndex(0);
-        return;
+      if (userId && userId !== "Guest") {
+        try {
+          const response = await getUserRecommendations(userId, 8);
+          const movies = dedupeMovies(response.data || []).slice(0, 8);
+          if (movies.length > 0) {
+            setForYouMovies(movies);
+            setBackend(response.baseUrl);
+            setHomeHeroIndex(0);
+            return;
+          }
+        } catch {
+          // If user recs fails (e.g. 401 unauthenticated), proceed to recent movies fallback
+        }
       }
       const recent = loadRecentMovies();
-      if (recent.length === 0) return;
-      const seedMovie = recent[0];
-      if (!seedMovie.id) return;
-      const response = await getRecommendations(seedMovie.id, 8);
-      const movies = dedupeMovies(response.data.recommendations || []).slice(0, 8);
-      setForYouMovies(movies);
-      setHomeHeroIndex(0);
+      if (recent.length > 0 && recent[0].id) {
+        const response = await getRecommendations(recent[0].id, 8, 4000);
+        const movies = dedupeMovies(response.data.recommendations || []).slice(0, 8);
+        if (movies.length > 0) {
+          setForYouMovies(movies);
+          setHomeHeroIndex(0);
+          return;
+        }
+      }
+      // If neither personalized source was available, fall back to trending
+      setHomeMode("trending");
     } catch {
       // Fall back to trending silently
       setHomeMode("trending");
@@ -1771,10 +2009,12 @@ function App() {
     setLatestLoading(true);
     try {
       // Fetch real latest/trending movies from TMDB via backend
-      const response = await apiGet<Movie[]>("/movies/latest", { limit: 8 });
+      const response = await apiGet<Movie[]>("/movies/latest", { limit: 8 }, 6000);
       const movies = response.data || [];
       if (movies.length > 0) {
-        setLatestMovies(dedupeMovies(movies).slice(0, 8));
+        const deduped = dedupeMovies(movies).slice(0, 8);
+        setLatestMovies(deduped);
+        saveCachedLatestMovies(deduped);
         setHomeHeroIndex(0);
       }
       setCatalogState("ready");
@@ -2082,19 +2322,29 @@ function App() {
     }
   }
 
-  function openHome() {
-    setPage("home");
+  const navigateTo = React.useCallback((targetPage: AppPage, options?: { mode?: SearchMode; replace?: boolean }) => {
+    setPage(targetPage);
     setDialogMovie(null);
     setTitleSelectOpen(false);
-    window.history.pushState({ page: "home" }, "", "/");
+    if (targetPage === "search" && options?.mode) {
+      setMode(options.mode);
+    }
+    const path = pageToPath(targetPage, options?.mode || (targetPage === "search" ? mode : undefined));
+    if (typeof window !== "undefined" && window.history) {
+      if (options?.replace) {
+        window.history.replaceState({ page: targetPage, mode: options?.mode }, "", path);
+      } else {
+        window.history.pushState({ page: targetPage, mode: options?.mode }, "", path);
+      }
+    }
+  }, [mode]);
+
+  function openHome() {
+    navigateTo("home");
   }
 
   function openSearch(searchMode?: "title" | "semantic") {
-    if (searchMode) setMode(searchMode);
-    setPage("search");
-    setDialogMovie(null);
-    setTitleSelectOpen(false);
-    window.history.pushState({ page: "search", mode: searchMode }, "", searchMode === "semantic" ? "/discover" : "/search");
+    navigateTo("search", { mode: searchMode });
     // Auto-expand semantic section and focus the right input after render
     if (searchMode === "semantic") {
       setTimeout(() => {
@@ -2115,33 +2365,42 @@ function App() {
   React.useEffect(() => {
     function handlePopState(event: PopStateEvent) {
       const state = event.state;
-      if (state?.page === "home") {
-        setPage("home");
-        setDialogMovie(null);
-      } else if (state?.page === "search") {
+      if (state?.page) {
+        setPage(state.page);
         if (state.mode) setMode(state.mode);
-        setPage("search");
         setDialogMovie(null);
-      } else {
-        setPage("home");
+      } else if (typeof window !== "undefined") {
+        const pageFromPath = getPageFromPath(window.location.pathname);
+        setPage(pageFromPath);
+        setDialogMovie(null);
       }
     }
     window.addEventListener("popstate", handlePopState);
-    // Set initial history state
-    window.history.replaceState({ page: "home" }, "", "/");
+    if (typeof window !== "undefined" && window.history) {
+      const initialPath = pageToPath(page, mode);
+      window.history.replaceState({ page, mode }, "", initialPath);
+    }
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
   const catalogValue = platform?.movie_count || titles.length;
   const rankerValue = platform?.ranker?.available ? "Learned" : "Hybrid";
-  const innerPages: AppPage[] = ["vector-space", "dashboard", "knowledge-graph", "evaluation", "profile", "admin"];
+  const innerPages: AppPage[] = [
+    "vector-space",
+    "data-platform",
+    "dashboard",
+    "knowledge-graph",
+    "evaluation",
+    "profile",
+    "admin",
+  ];
   const isAppPage = ["home", "search", ...innerPages].includes(page);
 
   // ── Full-screen marketing pages (no app shell) ───────────────────────────
   if (page === "landing") {
     return (
       <React.Suspense fallback={<SuspenseFallback />}>
-        <LandingPage onNavigate={(p) => setPage(p as AppPage)} />
+        <LandingPage onNavigate={(p) => navigateTo(p as AppPage)} />
       </React.Suspense>
     );
   }
@@ -2149,7 +2408,7 @@ function App() {
     return (
       <React.Suspense fallback={<SuspenseFallback />}>
         <SignupPage
-          onNavigate={(p) => setPage(p as AppPage)}
+          onNavigate={(p) => navigateTo(p as AppPage)}
           onLoginSuccess={(tok, user) => { setToken(tok); setUsername(user); }}
         />
       </React.Suspense>
@@ -2158,14 +2417,14 @@ function App() {
   if (page === "pricing") {
     return (
       <React.Suspense fallback={<SuspenseFallback />}>
-        <PricingPage onNavigate={(p) => setPage(p as AppPage)} />
+        <PricingPage onNavigate={(p) => navigateTo(p as AppPage)} />
       </React.Suspense>
     );
   }
   if (page === "getting-started") {
     return (
       <React.Suspense fallback={<SuspenseFallback />}>
-        <GettingStartedPage onNavigate={(p) => setPage(p as AppPage)} />
+        <GettingStartedPage onNavigate={(p) => navigateTo(p as AppPage)} />
       </React.Suspense>
     );
   }
@@ -2190,7 +2449,7 @@ function App() {
             <StatusBadge state={catalogState} backend={backend} />
             {username ? (
               <div className="user-profile-menu" style={{ padding: "4px 12px" }}>
-                <button className="profile-btn" type="button" onClick={() => setPage("profile")}>
+                <button className="profile-btn" type="button" onClick={() => navigateTo("profile")}>
                   <strong>{username}</strong>
                 </button>
               </div>
@@ -2219,6 +2478,7 @@ function App() {
               latestLoading={latestLoading}
               homeMode={homeMode}
               onToggleMode={setHomeMode}
+              onHoverMovie={_prefetchMovieIntent}
             />
           )}
 
@@ -2364,6 +2624,7 @@ function App() {
                                   type="button"
                                   key={`mobile-popular-${movie.id}`}
                                   className="popular-search-card"
+                                  onPointerEnter={() => prefetchMovie(movie.id)}
                                   onClick={() => {
                                     setTitleQuery(selectTitleLabel(movie));
                                     selectMovie(movie, "title_search");
@@ -2405,6 +2666,8 @@ function App() {
           )}
 
           <React.Suspense fallback={<SuspenseFallback />}>
+            {page === "vector-space" && <main className="app-shell inner-shell"><ErrorBoundary><VectorSpace onSelectMovie={(movie) => setDialogMovie(movie)} titles={titles} /></ErrorBoundary></main>}
+            {page === "data-platform" && <main className="app-shell inner-shell"><ErrorBoundary><DataEngineeringPage /></ErrorBoundary></main>}
             {page === "dashboard" && <main className="app-shell inner-shell"><ErrorBoundary><Dashboard /></ErrorBoundary></main>}
             {page === "knowledge-graph" && <main className="app-shell inner-shell"><ErrorBoundary><KnowledgeGraphPage titles={titles} /></ErrorBoundary></main>}
             {page === "evaluation" && <main className="app-shell inner-shell"><ErrorBoundary><EvaluationPage /></ErrorBoundary></main>}
@@ -2416,7 +2679,7 @@ function App() {
                     username={username}
                     onRequestLogin={() => setShowAuthModal(true)}
                     onSelectMovie={(movie) => { setDialogMovie(movie); }}
-                    onNavigate={(p) => setPage(p as AppPage)}
+                    onNavigate={(p) => navigateTo(p as AppPage)}
                   />
                 </ErrorBoundary>
               </main>
@@ -2433,7 +2696,7 @@ function App() {
             onClick={() => { openHome(); setShowMoreDrawer(false); }}
           >
             <Film size={20} />
-            <span>Browse</span>
+            <span>Explore</span>
           </button>
           <button
             className={`mobile-nav-tab ${page === "search" ? "active" : ""}`}
@@ -2444,28 +2707,28 @@ function App() {
             <span>Search</span>
           </button>
           <button
+            className={`mobile-nav-tab ${page === "data-platform" ? "active" : ""}`}
+            type="button"
+            onClick={() => { navigateTo("data-platform"); setShowMoreDrawer(false); }}
+          >
+            <Database size={20} />
+            <span>Platform</span>
+          </button>
+          <button
             className={`mobile-nav-tab ${page === "knowledge-graph" ? "active" : ""}`}
             type="button"
-            onClick={() => { setPage("knowledge-graph"); setShowMoreDrawer(false); }}
+            onClick={() => { navigateTo("knowledge-graph"); setShowMoreDrawer(false); }}
           >
             <Network size={20} />
             <span>Graph</span>
           </button>
           <button
-            className={`mobile-nav-tab ${page === "evaluation" ? "active" : ""}`}
+            className={`mobile-nav-tab ${["profile", "dashboard", "admin", "evaluation", "vector-space"].includes(page) ? "active" : ""}`}
             type="button"
-            onClick={() => { setPage("evaluation"); setShowMoreDrawer(false); }}
-          >
-            <BarChart3 size={20} />
-            <span>Eval</span>
-          </button>
-          <button
-            className={`mobile-nav-tab ${["profile", "dashboard", "admin"].includes(page) ? "active" : ""}`}
-            type="button"
-            onClick={() => { setPage("profile"); setShowMoreDrawer(false); }}
+            onClick={() => { navigateTo("profile"); setShowMoreDrawer(false); }}
           >
             <User size={20} />
-            <span>My Space</span>
+            <span>Watchlist</span>
           </button>
         </nav>
 
@@ -2633,6 +2896,9 @@ function App() {
       { id: "search", label: "Search" },
       { id: "vector-space", label: "3D Galaxy" },
       { id: "data-platform", label: "Data Platform" },
+      { id: "dashboard", label: "Dashboard" },
+      { id: "knowledge-graph", label: "Graph" },
+      { id: "evaluation", label: "Evaluation" },
       { id: "profile", label: "Watchlist" },
     ];
 
@@ -2653,7 +2919,7 @@ function App() {
                   onClick={() => {
                     if (link.id === "home") openHome();
                     else if (link.id === "search") openSearch();
-                    else setPage(link.id as AppPage);
+                    else navigateTo(link.id as AppPage);
                   }}
                 >
                   {link.label}
@@ -2756,7 +3022,7 @@ function App() {
             </div>
             {username ? (
               <div className="user-profile-menu">
-                <button className="profile-btn" type="button" onClick={() => setPage("profile")}>
+                <button className="profile-btn" type="button" onClick={() => navigateTo("profile")}>
                   <User size={14} aria-hidden="true" /> <span className="profile-greet">Hi, </span><strong>{username}</strong>
                 </button>
                 <button
@@ -2800,6 +3066,7 @@ function App() {
               homeMode={homeMode}
               onToggleMode={setHomeMode}
               onNavigate={(p) => setPage(p as AppPage)}
+              onHoverMovie={_prefetchMovieIntent}
             />
           )}
 
@@ -3115,6 +3382,7 @@ function App() {
                             type="button"
                             key={`popular-${movie.id}`}
                             className="popular-search-card"
+                            onPointerEnter={() => prefetchMovie(movie.id)}
                             onClick={() => {
                               setTitleQuery(selectTitleLabel(movie));
                               selectMovie(movie, "title_search");
@@ -3157,6 +3425,7 @@ function App() {
                               <button
                                 type="button"
                                 key={`recent-${movie.id}`}
+                                onPointerEnter={() => prefetchMovie(movie.id)}
                                 onClick={() => {
                                   setTitleQuery(selectTitleLabel(movie));
                                   selectMovie(movie, "recent_pick");

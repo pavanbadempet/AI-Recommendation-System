@@ -27,6 +27,36 @@ logger = logging.getLogger(__name__)
 GITHUB_REPO = "https://github.com/pavanbadempet/Movie-Recommendation-System"
 
 
+def configure_cpu_threading(num_threads: int = 1) -> None:
+    """Configure PyTorch, OpenMP, MKL, and BLAS to execute single-threaded."""
+    for env_var in (
+        "OMP_NUM_THREADS",
+        "MKL_NUM_THREADS",
+        "OPENBLAS_NUM_THREADS",
+        "NUMEXPR_NUM_THREADS",
+        "VECLIB_MAXIMUM_THREADS",
+        "BLIS_NUM_THREADS",
+        "NOVA_CPU_THREADS",
+        "ORT_INTRA_OP_NUM_THREADS",
+    ):
+        os.environ.setdefault(env_var, str(num_threads))
+
+    try:
+        import torch
+
+        torch.set_num_threads(num_threads)
+        try:
+            torch.set_num_interop_threads(num_threads)
+        except (RuntimeError, AttributeError):
+            pass  # Inter-op threads cannot be changed once thread pool is running
+    except (ImportError, Exception):
+        pass
+
+
+# Ensure single-thread pinning on module import
+configure_cpu_threading(1)
+
+
 def env_truthy(name: str) -> bool:
     """Return True when the named env-var is set to a truthy value."""
     return os.getenv(name, "").strip().lower() in {"1", "true", "yes", "on"}
@@ -95,7 +125,7 @@ def _start_tier2_engine(tier_detector) -> None:
     try:
         from backend.serving.onnx_engine import get_onnx_engine
 
-        cpu_cores = getattr(getattr(tier_detector, "_profile", None), "cpu_cores", 0)
+        cpu_cores = int(os.getenv("NOVA_CPU_THREADS", "1"))
         onnx_engine = get_onnx_engine(cpu_cores=cpu_cores)
         missing = onnx_engine.missing_required_models()
         if missing:
@@ -125,6 +155,82 @@ def _preload_realtime_index() -> None:
         logger.warning("Real-time index pre-load failed: %s", exc)
 
 
+_keepalive_task: asyncio.Task | None = None
+
+
+def start_keepalive_ping_loop(
+    client: httpx.AsyncClient | None = None,
+    base_url: str | None = None,
+    interval: float | None = None,
+) -> asyncio.Task | None:
+    """Start an asyncio background task that periodically pings /health to prevent idle sleep.
+
+    Runs every 4 minutes (240s default, configurable via NOVA_KEEPALIVE_INTERVAL_SECONDS).
+    Can be disabled by setting NOVA_DISABLE_KEEPALIVE=1 or NOVA_KEEPALIVE_INTERVAL_SECONDS=0.
+    """
+    global _keepalive_task
+    if _keepalive_task is not None and not _keepalive_task.done():
+        return _keepalive_task
+
+    if env_truthy("NOVA_DISABLE_KEEPALIVE"):
+        logger.info("Keep-alive ping loop disabled via NOVA_DISABLE_KEEPALIVE.")
+        return None
+
+    if interval is None:
+        try:
+            interval = float(os.getenv("NOVA_KEEPALIVE_INTERVAL_SECONDS", "240"))
+        except ValueError:
+            interval = 240.0
+
+    if interval <= 0:
+        logger.info("Keep-alive ping loop disabled (interval <= 0).")
+        return None
+
+    if base_url is None:
+        host = os.getenv("HOST", "127.0.0.1")
+        port = os.getenv("PORT", "8000")
+        base_url = os.getenv("NOVA_KEEPALIVE_URL", f"http://{host}:{port}")
+
+    target_url = f"{base_url.rstrip('/')}/health"
+
+    async def _ping_loop():
+        logger.info(
+            "Starting autonomous keep-alive ping loop targeting %s every %.1fs",
+            target_url,
+            interval,
+        )
+        local_client = client or httpx.AsyncClient(timeout=10.0)
+        own_client = client is None
+        try:
+            while True:
+                await asyncio.sleep(interval)
+                try:
+                    res = await local_client.get(target_url)
+                    logger.debug("Keepalive ping to %s returned status %d", target_url, res.status_code)
+                except asyncio.CancelledError:
+                    raise
+                except Exception as exc:
+                    logger.debug("Keepalive ping note: %s", exc)
+        except asyncio.CancelledError:
+            logger.info("Keep-alive ping loop cancelled.")
+        finally:
+            if own_client:
+                await local_client.aclose()
+
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = asyncio.get_event_loop()
+
+    try:
+        _keepalive_task = loop.create_task(_ping_loop())
+    except Exception as exc:
+        logger.warning("Could not schedule keepalive ping task: %s", exc)
+        _keepalive_task = None
+
+    return _keepalive_task
+
+
 # ---------------------------------------------------------------------------
 # Public startup / shutdown entry points
 # ---------------------------------------------------------------------------
@@ -141,8 +247,14 @@ async def startup(
 
     Returns a dict with keys:
         ``http_client``, ``online_learner``, ``online_learning_coordinator``,
-        ``tier_detector``.
+        ``tier_detector``, ``keepalive_task``.
     """
+    import time
+    import numpy as np
+
+    # 1. Enforce single-threaded CPU execution across PyTorch and math runtimes
+    configure_cpu_threading(int(os.getenv("NOVA_CPU_THREADS", "1")))
+
     from backend.pipeline import recommender_helpers
 
     # Wire the recommender singleton accessors used by recommender_helpers.
@@ -167,6 +279,7 @@ async def startup(
         "online_learner": None,
         "online_learning_coordinator": None,
         "tier_detector": tier_detector,
+        "keepalive_task": None,
     }
 
     def init_tier1():
@@ -185,36 +298,109 @@ async def startup(
 
     _preload_realtime_index()
 
-    # Pre-warm recommender singleton in background so first user request responds in < 5ms
+    # Pre-warm recommender singleton and models for zero-latency first-request response
     def _prewarm_recommender():
+        prewarm_start = time.perf_counter()
+        warmed_components = []
         try:
             rec = recommender_get_fn()
             if rec is not None:
-                # 1. Warm up title and sparse catalog index
-                rec.search_by_title("Action", top_n=5)
-                # 2. Warm up query encoder (loads SentenceTransformer / ONNX model in background before user clicks)
-                rec.search_movies("Spider-Man", limit=5)
-                # 3. Warm up item-to-item recommendation pipeline and candidate caches
-                rec.recommend_by_id(movie_id=550, n=5)
-                # 4. Freeze static weights and DataFrame memory to eliminate Python cyclic GC scan overhead
+                # 1. Warm up ONNX query encoder
+                try:
+                    if hasattr(rec, "_get_query_encoder"):
+                        encoder = rec._get_query_encoder()
+                        if encoder is not None and hasattr(encoder, "encode"):
+                            _ = encoder.encode(["warmup search query"], convert_to_numpy=True)
+                            warmed_components.append("onnx_query_encoder")
+                except Exception as exc:
+                    logger.warning("Query encoder pre-warm note: %s", exc)
+
+                # 2. Warm up Tier-2 ONNXEngine inference sessions
+                try:
+                    from backend.serving.onnx_engine import get_onnx_engine
+
+                    engine = get_onnx_engine(cpu_cores=1)
+                    if hasattr(engine, "prewarm_all_sessions"):
+                        count = engine.prewarm_all_sessions()
+                        warmed_components.append(f"onnx_sessions({count})")
+                except Exception as exc:
+                    logger.warning("ONNXEngine pre-warm note: %s", exc)
+
+                # 3. Warm up TurboVec ANN vector index search
+                try:
+                    if hasattr(rec, "_index") and rec._index is not None and hasattr(rec._index, "search"):
+                        dummy_vec = np.zeros((1, 768), dtype=np.float32)
+                        rec._index.search(dummy_vec, 5)
+                        warmed_components.append("turbovec_index")
+                except Exception as exc:
+                    logger.warning("TurboVec index pre-warm note: %s", exc)
+
+                # 4. Pre-touch memory-mapped SBERT vector pages to fault into RAM
+                try:
+                    if hasattr(rec, "_vectors") and rec._vectors is not None:
+                        _ = rec._vectors[:200].sum()
+                        _ = rec._vectors[::500].sum()
+                        warmed_components.append("sbert_mmap_pages")
+                except Exception as exc:
+                    logger.warning("SBERT mmap pre-touch note: %s", exc)
+
+                # 5. Warm up catalog, recommendation & semantic search pipelines
+                try:
+                    if hasattr(rec, "search_by_title"):
+                        rec.search_by_title("Action", top_n=5)
+                    if hasattr(rec, "search_movies"):
+                        rec.search_movies("Spider-Man", limit=5)
+                    if hasattr(rec, "recommend_by_id"):
+                        rec.recommend_by_id(movie_id=550, n=5)
+                    if hasattr(rec, "ai_search"):
+                        rec.ai_search("Sci-Fi Adventure", n=5)
+                    warmed_components.append("pipeline_routes")
+                except Exception as exc:
+                    logger.warning("Recommender route pre-warm note: %s", exc)
+
+                # 6. Freeze static weights and DataFrame memory to eliminate Python cyclic GC scan overhead
                 import gc
 
                 gc.collect()
                 if hasattr(gc, "freeze"):
                     gc.freeze()
+                warmed_components.append("gc_freeze")
+
+                elapsed_ms = (time.perf_counter() - prewarm_start) * 1000.0
                 logger.info(
-                    "Recommender model, query encoder, and vector cache pre-warmed & GC frozen for zero-latency serving."
+                    "Recommender pre-warming completed in %.2f ms (components: %s)",
+                    elapsed_ms,
+                    ", ".join(warmed_components),
                 )
         except Exception as err:
             logger.warning("Recommender pre-warming note: %s", err)
 
-    asyncio.get_event_loop().run_in_executor(None, _prewarm_recommender)
+    warmup_future = asyncio.get_event_loop().run_in_executor(None, _prewarm_recommender)
+    if env_truthy("NOVA_EAGER_WARMUP"):
+        try:
+            await warmup_future
+        except Exception as exc:
+            logger.warning("Eager pre-warm wait note: %s", exc)
+
+    # 7. Start autonomous keep-alive ping loop to eliminate cloud idle cold sleep
+    keepalive_task = start_keepalive_ping_loop(client=http_client)
+    state["keepalive_task"] = keepalive_task
 
     return state
 
 
 async def shutdown(state: dict) -> None:
     """Gracefully stop background workers and release async resources."""
+    keepalive_task = state.get("keepalive_task") or _keepalive_task
+    if keepalive_task is not None:
+        if hasattr(keepalive_task, "cancel"):
+            keepalive_task.cancel()
+        if isinstance(keepalive_task, asyncio.Task) and not keepalive_task.done():
+            try:
+                await keepalive_task
+            except (asyncio.CancelledError, Exception):
+                pass
+
     coordinator = state.get("online_learning_coordinator")
     learner = state.get("online_learner")
     http_client: httpx.AsyncClient | None = state.get("http_client")

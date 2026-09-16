@@ -8,6 +8,7 @@ Provides REST API endpoints for movie search and recommendations.
 # =====================================================================
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
+import hashlib
 import logging
 import os
 from pathlib import Path
@@ -57,7 +58,7 @@ def _json_loads(s):
 # =====================================================================
 # 3. THIRD-PARTY IMPORTS
 # =====================================================================
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import httpx
@@ -180,6 +181,7 @@ from backend.response_models import (
     UsageResponse,
 )
 from backend.serving.app_info import app_metadata, public_base_url
+from backend.serving.app_startup import configure_cpu_threading as _configure_cpu_threading
 from backend.serving.app_startup import env_truthy as _env_truthy
 from backend.serving.app_startup import shutdown as _app_shutdown
 from backend.serving.app_startup import startup as _app_startup
@@ -194,6 +196,9 @@ from backend.serving.platform_readiness import (
     platform_readiness_report as _platform_readiness_report_fn,
 )
 from backend.serving.slo import RequestSloTracker, build_slo_report, should_track_request
+
+# Early thread pinning for single-core execution across PyTorch and math libraries
+_configure_cpu_threading(int(os.getenv("NOVA_CPU_THREADS", "1")))
 
 # =====================================================================
 # 5. LOGGING & CONSTANTS
@@ -408,26 +413,96 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.middleware("http")
+async def wire_cache_control_middleware(request: Request, call_next):
+    """Set optimal wire Cache-Control, CDN-Cache-Control, and ETag headers on GET endpoints."""
+    response = await call_next(request)
+    path = request.url.path
+
+    # Strictly non-cacheable routes (telemetry, auth, sensitive user actions)
+    if (
+        path == "/v1/events"
+        or path.startswith("/v1/events/")
+        or path == "/events"
+        or path.startswith("/events/")
+        or path.startswith("/v1/auth/")
+    ):
+        response.headers["Cache-Control"] = "private, no-store, no-cache"
+        return response
+
+    if request.method in ("GET", "HEAD") and response.status_code == 200:
+        cache_control = None
+
+        if (
+            path == "/movies/showcase"
+            or path.startswith("/movies/showcase/")
+            or path == "/v1/showcase"
+            or path.startswith("/v1/showcase/")
+        ):
+            cache_control = "public, max-age=300, s-maxage=300, stale-while-revalidate=3600"
+        elif (
+            path == "/movies/titles"
+            or path.startswith("/movies/titles/")
+            or path == "/v1/titles"
+            or path.startswith("/v1/titles/")
+        ):
+            cache_control = "public, max-age=1800, s-maxage=1800, stale-while-revalidate=86400"
+        elif path == "/movies/vectors" or path.startswith("/movies/vectors/"):
+            cache_control = "public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800"
+        elif path == "/v1/catalog" or path.startswith("/v1/catalog/"):
+            cache_control = "public, max-age=600, s-maxage=600, stale-while-revalidate=7200"
+        elif (
+            path.startswith("/v1/recommendations/id/")
+            or path.startswith("/recommend/id/")
+        ):
+            cache_control = "public, max-age=600, s-maxage=600, stale-while-revalidate=7200"
+        elif (
+            path == "/movie"
+            or path.startswith("/movie/")
+            or path == "/movies"
+            or path.startswith("/movies/")
+            or path.startswith("/v1/movies/")
+        ):
+            cache_control = "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400"
+        elif path.startswith("/ui/") or path.startswith("/assets/"):
+            cache_control = "public, max-age=31536000, immutable"
+
+        if cache_control:
+            response.headers["Cache-Control"] = cache_control
+            response.headers["CDN-Cache-Control"] = cache_control
+
+            # Deterministic ETag generation and HTTP 304 Not Modified handling
+            body_bytes = getattr(response, "body", b"") or b""
+            if not body_bytes and hasattr(response, "body_iterator"):
+                chunks = []
+                async for chunk in response.body_iterator:
+                    chunks.append(chunk if isinstance(chunk, bytes) else chunk.encode("utf-8"))
+                body_bytes = b"".join(chunks)
+                response = Response(
+                    content=body_bytes,
+                    status_code=response.status_code,
+                    headers=dict(response.headers),
+                    media_type=getattr(response, "media_type", None),
+                )
+
+            etag = f'"{hashlib.sha256(body_bytes).hexdigest()[:16]}"'
+            response.headers["ETag"] = etag
+
+            if_none_match = request.headers.get("if-none-match")
+            if if_none_match:
+                client_tags = [t.strip().strip('"').lstrip("W/").strip('"') for t in if_none_match.split(",")]
+                clean_etag = etag.strip('"').lstrip("W/").strip('"')
+                if if_none_match.strip() == "*" or clean_etag in client_tags:
+                    headers = dict(response.headers)
+                    headers["ETag"] = etag
+                    return Response(status_code=304, headers=headers)
+
+    return response
+
+
 from fastapi.middleware.gzip import GZipMiddleware
 
 app.add_middleware(GZipMiddleware, minimum_size=500)
-
-
-@app.middleware("http")
-async def wire_cache_control_middleware(request: Request, call_next):
-    """Set optimal wire Cache-Control and ETag headers on immutable/read-heavy GET endpoints."""
-    response = await call_next(request)
-    if request.method == "GET" and response.status_code == 200:
-        path = request.url.path
-        if path.startswith("/v1/showcase") or path.startswith("/v1/titles"):
-            response.headers["Cache-Control"] = "public, max-age=300, s-maxage=600, stale-while-revalidate=1800"
-        elif path.startswith("/v1/recommendations/id/"):
-            response.headers["Cache-Control"] = "public, max-age=60, s-maxage=300, stale-while-revalidate=600"
-        elif path.startswith("/v1/movies/"):
-            response.headers["Cache-Control"] = "public, max-age=120, s-maxage=600, stale-while-revalidate=1200"
-        elif path.startswith("/ui/") or path.startswith("/assets/"):
-            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
-    return response
 
 
 # Enterprise rate limiting (token bucket via Redis)
@@ -485,13 +560,14 @@ if (FRONTEND_DIST_DIR / "index.html").exists():
 @app.get("/")
 async def root(request: Request):
     accept = request.headers.get("accept", "")
-    if "text/html" in accept:
-        from fastapi.responses import RedirectResponse
+    frontend_index = FRONTEND_DIST_DIR / "index.html"
+    if "text/html" in accept and frontend_index.exists():
+        from fastapi.responses import FileResponse
 
-        return RedirectResponse("/ui/")
+        return FileResponse(frontend_index)
 
     metadata = app_metadata()
-    frontend_available = (FRONTEND_DIST_DIR / "index.html").exists()
+    frontend_available = frontend_index.exists()
     frontends = configured_frontends(frontend_available=frontend_available)
     return {
         "status": "online",
@@ -653,6 +729,19 @@ def _register_routes() -> None:
 
 # Execute route registration
 _register_routes()
+
+
+# Fallback handler for direct SPA route navigation (/data-platform, /search, /3d-galaxy, etc.)
+@app.get("/{full_path:path}")
+async def spa_fallback(full_path: str, request: Request):
+    accept = request.headers.get("accept", "")
+    frontend_index = FRONTEND_DIST_DIR / "index.html"
+    if "text/html" in accept and frontend_index.exists():
+        from fastapi.responses import FileResponse
+
+        return FileResponse(frontend_index)
+    raise HTTPException(status_code=404, detail="Resource not found")
+
 
 
 # =====================================================================

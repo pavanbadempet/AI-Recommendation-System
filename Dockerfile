@@ -1,145 +1,78 @@
-# Multi-stage Dockerfile for Movie Recommendation System
-# Stage 1: Build React frontend
-# Stage 2: Build ETL artifacts
-# Stage 3: Lightweight runtime
+# ==============================================================================
+# Multi-stage Distroless Dockerfile for Movie Recommendation System
+# Pure Rust Axum Serving Backend + Bun 1.2 React SPA Client
+#
+# Stage 1: Build React 19 SPA static bundle using Bun 1.2 (oven/bun:1.2-alpine)
+# Stage 2: Compile static pure-Rust APEX server (rust:1.80-alpine + musl)
+# Stage 3: Ultra-lean runtime (gcr.io/distroless/static-debian12:nonroot)
+# Target Image Size: < 25 MB | Container Cold-Start: < 50 ms
+# ==============================================================================
 
-FROM oven/bun:1-slim AS frontend_builder
+# ------------------------------------------------------------------------------
+# Stage 1: Frontend Builder (Bun 1.2 / Alpine)
+# ------------------------------------------------------------------------------
+FROM oven/bun:1.2-alpine AS frontend_builder
 
 WORKDIR /frontend
 
-# Copy package files and lockfile
+# Copy package manifests for cached dependency installation
 COPY frontend/package.json frontend/bun.lock* ./
 
-# Install dependencies with Bun
-RUN bun install
+# Install dependencies deterministically
+RUN bun install --frozen-lockfile
 
-# Copy source and build
+# Copy frontend source code and compile production SPA bundle
 COPY frontend/ ./
-ENV VITE_BASE_PATH=/ui/
+ENV VITE_BASE_PATH=/
 RUN bun run build
 
-FROM python:3.12-slim AS builder
+# ------------------------------------------------------------------------------
+# Stage 2: Rust Static Server Builder (Rust 1.80 / Alpine + musl)
+# ------------------------------------------------------------------------------
+FROM rust:1.80-alpine AS rust_builder
+
+WORKDIR /build
+
+# Install musl development headers and CA certificates
+RUN apk add --no-cache musl-dev ca-certificates
+
+# Copy Rust backend source code and workspace manifests
+COPY backend/rust_core ./backend/rust_core
+
+# Add musl target, build optimized release binary, and strip symbols
+WORKDIR /build/backend/rust_core
+RUN rustup target add x86_64-unknown-linux-musl && \
+    cargo build --target x86_64-unknown-linux-musl --release --bin apex_server && \
+    strip target/x86_64-unknown-linux-musl/release/apex_server
+
+# ------------------------------------------------------------------------------
+# Stage 3: Ultra-lean Distroless Static Runtime
+# ------------------------------------------------------------------------------
+FROM gcr.io/distroless/static-debian12:nonroot AS runtime
 
 WORKDIR /app
 
-# Install build dependencies
-# hadolint ignore=DL3008
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    cargo \
-    && rm -rf /var/lib/apt/lists/*
+# Copy system CA certificates from rust builder
+COPY --from=rust_builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
-# Copy uv binary for lightning-fast dependency installation
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+# Copy stripped pure-Rust APEX server static binary
+COPY --from=rust_builder /build/backend/rust_core/target/x86_64-unknown-linux-musl/release/apex_server /app/apex_server
 
-# Install Python dependencies
-COPY requirements.txt .
-RUN uv pip install --system --no-cache -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+# Copy pre-compiled React SPA assets
+COPY --from=frontend_builder /frontend/dist /app/dist
 
-# Copy source code
-COPY etl/ ./etl/
-COPY backend/ ./backend/
-COPY scripts/ ./scripts/
-COPY frontend/streamlit_app.py ./frontend/streamlit_app.py
-COPY REVISION* ./
+# Copy pre-computed vector embeddings and movie metadata catalog
+COPY models/ /app/models/
 
-# Build and install the Rust core extension module
-RUN uv pip install --system maturin && \
-    maturin build --manifest-path backend/rust_core/Cargo.toml --release --interpreter python3.12 --out dist && \
-    uv pip install --system --no-cache dist/*.whl
+# Configure non-root execution (compatible with HF Spaces UID 1000 & distroless nonroot UID 65532)
+USER 65532:65532
 
-# Fail image builds early if synced Python source has a syntax error.
-RUN python -m compileall backend etl scripts frontend/streamlit_app.py
-
-# Copy Pre-computed Models and Data (present in production builds; skipped in CI)
-# Use COPY with a wildcard so the layer is a no-op when the directories are absent
-# rather than failing with "no source files were specified".
-# hadolint ignore=DL3059
-RUN mkdir -p models data/processed data/evaluation
-COPY models/ ./models/
-COPY data/processed/ ./data/processed/
-COPY data/evaluation/ ./data/evaluation/
-
-# Create other directories
-# hadolint ignore=DL3059
-RUN mkdir -p data/raw logs
-
-# Pre-download serving model files to make container startup instant
-# hadolint ignore=DL3059
-RUN python -c "from backend.models.model_loader import ensure_model_files, default_artifacts_for_serving_profile; from pathlib import Path; ensure_model_files(Path('backend/models'), default_artifacts_for_serving_profile())"
-
-# -------------------------------------------
-# Stage 2: Runtime image
-FROM python:3.12-slim AS runtime
-
-WORKDIR /app
-
-# Install runtime dependencies only
-# hadolint ignore=DL3008
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgomp1 \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy installed packages from builder
-COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
-
-# Copy application code
-COPY --from=builder /app /app
-COPY --from=frontend_builder /frontend/dist /app/frontend/dist
-
-# Create non-root user
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
-USER appuser
-
-# Expose ports (7860 is required for Hugging Face Spaces, 8000 for Render, 8501 for Streamlit)
-EXPOSE 7860 8000 8501
-
-# Set default port to 7860 for Hugging Face Spaces
-# Render will override this environment variable at runtime
+# Configure runtime environment variables
 ENV PORT=7860
-ENV NOVA_LOW_MEMORY=false
-ENV NOVA_FORCE_VECTOR_ARTIFACTS=true
-ENV NOVA_EAGER_MODEL_DOWNLOAD=true
-ENV NOVA_REFRESH_PIPELINE_MANIFEST=true
-ENV NOVA_HEALTH_LOAD_RECOMMENDER=false
-ENV NOVA_BACKGROUND_RECOMMENDER_WARMUP=true
-ENV NOVA_ASYNC_EVALUATION_CACHE=true
-ENV NOVA_PRECOMPUTE_SEMANTIC_BENCHMARK=false
-ENV NOVA_PRECOMPUTE_RECOMMENDATION_BENCHMARK=false
-ENV NOVA_RECOMMENDER_CIRCUIT_FAILURE_THRESHOLD=3
-ENV NOVA_RECOMMENDER_CIRCUIT_OPEN_SECONDS=60
-ENV NOVA_RECOMMENDER_CACHE_ENABLED=true
-ENV NOVA_RECOMMENDER_CACHE_READS=true
-ENV NOVA_RECOMMENDER_CACHE_MAX_ENTRIES=512
-ENV NOVA_RECOMMENDER_CACHE_TTL_SECONDS=300
-ENV NOVA_RECOMMENDER_STALE_CACHE_TTL_SECONDS=21600
-ENV NOVA_RECOMMENDER_DISTRIBUTED_CACHE_ENABLED=true
-ENV NOVA_RECOMMENDER_DISTRIBUTED_CACHE_TIMEOUT_SECONDS=1.5
-ENV NOVA_SLO_WINDOW_SECONDS=3600
-ENV NOVA_SLO_MIN_REQUESTS=5
-ENV NOVA_SLO_MIN_ROUTE_REQUESTS=20
-ENV NOVA_SLO_LATENCY_P95_MS=2500
-ENV NOVA_SLO_ERROR_RATE=0.03
-ENV NOVA_SLO_MAX_EVENTS=5000
-ENV NOVA_SLO_EXCLUDED_ROUTE_PREFIXES=/docs,/redoc,/openapi.json,/favicon.ico,/v1/artifacts,/v1/diagnostics,/v1/evaluation,/v1/platform/readiness
-ENV NOVA_SLO_ROUTE_LATENCY_BUDGETS=/:1000,/health:1000,/v1/frontends/status:3000,/v1/platform/slo:1000,/v1/search:2500,/v1/recommendations/id/{movie_id}:25000
-ENV NOVA_FRONTEND_PRIORITY=github_pages,react,streamlit
-ENV NOVA_FRONTEND_STREAMLIT_URL=https://a-movie-recommendation-system.streamlit.app
-ENV NOVA_FRONTEND_REACT_URL=/ui/
-ENV NOVA_FRONTEND_PAGES_URL=https://movie-recommendation-system-6bm.pages.dev
-ENV NOVA_FRONTEND_HEALTH_TIMEOUT_SECONDS=2.5
-ENV NOVA_FRONTEND_HEALTH_CACHE_SECONDS=30
+ENV STATIC_DIR=/app/dist
 
-# Default command: run backend API.
-CMD ["sh", "-c", "uvicorn backend.main:app --host 0.0.0.0 --port $PORT"]
-ENV NOVA_APP_COMMIT=f4baf923f7fb1a50850f7eedab23421bcb6df487
-ENV NOVA_APP_COMMIT=9a1db81cd9d34eff7b8e9c551e53d0ce51e472aa
-ENV NOVA_APP_COMMIT=5136c711de4d7d53e1f0473cd9723aa666f6afe4
-ENV NOVA_APP_COMMIT=e322b8f6e5820b07dcd4263ebe1dd6935fd51fc5
-ENV NOVA_APP_COMMIT=78a33d20d52a6b5ab1f3ebce24d0578bf3c3a47f
-ENV NOVA_APP_COMMIT=062a56b52d2912c7c4560e3699b56d517c83b8de
-ENV NOVA_APP_COMMIT=c3def473e19ce620beabe18621fdf5be84a884a7
-ENV NOVA_APP_COMMIT=d4fa96c13b9404a74cb4b80a301c7f0975cf229b
-ENV NOVA_APP_COMMIT=ea81ba0f20f185588b6d6f6d9ad122f2ffd3dce2
-ENV NOVA_APP_COMMIT=2a057d80cee0fde89ccddac8b5c2c1e97891a15e
+# Expose default Hugging Face Spaces port
+EXPOSE 7860
+
+# Define container entrypoint
+ENTRYPOINT ["/app/apex_server"]

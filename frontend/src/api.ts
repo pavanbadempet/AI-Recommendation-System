@@ -28,7 +28,17 @@ function localDevBackend(): string | undefined {
 
 function sameOriginBackend(): string | undefined {
   if (typeof window === "undefined") return undefined;
-  if (["localhost", "127.0.0.1", "::1"].includes(window.location.hostname) && window.location.port !== "8000") {
+  const host = window.location.hostname;
+  if (["localhost", "127.0.0.1", "::1"].includes(host) && window.location.port !== "8000") {
+    return undefined;
+  }
+  // Static hosting platforms serve index.html for unknown routes, NOT the FastAPI backend
+  if (
+    host.endsWith(".pages.dev") ||
+    host.endsWith(".github.io") ||
+    host.endsWith(".vercel.app") ||
+    host.endsWith(".netlify.app")
+  ) {
     return undefined;
   }
   return normalizeBackend(window.location.origin);
@@ -38,9 +48,17 @@ const isLocalhost =
   typeof window !== "undefined" &&
   ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
 
+const isTestEnv = import.meta.env.MODE === "test";
+
+const defaultProdBackend =
+  typeof window !== "undefined" && !isLocalhost && !isTestEnv
+    ? "https://pavanbadempet-movie-rec-api.hf.space"
+    : undefined;
+
 const configuredBackends = [
   import.meta.env.VITE_API_URL,
   import.meta.env.VITE_BACKUP_API_URL,
+  defaultProdBackend,
   localDevBackend(),
   sameOriginBackend(),
   "http://localhost:8000",
@@ -57,7 +75,16 @@ const configuredBackends = [
 
 export const API_BASES = Array.from(new Set(configuredBackends));
 
-let activeBackend = API_BASES[0] || (isLocalhost ? "http://localhost:8000" : (typeof window !== "undefined" ? window.location.origin : "http://localhost:8000"));
+let activeBackend = API_BASES[0] || (isLocalhost ? "http://localhost:8000" : "https://pavanbadempet-movie-rec-api.hf.space");
+
+function isHtmlResponse(response: Response): boolean {
+  try {
+    const contentType = response.headers?.get ? response.headers.get("content-type") : null;
+    return Boolean(contentType && (contentType.includes("text/html") || contentType.includes("application/xhtml")));
+  } catch {
+    return false;
+  }
+}
 
 function timeoutSignal(ms: number): { signal: AbortSignal; cancel: () => void } {
   const controller = new AbortController();
@@ -145,6 +172,10 @@ export async function apiGet<T>(
         if (response.status < 500) break;
         continue;
       }
+      if (isHtmlResponse(response)) {
+        errors.push(`${backendLabel(baseUrl)} non-JSON response`);
+        continue;
+      }
       activeBackend = baseUrl;
       const data = (await response.json()) as T;
       
@@ -177,6 +208,12 @@ export async function apiGetFirstSuccess<T>(
   timeoutMs = 20000,
 ): Promise<BackendResult<T>> {
   const suffix = buildSuffix(path, params);
+  const cacheKey = suffix;
+  const cached = _clientCache.get(cacheKey);
+  if (cached) {
+    return { data: cached.data as T, baseUrl: cached.baseUrl };
+  }
+
   const errors: string[] = [];
   const controllers: AbortController[] = [];
   const requests = candidateBackends().map(async (baseUrl) => {
@@ -195,6 +232,9 @@ export async function apiGetFirstSuccess<T>(
       if (!response.ok) {
         throw new Error(`${response.status}`);
       }
+      if (isHtmlResponse(response)) {
+        throw new Error("non-JSON response");
+      }
       return { data: (await response.json()) as T, baseUrl };
     } catch (error) {
       errors.push(`${backendLabel(baseUrl)} ${errorMessage(error)}`);
@@ -207,6 +247,11 @@ export async function apiGetFirstSuccess<T>(
   try {
     const result = await Promise.any(requests);
     activeBackend = result.baseUrl;
+    if (_clientCache.size >= CACHE_MAX_ITEMS) {
+      const oldestKey = _clientCache.keys().next().value;
+      if (oldestKey) _clientCache.delete(oldestKey);
+    }
+    _clientCache.set(cacheKey, { data: result.data, baseUrl: result.baseUrl, timestamp: Date.now() });
     return result;
   } catch {
     throw new Error(errors.join(" | ") || "No backend available");
@@ -237,6 +282,10 @@ export async function apiPost<T>(path: string, body: unknown, timeoutMs = 15000)
       if (!response.ok) {
         errors.push(`${baseUrl}: ${response.status}`);
         if (response.status < 500) break;
+        continue;
+      }
+      if (isHtmlResponse(response)) {
+        errors.push(`${backendLabel(baseUrl)} non-JSON response`);
         continue;
       }
       activeBackend = baseUrl;
@@ -280,7 +329,7 @@ export async function searchMovies(query: string): Promise<BackendResult<Movie[]
 }
 
 export async function getShowcaseMovies(limit = 8): Promise<BackendResult<Movie[]>> {
-  return apiGetFirstSuccess<Movie[]>("/movies/showcase", { limit }, 3000);
+  return apiGetFirstSuccess<Movie[]>("/movies/showcase", { limit }, 6000);
 }
 
 export async function aiSearch(query: string): Promise<BackendResult<Movie[]>> {
@@ -392,7 +441,7 @@ export async function getKGRecommendations(movieId: number, n = 12): Promise<Bac
 }
 
 export async function getUserRecommendations(userId: string, n = 8): Promise<BackendResult<Movie[]>> {
-  return apiGet<Movie[]>(`/v1/recommendations/user/${encodeURIComponent(userId)}`, { n }, 30000);
+  return apiGet<Movie[]>(`/v1/recommendations/user/${encodeURIComponent(userId)}`, { n }, 4000);
 }
 
 export interface CacheStatus {

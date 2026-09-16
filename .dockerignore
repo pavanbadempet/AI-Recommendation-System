@@ -1,26 +1,67 @@
+# Git and metadata
 .git
 .github
+.agents
+.gitignore
+
+# Environment and secrets
 .env
-frontend/.env
-.hadoop
-.hypothesis
-.pytest_cache
-.ruff_cache
+.env.*
+*.env
+frontend/.env*
+
+# Rust build artifacts and caches
+target/
+**/target
+.cargo
+
+# Node / Bun dependencies and caches
+node_modules/
+**/node_modules
+frontend/node_modules
+frontend/dist
+**/dist
+frontend/coverage
+frontend/tsconfig.tsbuildinfo
+frontend-vite*.log
+bun.lockb
+
+# Python caches and virtual environments
 __pycache__
 **/__pycache__
 *.pyc
+*.pyo
+*.pyd
+.Python
 .venv
-.venv_cuda
-frontend/node_modules
-frontend/dist
-frontend/tsconfig.tsbuildinfo
-frontend-vite*.log
-logs
-reports
+.venv*
+.pytest_cache
+.ruff_cache
+.mypy_cache
+.coverage
+.coverage.*
+htmlcov/
+.hypothesis
+
+# Local databases and logs
+logs/
+reports/
+*.log
 *.sqlite3
 *.sqlite3-*
+apex.db
+*.db
 benchmark_temp.json
 movies_temp.parquet
-data/raw
-data/datalake
-data/events
+
+# Data directories (raw / datalake)
+data/raw/
+data/datalake/
+data/events/
+.hadoop/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

@@ -3,6 +3,8 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import viteCompression from "vite-plugin-compression";
 
+const proxyTarget = process.env.VITE_PROXY_TARGET || "http://127.0.0.1:8080";
+
 export default defineConfig({
   base: process.env.VITE_BASE_PATH || "./",
   plugins: [
@@ -12,6 +14,32 @@ export default defineConfig({
   ],
   server: {
     port: 5173,
+    proxy: {
+      "/v1": {
+        target: proxyTarget,
+        changeOrigin: true,
+      },
+      "/health": {
+        target: proxyTarget,
+        changeOrigin: true,
+      },
+      "/movies": {
+        target: proxyTarget,
+        changeOrigin: true,
+      },
+      "/movie": {
+        target: proxyTarget,
+        changeOrigin: true,
+      },
+      "/events": {
+        target: proxyTarget,
+        changeOrigin: true,
+      },
+      "/api": {
+        target: proxyTarget,
+        changeOrigin: true,
+      },
+    },
   },
   build: {
     target: "esnext",

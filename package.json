@@ -4,9 +4,11 @@
   "version": "1.0.0",
   "packageManager": "bun@1.2.0",
   "scripts": {
-    "dev": "bun --cwd frontend dev",
-    "grpc:dev": "python scripts/start_grpc_server.py",
-    "build": "(bun --cwd frontend run build || npx --yes bun --cwd frontend run build || (cd frontend && npm install && npm run build)) && node -e \"require('fs').cpSync('frontend/dist', 'dist', {recursive: true})\"",
-    "test": "bun --cwd frontend test"
+    "dev": "bun scripts/dev.ts",
+    "dev:frontend": "bun --cwd frontend dev",
+    "dev:backend": "cargo run --manifest-path backend/rust_core/Cargo.toml --bin apex_server",
+    "build": "bun run --cwd frontend build",
+    "test": "bun run --cwd frontend test",
+    "start": "bun frontend/server.ts"
   }
 }
