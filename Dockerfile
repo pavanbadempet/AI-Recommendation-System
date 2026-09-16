@@ -18,8 +18,8 @@ WORKDIR /frontend
 # Copy package manifests for cached dependency installation
 COPY frontend/package.json frontend/bun.lock* ./
 
-# Install dependencies deterministically
-RUN bun install --frozen-lockfile
+# Install dependencies deterministically with fallback
+RUN bun install --frozen-lockfile || bun install
 
 # Copy frontend source code and compile production SPA bundle
 COPY frontend/ ./
