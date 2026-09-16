@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { registerUser, loginUser } from "./api";
 import { User, Lock, Sparkles, Loader2, ArrowRight, X } from "lucide-react";
+import { safeSetLocalStorage } from "./storage";
 
 export function AuthPage({
   onLogin,
@@ -37,8 +38,8 @@ export function AuthPage({
 
       const res = await loginUser(username, password);
       if (res.data.access_token) {
-        window.localStorage.setItem("nova_jwt_token", res.data.access_token);
-        window.localStorage.setItem("nova_username", username);
+        safeSetLocalStorage("nova_jwt_token", res.data.access_token);
+        safeSetLocalStorage("nova_username", username);
         onLogin(res.data.access_token, username);
       }
     } catch (err) {

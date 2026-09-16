@@ -19,6 +19,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import { apiGet, API_BASES } from "../api";
+import { safeGetLocalStorage } from "../storage";
 
 interface GettingStartedProps {
   onNavigate: (page: string) => void;
@@ -120,7 +121,7 @@ function StepIndicator({
 export function GettingStartedPage({ onNavigate }: GettingStartedProps) {
   const [step, setStep] = React.useState<StepId>(1);
   const [apiKey] = React.useState<string>(
-    () => window.localStorage.getItem("nova_api_key") ?? "",
+    () => safeGetLocalStorage("nova_api_key") ?? "",
   );
   const [copied, setCopied] = React.useState(false);
   const [lang, setLang] = React.useState<CodeLang>("curl");

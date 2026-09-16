@@ -178,20 +178,24 @@ pub async fn root_handler(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
 ) -> Response {
-    let is_html = headers
+    let wants_json = headers
         .get(header::ACCEPT)
         .and_then(|v| v.to_str().ok())
-        .map_or(false, |a| a.contains("text/html"));
+        .map_or(false, |a| {
+            (a.contains("application/json") || a.contains("text/json"))
+                && !a.contains("text/html")
+                && !a.contains("*/*")
+        });
 
-    if is_html {
+    if !wants_json {
         let static_candidates = [
             std::env::var("STATIC_DIR").ok().unwrap_or_default(),
+            "/app/dist".to_string(),
             "frontend/dist".to_string(),
             "../frontend/dist".to_string(),
             "../../frontend/dist".to_string(),
             "./dist".to_string(),
             "/app/frontend/dist".to_string(),
-            "/app/dist".to_string(),
         ];
         for candidate in &static_candidates {
             if !candidate.is_empty() {
@@ -200,7 +204,10 @@ pub async fn root_handler(
                     if let Ok(content) = std::fs::read_to_string(&p) {
                         return (
                             StatusCode::OK,
-                            [(header::CONTENT_TYPE, "text/html; charset=utf-8")],
+                            [
+                                (header::CONTENT_TYPE, "text/html; charset=utf-8"),
+                                (header::CACHE_CONTROL, "public, max-age=0, must-revalidate"),
+                            ],
                             content,
                         )
                             .into_response();

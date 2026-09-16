@@ -97,6 +97,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Optional Static Asset Serving with SPA Fallback
     let static_candidates = [
         std::env::var("STATIC_DIR").ok().unwrap_or_default(),
+        "/app/dist".to_string(),
         "frontend/dist".to_string(),
         "../frontend/dist".to_string(),
         "../../frontend/dist".to_string(),

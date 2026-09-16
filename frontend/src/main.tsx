@@ -63,6 +63,13 @@ import "./styles.css";
 import "./apex-product.css";
 import { AuthPage } from "./AuthPage";
 import { ErrorBoundary } from "./ErrorBoundary";
+import {
+  safeGetLocalStorage,
+  safeSetLocalStorage,
+  safeRemoveLocalStorage,
+  safeGetSessionStorage,
+  safeSetSessionStorage,
+} from "./storage";
 const Dashboard = React.lazy(() => import("./pages/Dashboard").then(m => ({ default: m.Dashboard })));
 const KnowledgeGraphPage = React.lazy(() => import("./pages/KnowledgeGraph").then(m => ({ default: m.KnowledgeGraphPage })));
 const EvaluationPage = React.lazy(() => import("./pages/Evaluation").then(m => ({ default: m.EvaluationPage })));
@@ -286,7 +293,8 @@ function serviceLabel(url: string): string {
 
 function loadRecentMovies(): Movie[] {
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(RECENT_STORAGE_KEY) || "[]") as Movie[];
+    const raw = safeGetLocalStorage(RECENT_STORAGE_KEY);
+    const parsed = JSON.parse(raw || "[]") as Movie[];
     return Array.isArray(parsed) ? parsed.slice(0, 6) : [];
   } catch {
     return [];
@@ -295,7 +303,7 @@ function loadRecentMovies(): Movie[] {
 
 function saveRecentMovies(movies: Movie[]) {
   try {
-    window.localStorage.setItem(RECENT_STORAGE_KEY, JSON.stringify(movies.slice(0, 6)));
+    safeSetLocalStorage(RECENT_STORAGE_KEY, JSON.stringify(movies.slice(0, 6)));
   } catch {
     // Local storage is optional; the app still works without it.
   }
@@ -410,7 +418,7 @@ const SEED_SHOWCASE_MOVIES: Movie[] = [
 
 function loadCachedShowcaseMovies(): Movie[] {
   try {
-    const raw = typeof window !== "undefined" ? window.localStorage.getItem(SHOWCASE_STORAGE_KEY) : null;
+    const raw = safeGetLocalStorage(SHOWCASE_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as Movie[];
       if (Array.isArray(parsed) && parsed.length > 0) return parsed.slice(0, 10);
@@ -421,15 +429,15 @@ function loadCachedShowcaseMovies(): Movie[] {
 
 function saveCachedShowcaseMovies(movies: Movie[]) {
   try {
-    if (typeof window !== "undefined" && movies.length > 0) {
-      window.localStorage.setItem(SHOWCASE_STORAGE_KEY, JSON.stringify(movies.slice(0, 10)));
+    if (movies.length > 0) {
+      safeSetLocalStorage(SHOWCASE_STORAGE_KEY, JSON.stringify(movies.slice(0, 10)));
     }
   } catch {}
 }
 
 function loadCachedLatestMovies(): Movie[] {
   try {
-    const raw = typeof window !== "undefined" ? window.localStorage.getItem(LATEST_STORAGE_KEY) : null;
+    const raw = safeGetLocalStorage(LATEST_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as Movie[];
       if (Array.isArray(parsed) && parsed.length > 0) return parsed.slice(0, 10);
@@ -440,23 +448,23 @@ function loadCachedLatestMovies(): Movie[] {
 
 function saveCachedLatestMovies(movies: Movie[]) {
   try {
-    if (typeof window !== "undefined" && movies.length > 0) {
-      window.localStorage.setItem(LATEST_STORAGE_KEY, JSON.stringify(movies.slice(0, 10)));
+    if (movies.length > 0) {
+      safeSetLocalStorage(LATEST_STORAGE_KEY, JSON.stringify(movies.slice(0, 10)));
     }
   } catch {}
 }
 
 function createSessionId(): string {
-  if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+  if (typeof window !== "undefined" && window.crypto?.randomUUID) return window.crypto.randomUUID();
   return `session-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
 function getSessionId(): string {
   try {
-    const existing = window.sessionStorage.getItem(SESSION_STORAGE_KEY);
+    const existing = safeGetSessionStorage(SESSION_STORAGE_KEY);
     if (existing) return existing;
     const next = createSessionId();
-    window.sessionStorage.setItem(SESSION_STORAGE_KEY, next);
+    safeSetSessionStorage(SESSION_STORAGE_KEY, next);
     return next;
   } catch {
     return createSessionId();
@@ -1763,8 +1771,8 @@ function AuthModal({
 }
 
 function App() {
-  const [token, setToken] = React.useState<string | null>(window.localStorage.getItem("nova_jwt_token"));
-  const [username, setUsername] = React.useState<string | null>(window.localStorage.getItem("nova_username"));
+  const [token, setToken] = React.useState<string | null>(() => safeGetLocalStorage("nova_jwt_token"));
+  const [username, setUsername] = React.useState<string | null>(() => safeGetLocalStorage("nova_username"));
   const [page, setPage] = React.useState<AppPage>(() => typeof window !== "undefined" ? getPageFromPath(window.location.pathname) : "home");
   const [showAuthModal, setShowAuthModal] = React.useState(false);
   const [titles, setTitles] = React.useState<MovieTitle[]>([]);
@@ -2814,8 +2822,8 @@ function App() {
                     className="sheet-link-btn logout"
                     type="button"
                     onClick={() => {
-                      window.localStorage.removeItem("nova_jwt_token");
-                      window.localStorage.removeItem("nova_username");
+                      safeRemoveLocalStorage("nova_jwt_token");
+                      safeRemoveLocalStorage("nova_username");
                       setToken(null);
                       setUsername(null);
                       setShowMoreDrawer(false);
@@ -3029,8 +3037,8 @@ function App() {
                   className="logout-btn"
                   type="button"
                   onClick={() => {
-                    window.localStorage.removeItem("nova_jwt_token");
-                    window.localStorage.removeItem("nova_username");
+                    safeRemoveLocalStorage("nova_jwt_token");
+                    safeRemoveLocalStorage("nova_username");
                     setToken(null);
                     setUsername(null);
                     openHome();

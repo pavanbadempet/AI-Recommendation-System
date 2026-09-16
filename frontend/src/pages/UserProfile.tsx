@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Database, Film, Loader2, Star, User, Activity, Network, Settings, BarChart3 } from "lucide-react";
 import { getUserRecommendations, apiGet } from "../api";
 import type { Movie } from "../types";
+import { safeGetLocalStorage } from "../storage";
 
 const imageBase = "https://image.tmdb.org/t/p/w500";
 
@@ -128,7 +129,8 @@ const RECENT_STORAGE_KEY = "nova_recent_movies_v2";
 
 function loadRecentMovies(): Movie[] {
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(RECENT_STORAGE_KEY) || "[]") as Movie[];
+    const raw = safeGetLocalStorage(RECENT_STORAGE_KEY);
+    const parsed = JSON.parse(raw || "[]") as Movie[];
     return Array.isArray(parsed) ? parsed.slice(0, 6) : [];
   } catch {
     return [];

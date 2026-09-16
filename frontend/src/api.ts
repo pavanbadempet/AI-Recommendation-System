@@ -12,6 +12,7 @@ import type {
   SemanticBenchmark,
 } from "./types";
 import { getClientRecommendations, getClientTextSearch } from "./webgpuEngine";
+import { safeGetLocalStorage } from "./storage";
 
 function normalizeBackend(url: string | undefined): string | undefined {
   const value = url?.trim().replace(/\/+$/, "");
@@ -159,7 +160,7 @@ export async function apiGet<T>(
   for (const baseUrl of candidateBackends()) {
     const timeout = timeoutSignal(timeoutMs);
     try {
-      const token = typeof window !== "undefined" ? window.localStorage.getItem("nova_jwt_token") : null;
+      const token = safeGetLocalStorage("nova_jwt_token");
       const headers: Record<string, string> = { Accept: "application/json" };
       if (token) headers["Authorization"] = `Bearer ${token}`;
 
@@ -221,7 +222,7 @@ export async function apiGetFirstSuccess<T>(
     const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
     controllers.push(controller);
     try {
-      const token = typeof window !== "undefined" ? window.localStorage.getItem("nova_jwt_token") : null;
+      const token = safeGetLocalStorage("nova_jwt_token");
       const headers: Record<string, string> = { Accept: "application/json" };
       if (token) headers["Authorization"] = `Bearer ${token}`;
 
@@ -266,7 +267,7 @@ export async function apiPost<T>(path: string, body: unknown, timeoutMs = 15000)
   for (const baseUrl of candidateBackends()) {
     const timeout = timeoutSignal(timeoutMs);
     try {
-      const token = typeof window !== "undefined" ? window.localStorage.getItem("nova_jwt_token") : null;
+      const token = safeGetLocalStorage("nova_jwt_token");
       const headers: Record<string, string> = {
           Accept: "application/json",
           "Content-Type": "application/json",

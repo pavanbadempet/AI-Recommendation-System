@@ -11,6 +11,7 @@
 import React from "react";
 import { CheckCircle2, ClipboardCopy, Eye, EyeOff, Loader2 } from "lucide-react";
 import { apiPost, API_BASES } from "../api";
+import { safeSetLocalStorage } from "../storage";
 
 interface SignupProps {
   onNavigate: (page: string) => void;
@@ -99,7 +100,7 @@ export function SignupPage({ onNavigate, onLoginSuccess }: SignupProps) {
 
       // Store JWT if returned
       if (data.access_token) {
-        window.localStorage.setItem("nova_jwt_token", data.access_token);
+        safeSetLocalStorage("nova_jwt_token", data.access_token);
         onLoginSuccess?.(data.access_token, email.trim());
       }
 
