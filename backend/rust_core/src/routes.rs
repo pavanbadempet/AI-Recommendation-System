@@ -67,6 +67,8 @@ pub struct CandidateMovie {
     pub poster_path: Option<String>,
     pub overview: Option<String>,
     pub vote_average: f64,
+    #[serde(default)]
+    pub trailer_key: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -335,6 +337,7 @@ pub async fn get_recommendations_by_id_handler(
                 genres: m.genres.clone(),
                 poster_path: m.poster_path.clone(),
                 overview: m.overview.clone(),
+                trailer_key: m.trailer_key.clone(),
                 vote_average: m.vote_average,
             });
         }
@@ -423,6 +426,7 @@ pub async fn post_recommendations_handler(
                 genres: m.genres.clone(),
                 poster_path: m.poster_path.clone(),
                 overview: m.overview.clone(),
+                trailer_key: m.trailer_key.clone(),
                 vote_average: m.vote_average,
             });
         }
@@ -656,6 +660,49 @@ pub async fn get_movie_showcase_handler(
 
 /// GET /movie/:id
 pub async fn get_movie_by_id_handler(
+    State(state): State<Arc<AppState>>,
+    AxumPath(movie_id): AxumPath<i64>,
+) -> Response {
+    match state.catalog.get_by_id(movie_id) {
+        Some(m) => (StatusCode::OK, Json(m.clone())).into_response(),
+        None => (
+            StatusCode::NOT_FOUND,
+            Json(ErrorResponse {
+                error: "Movie not found",
+                status: "not_found",
+                detail: format!("Movie ID {} not found", movie_id),
+            }),
+        )
+            .into_response(),
+    }
+}
+
+#[derive(Serialize)]
+pub struct TrailerResponse {
+    pub trailer_key: Option<String>,
+}
+
+/// GET /movie/:id/trailer
+pub async fn get_movie_trailer_handler(
+    State(state): State<Arc<AppState>>,
+    AxumPath(movie_id): AxumPath<i64>,
+) -> Response {
+    match state.catalog.get_by_id(movie_id) {
+        Some(m) => (StatusCode::OK, Json(TrailerResponse { trailer_key: m.trailer_key.clone() })).into_response(),
+        None => (
+            StatusCode::NOT_FOUND,
+            Json(ErrorResponse {
+                error: "Movie not found",
+                status: "not_found",
+                detail: format!("Movie ID {} not found", movie_id),
+            }),
+        )
+            .into_response(),
+    }
+}
+
+/// GET /movie/:id/enriched
+pub async fn get_movie_enriched_handler(
     State(state): State<Arc<AppState>>,
     AxumPath(movie_id): AxumPath<i64>,
 ) -> Response {

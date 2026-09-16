@@ -78,6 +78,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/movies/titles", get(routes::get_movie_titles_handler))
         .route("/movies/showcase", get(routes::get_movie_showcase_handler))
         .route("/movie/:id", get(routes::get_movie_by_id_handler))
+        .route("/movie/:id/trailer", get(routes::get_movie_trailer_handler))
+        .route("/movie/:id/enriched", get(routes::get_movie_enriched_handler))
+        .route(
+            "/v1/recommendations/id/:id/enriched",
+            get(routes::get_recommendations_by_id_handler),
+        )
         // Telemetry Events
         .route("/v1/events", post(routes::post_events_handler))
         // Authentication

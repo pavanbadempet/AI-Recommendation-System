@@ -99,6 +99,39 @@ const SHOWCASE_STORAGE_KEY = "nova_cached_showcase_movies_v1";
 const LATEST_STORAGE_KEY = "nova_cached_latest_movies_v1";
 const TITLE_CATALOG_LIMIT = 5000;
 
+export const KNOWN_TRAILERS: Record<number, string> = {
+  329: "lc0UehYemQA", // Jurassic Park
+  27205: "YoHD9XEInc0", // Inception
+  157336: "zSWdZVtXT7E", // Interstellar
+  155: "EXeTwQWrcwY", // The Dark Knight
+  550: "qtRKdVHc-cE", // Fight Club
+  680: "s7EdQ4FqbhY", // Pulp Fiction
+  603: "vKQi3bBA1y8", // The Matrix
+  238: "sY1S34973zA", // The Godfather
+  120: "V75dMMW-qqc", // LOTR Fellowship
+  122: "r5X-hFf6Bwo", // LOTR Return of the King
+  129: "ByXuk9QqQkk", // Spirited Away
+  98: "owK1qxDselE", // Gladiator
+  19995: "5PSNL1qE6VY", // Avatar
+  597: "2e-eXJ6HgkQ", // Titanic
+  693134: "Way9Dexny3w", // Dune 2
+  872585: "uYPbbksJxIg", // Oppenheimer
+  496243: "5xH0RZE7t4E", // Parasite
+  244786: "7d_jQycdQGo", // Whiplash
+  324857: "tg52up16eq0", // Spider-Man Spider-Verse
+  335984: "gCcx85zbxz4", // Blade Runner 2049
+  278: "PLl99DlL6b4", // Shawshank Redemption
+  769: "2ilzidi_J8Q", // GoodFellas
+  807: "znmZoVkCjpI", // Seven
+  13: "bLvqoHBptjg", // Forrest Gump
+  105: "qvsgGtivCgs", // Back to the Future
+  354912: "Rvr68u6k5sI", // Coco
+  348: "LjLamj-b0I8", // Alien
+  274: "W6Mm8Sbe__o", // Silence of the Lambs
+  299534: "TcMBFSGVi1c", // Avengers Endgame
+  346698: "pBk4NYhWNMM", // Barbie
+};
+
 type AppPage = "home" | "search" | "vector-space" | "data-platform" | "profile" | "dashboard" | "knowledge-graph" | "evaluation" | "admin" | "landing" | "signup" | "pricing" | "getting-started" | "status";
 type SearchMode = "title" | "semantic";
 type CatalogState = "booting" | "warming" | "ready" | "error";
@@ -985,8 +1018,8 @@ const MovieSpotlight = React.memo(function MovieSpotlight({
             {loading ? <Loader2 size={18} className="spin" /> : <Sparkles size={18} />}
             {loading ? "Getting similar recommendations" : "Get Similar Recommendations"}
           </button>
-          {movie.trailer_key && (
-            <a className="ghost-action" href={`https://www.youtube.com/watch?v=${movie.trailer_key}`} target="_blank" rel="noreferrer">
+          {(movie.trailer_key || KNOWN_TRAILERS[movie.id]) && (
+            <a className="ghost-action" href={`https://www.youtube.com/watch?v=${movie.trailer_key || KNOWN_TRAILERS[movie.id]}`} target="_blank" rel="noreferrer">
               <Play size={18} />
               Trailer
             </a>
@@ -999,9 +1032,11 @@ const MovieSpotlight = React.memo(function MovieSpotlight({
 
 function TrailerFrame({ movie }: { movie: Movie }) {
   const [playing, setPlaying] = React.useState(true);
-  const [trailerKey, setTrailerKey] = React.useState<string | null>(movie.trailer_key || null);
+  const [trailerKey, setTrailerKey] = React.useState<string | null>(
+    movie.trailer_key || KNOWN_TRAILERS[movie.id] || null
+  );
   const [videoError, setVideoError] = React.useState(false);
-  const [isCached, setIsCached] = React.useState<boolean | null>(null);
+  const [isCached, setIsCached] = React.useState<boolean | null>(false);
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const [isMobile, setIsMobile] = React.useState(() => typeof window !== "undefined" ? window.innerWidth <= 768 : false);
   const [isTabVisible, setIsTabVisible] = React.useState(true);
@@ -1031,8 +1066,9 @@ function TrailerFrame({ movie }: { movie: Movie }) {
   }, []);
 
   React.useEffect(() => {
-    setTrailerKey(movie.trailer_key || null);
-    if (!movie.trailer_key) {
+    const key = movie.trailer_key || KNOWN_TRAILERS[movie.id] || null;
+    setTrailerKey(key);
+    if (!key) {
       getMovieEnriched(movie.id)
         .then((res) => {
           if (res.data.trailer_key) setTrailerKey(res.data.trailer_key);
@@ -1044,16 +1080,17 @@ function TrailerFrame({ movie }: { movie: Movie }) {
   // Check if trailer is cached when trailerKey changes
   React.useEffect(() => {
     if (!trailerKey) {
-      setIsCached(null);
+      setIsCached(false);
       return;
     }
-    setIsCached(null); // Reset when key changes
     checkVideoCacheStatus(trailerKey)
       .then((res) => {
-        setIsCached(res.data.cached);
+        if (res.data.cached) {
+          setIsCached(true);
+        }
       })
       .catch(() => {
-        setIsCached(false); // Default to false (immediate iframe) if endpoint fails
+        setIsCached(false);
       });
   }, [trailerKey]);
 
@@ -1124,11 +1161,7 @@ function TrailerFrame({ movie }: { movie: Movie }) {
           </div>
         ) : (
           /* Desktop: cached video first, YouTube iframe fallback */
-          isCached === null ? (
-            <div className="trailer-loading" style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "#94a3b8" }}>
-              <Loader2 className="spin" size={24} />
-            </div>
-          ) : (!isCached || videoError) ? (
+          (!isCached || videoError) ? (
             <div style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", background: "#000", pointerEvents: "none" }}>
               <iframe
                 src={`https://www.youtube-nocookie.com/embed/${trailerKey}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&playsinline=1&iv_load_policy=3&disablekb=1&fs=0&loop=1&playlist=${trailerKey}`}
@@ -1471,8 +1504,8 @@ export const MovieDialog = React.memo(function MovieDialog({
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: "8px", width: "100%" }}>
-                {movie.trailer_key && (
-                  <a className="dialog-action-btn primary" href={`https://www.youtube.com/watch?v=${movie.trailer_key}`} target="_blank" rel="noreferrer">
+                {(movie.trailer_key || KNOWN_TRAILERS[movie.id]) && (
+                  <a className="dialog-action-btn primary" href={`https://www.youtube.com/watch?v=${movie.trailer_key || KNOWN_TRAILERS[movie.id]}`} target="_blank" rel="noreferrer">
                     <Play size={16} fill="currentColor" />
                     <span>Watch Full Trailer</span>
                   </a>
