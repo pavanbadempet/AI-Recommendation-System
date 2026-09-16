@@ -6,7 +6,7 @@ use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use crate::simd::{dot_product_i8_simd, dot_product_simd, normalize_in_place, quantize_f32_to_i8};
+use crate::simd::{dot_product_simd, normalize_in_place, quantize_f32_to_i8};
 
 /// Header metadata extracted from a NumPy .npy binary file.
 #[derive(Debug, Clone)]
@@ -415,6 +415,7 @@ impl VectorStore {
 
     /// Zero-copy slice view of an 8-bit quantized movie embedding vector.
     #[inline(always)]
+    #[allow(dead_code)]
     pub fn get_quantized_vector(&self, row: usize) -> &[i8] {
         debug_assert!(row < self.num_movies);
         let offset = row * self.embedding_dim;

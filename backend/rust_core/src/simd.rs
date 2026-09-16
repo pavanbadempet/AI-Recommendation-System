@@ -155,6 +155,7 @@ pub fn dot_product_i8_portable(a: &[i8], b: &[i8]) -> i32 {
 /// AVX2 accelerated int8 dot product kernel using _mm256_madd_epi16 and sign extension.
 #[cfg(target_arch = "x86_64")]
 #[target_feature(enable = "avx2")]
+#[allow(dead_code)]
 pub unsafe fn dot_product_i8_avx2(a: &[i8], b: &[i8]) -> i32 {
     use std::arch::x86_64::*;
 
@@ -235,6 +236,7 @@ pub unsafe fn dot_product_i8_avx2(a: &[i8], b: &[i8]) -> i32 {
 /// Calculates the dot product of two int8 slices using AVX2 when available,
 /// falling back to the 8-way unrolled portable loop.
 #[inline(always)]
+#[allow(dead_code)]
 pub fn dot_product_i8_simd(a: &[i8], b: &[i8]) -> i32 {
     #[cfg(all(target_arch = "x86_64", target_feature = "avx2"))]
     {
