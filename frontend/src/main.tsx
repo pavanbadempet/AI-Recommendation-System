@@ -172,14 +172,19 @@ function formatCount(value?: number | null): string {
   return numeric > 0 ? numeric.toLocaleString() : "0";
 }
 
-function compactGenres(genres?: string | null): string {
+function compactGenres(genres?: string | string[] | null): string {
   if (!genres) return "Catalog";
+  if (Array.isArray(genres)) {
+    const valid = genres.map((g) => String(g).trim()).filter(Boolean);
+    return valid.length > 0 ? valid.slice(0, 2).join(" / ") : "Catalog";
+  }
+  if (typeof genres !== "string") return "Catalog";
   return genres
     .split(/[,|]/)
     .map((genre) => genre.trim())
     .filter(Boolean)
     .slice(0, 2)
-    .join(" / ");
+    .join(" / ") || "Catalog";
 }
 
 function selectTitleLabel(movie: Movie): string {
@@ -1238,9 +1243,11 @@ export const MovieDialog = React.memo(function MovieDialog({
 }) {
   const director = directorLabel(movie);
   const cast = movie.cast || "";
-  const genreList = movie.genres
-    ? movie.genres.split(/[,|]/).map((g) => g.trim()).filter(Boolean)
-    : [];
+  const genreList = Array.isArray(movie.genres)
+    ? movie.genres.map((g) => String(g).trim()).filter(Boolean)
+    : typeof movie.genres === "string"
+      ? movie.genres.split(/[,|]/).map((g) => g.trim()).filter(Boolean)
+      : [];
   const runtime = movie.runtime ? `${movie.runtime} min` : "";
   const overview = movie.overview || "No overview is available for this title.";
   const explanation = movie.explanation_text || movieReasons(movie).join(" | ");

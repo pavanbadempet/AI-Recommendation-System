@@ -448,8 +448,12 @@ export function getRealMovieNodes() {
     }
 
     // Determine primary genre
-    const genreStr = movie.genres || "";
-    const primaryGenre = genreStr.split("|")[0] || "Drama";
+    const genreStr = Array.isArray(movie.genres)
+      ? movie.genres.join("|")
+      : typeof movie.genres === "string"
+        ? movie.genres
+        : "";
+    const primaryGenre = genreStr.split(/[,|]/)[0]?.trim() || "Drama";
     
     let genreIdx = GENRES.indexOf(primaryGenre);
     if (genreIdx === -1) {

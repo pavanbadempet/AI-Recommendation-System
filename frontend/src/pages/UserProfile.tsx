@@ -117,7 +117,15 @@ function MiniRecommendationCard({
           <strong>{movie.title}</strong>
           <span>{movie.release_date?.slice(0, 4) ?? ""}</span>
         </div>
-        {movie.genres && <div className="genre-line">{movie.genres.split(",")[0]?.trim()}</div>}
+        {movie.genres && (
+          <div className="genre-line">
+            {Array.isArray(movie.genres)
+              ? movie.genres[0]
+              : typeof movie.genres === "string"
+                ? movie.genres.split(",")[0]?.trim()
+                : ""}
+          </div>
+        )}
       </div>
     </article>
   );

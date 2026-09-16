@@ -57,8 +57,8 @@ function NodeSidePanel({ movie, onClose }: { movie: Movie; onClose: () => void }
 
       {movie.genres && (
         <div className="kg-panel-genres">
-          {movie.genres.split(",").map((genre) => {
-            const trimmed = genre.trim();
+          {(Array.isArray(movie.genres) ? movie.genres : typeof movie.genres === "string" ? movie.genres.split(",") : []).map((genre) => {
+            const trimmed = String(genre).trim();
             return trimmed ? (
               <span key={trimmed} className="kg-genre-badge">{trimmed}</span>
             ) : null;

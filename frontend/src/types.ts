@@ -2,7 +2,7 @@ export type Movie = {
   id: number;
   title: string;
   overview?: string | null;
-  genres?: string | null;
+  genres?: string | string[] | null;
   vote_average?: number | null;
   vote_count?: number | null;
   popularity?: number | null;
