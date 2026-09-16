@@ -3521,17 +3521,24 @@ const rootElement = document.getElementById("root");
 if (rootElement) {
   createRoot(rootElement).render(
     <React.StrictMode>
-      <App />
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
     </React.StrictMode>,
   );
 }
 
 if ("serviceWorker" in navigator && import.meta.env.PROD) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("/sw.js")
-      // eslint-disable-next-line no-console
-      .then((reg) => console.log("Service Worker registered successfully:", reg.scope))
-      .catch((err) => console.error("Service Worker registration failed:", err));
+    try {
+      if (window.self === window.top) {
+        navigator.serviceWorker
+          .register("/sw.js")
+          .then((reg) => console.log("Service Worker registered successfully:", reg.scope))
+          .catch((err) => console.warn("Service Worker registration skipped:", err));
+      }
+    } catch {
+      // Ignore iframe sandboxed service worker restriction
+    }
   });
 }
