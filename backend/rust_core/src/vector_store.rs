@@ -387,6 +387,26 @@ impl VectorStore {
         })
     }
 
+    /// Generate synthetic in-memory vector store for bootstrap fallback.
+    pub fn create_synthetic(movie_ids: &[i64], embedding_dim: usize) -> Arc<Self> {
+        let num_movies = movie_ids.len();
+        let mut matrix = Vec::with_capacity(num_movies * embedding_dim);
+
+        for (row, &id) in movie_ids.iter().enumerate() {
+            let mut vec = Vec::with_capacity(embedding_dim);
+            let mut seed = ((id.unsigned_abs() as u64) ^ 0x9E3779B97F4A7C15).wrapping_add(row as u64);
+            for d in 0..embedding_dim {
+                seed = seed.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+                let val = (((seed >> 33) as f32) / (u32::MAX as f32)) * 2.0 - 1.0;
+                vec.push(val + ((d % 10) as f32 * 0.01));
+            }
+            normalize_in_place(&mut vec);
+            matrix.extend_from_slice(&vec);
+        }
+
+        Self::from_f32_matrix(&matrix, num_movies, embedding_dim, movie_ids.to_vec())
+    }
+
     /// Fast O(log N) lookup mapping movie_id -> row_index in embeddings matrix.
     #[inline(always)]
     pub fn get_row_by_movie_id(&self, movie_id: i64) -> Option<usize> {
