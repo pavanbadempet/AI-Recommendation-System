@@ -11,7 +11,6 @@ import type {
   RecommendationResponse,
   SemanticBenchmark,
 } from "./types";
-import { getClientRecommendations, getClientTextSearch } from "./webgpuEngine";
 import { safeGetLocalStorage } from "./storage";
 
 function normalizeBackend(url: string | undefined): string | undefined {
@@ -335,6 +334,7 @@ export async function getShowcaseMovies(limit = 8): Promise<BackendResult<Movie[
 
 export async function aiSearch(query: string): Promise<BackendResult<Movie[]>> {
   try {
+    const { getClientTextSearch } = await import("./webgpuEngine");
     const clientResults = await getClientTextSearch(query, 40);
     if (clientResults && clientResults.length > 0) {
       return {
@@ -395,6 +395,7 @@ async function fetchTmdbTrailer(movieId: number): Promise<string | null> {
 
 export async function getRecommendations(movieId: number, n = 12, timeoutMs = 60000): Promise<BackendResult<RecommendationResponse>> {
   try {
+    const { getClientRecommendations } = await import("./webgpuEngine");
     const clientRecs = await getClientRecommendations(movieId, n);
     if (clientRecs) {
       const titlesResult = await loadTitles();
