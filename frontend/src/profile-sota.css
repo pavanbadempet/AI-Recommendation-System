@@ -11,7 +11,7 @@
   gap: 16px;
   text-align: center;
   min-height: 380px;
-  background: radial-gradient(circle at 50% 30%, rgba(99, 102, 241, 0.08) 0%, rgba(15, 17, 23, 0.6) 100%);
+  background: #09090b;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
   padding: 40px 24px;
@@ -21,33 +21,41 @@
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: rgba(99, 102, 241, 0.12);
-  border: 1px solid rgba(99, 102, 241, 0.25);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--accent);
-  box-shadow: 0 0 24px rgba(99, 102, 241, 0.2);
+  color: #ffffff;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
 }
 
 .profile-signin-cta {
   padding: 12px 28px;
   font-weight: 600;
   border-radius: 10px;
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+  background: #ffffff;
+  color: #000000;
+  border: none;
+  box-shadow: 0 4px 14px rgba(255, 255, 255, 0.12);
+  transition: opacity 0.15s ease;
+}
+
+.profile-signin-cta:hover {
+  opacity: 0.9;
 }
 
 /* ─── SOTA Enterprise User Profile System ─────────────────────────────────── */
 
 .profile-hero-card {
-  background: linear-gradient(135deg, rgba(20, 24, 39, 0.85) 0%, rgba(12, 14, 22, 0.95) 100%);
+  background: #09090b;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   padding: 28px;
   margin-bottom: 24px;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(20px);
 }
 
@@ -58,7 +66,7 @@
   right: -80px;
   width: 260px;
   height: 260px;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.18) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.03) 0%, transparent 70%);
   border-radius: 50%;
   pointer-events: none;
 }
@@ -85,8 +93,8 @@
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #ec4899 100%);
-  border: 3px solid rgba(255, 255, 255, 0.15);
+  background: #141418;
+  border: 2px solid rgba(255, 255, 255, 0.22);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -94,19 +102,19 @@
   font-weight: 800;
   color: #ffffff;
   letter-spacing: -0.02em;
-  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.35);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
 }
 
 .profile-online-dot {
   position: absolute;
   bottom: 2px;
   right: 2px;
-  width: 16px;
-  height: 16px;
-  background: #10b981;
-  border: 3px solid #0f1117;
+  width: 14px;
+  height: 14px;
+  background: #ffffff;
+  border: 2px solid #000000;
   border-radius: 50%;
-  box-shadow: 0 0 10px #10b981;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
 }
 
 .profile-hero-details {
@@ -135,9 +143,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  color: #34d399;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #f4f4f5;
   font-size: 0.76rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -159,7 +167,7 @@
   gap: 6px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #94a3b8;
+  color: #d4d4d8;
   font-size: 0.78rem;
   padding: 4px 10px;
   border-radius: 6px;
@@ -179,7 +187,7 @@
 .taste-strip-label {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #cbd5e1;
+  color: #a1a1aa;
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
@@ -202,21 +210,21 @@
 }
 
 .taste-chip.high {
-  background: rgba(16, 185, 129, 0.1);
-  border-color: rgba(16, 185, 129, 0.25);
-  color: #6ee7b7;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
 }
 
 .taste-chip.med {
-  background: rgba(59, 130, 246, 0.1);
-  border-color: rgba(59, 130, 246, 0.25);
-  color: #93c5fd;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #e4e4e7;
 }
 
 .taste-chip.low {
-  background: rgba(168, 85, 247, 0.1);
-  border-color: rgba(168, 85, 247, 0.25);
-  color: #d8b4fe;
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #a1a1aa;
 }
 
 .taste-dot {
@@ -224,19 +232,19 @@
   height: 6px;
   border-radius: 50%;
 }
-.taste-dot.green { background: #10b981; }
-.taste-dot.blue { background: #3b82f6; }
-.taste-dot.purple { background: #a855f7; }
+.taste-dot.green { background: #ffffff; }
+.taste-dot.blue { background: #a1a1aa; }
+.taste-dot.purple { background: #71717a; }
 
 /* ─── Collaborative Engine Architecture Card ─────────────────────────────── */
 
 .collaborative-engine-card {
-  background: linear-gradient(135deg, rgba(17, 24, 39, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  background: #09090b;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
   padding: 24px;
   margin-bottom: 24px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
 .engine-card-header {
@@ -255,8 +263,8 @@
 }
 
 .engine-icon-glow {
-  color: #fbbf24;
-  filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.5));
+  color: #ffffff;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.25));
 }
 
 .engine-headline {
@@ -276,9 +284,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  color: #34d399;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #ffffff;
   font-size: 0.74rem;
   font-weight: 700;
   padding: 4px 10px;
@@ -289,8 +297,8 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #10b981;
-  box-shadow: 0 0 6px #10b981;
+  background: #ffffff;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
 }
 
 .engine-pipeline-grid {
@@ -310,14 +318,14 @@
 
 .pipeline-node:hover {
   background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(99, 102, 241, 0.3);
+  border-color: rgba(255, 255, 255, 0.2);
   transform: translateY(-2px);
 }
 
 .pipeline-node-number {
   font-size: 0.7rem;
   font-weight: 800;
-  color: #6366f1;
+  color: #a1a1aa;
   margin-bottom: 6px;
   font-family: var(--font-mono, monospace);
 }
@@ -352,9 +360,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(99, 102, 241, 0.12);
-  border: 1px solid rgba(99, 102, 241, 0.3);
-  color: #a5b4fc;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #e4e4e7;
   font-size: 0.72rem;
   font-weight: 700;
   padding: 3px 8px;
@@ -365,8 +373,8 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #6366f1;
-  box-shadow: 0 0 6px #6366f1;
+  background: #ffffff;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
   animation: pulse-telemetry 2s infinite;
 }
 
@@ -475,22 +483,23 @@
   position: absolute;
   top: 8px;
   right: 8px;
-  background: rgba(16, 185, 129, 0.9);
+  background: rgba(0, 0, 0, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: #ffffff;
   font-size: 0.68rem;
   font-weight: 700;
   padding: 2px 7px;
   border-radius: 6px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
 }
 
 .sota-genre-pill {
   display: inline-block;
   font-size: 0.72rem;
-  color: var(--accent);
-  background: rgba(99, 102, 241, 0.1);
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  color: #d4d4d8;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   padding: 2px 8px;
   border-radius: 6px;
 }
@@ -520,9 +529,9 @@
 
 .profile-tool-card:hover {
   background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(99, 102, 241, 0.4);
+  border-color: rgba(255, 255, 255, 0.25);
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
 
 .tool-card-icon {
@@ -560,12 +569,12 @@
   align-items: center;
   gap: 6px;
   padding: 3px 8px;
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 6px;
   font-size: 0.7rem;
   font-weight: 700;
-  color: #34d399;
+  color: #ffffff;
   letter-spacing: 0.04em;
   margin-left: 8px;
 }
@@ -574,8 +583,8 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #10b981;
-  box-shadow: 0 0 6px #10b981;
+  background: #ffffff;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
 }
 
 .topbar-nav-divider {

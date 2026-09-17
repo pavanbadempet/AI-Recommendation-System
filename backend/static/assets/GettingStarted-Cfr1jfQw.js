@@ -1,4 +1,4 @@
-import{r as e}from"./rolldown-runtime-BHe-jwch.js";import{$ as t,D as n,I as r,c as i,it as a,tt as o,ut as s}from"./lucide-DV7fPg-3.js";import{t as c}from"./react-BaB0GGRR.js";import{l,n as u,t as d}from"./index-LGOBI-Jj.js";var f=e(s(),1),p=c(),m=d[0]??`https://your-apex-api.onrender.com`;function h(e,t){let n=t||`YOUR_KEY`,r=n.length>12?`${n.slice(0,10)}...`:n;return e===`curl`?`curl "${m}/v1/recommendations/id/550?n=5&explain=true" \\
+import{r as e}from"./rolldown-runtime-BHe-jwch.js";import{$ as t,D as n,I as r,c as i,it as a,tt as o,ut as s}from"./lucide-DV7fPg-3.js";import{t as c}from"./react-BaB0GGRR.js";import{l,n as u,t as d}from"./index-DeC275ZN.js";var f=e(s(),1),p=c(),m=d[0]??`https://your-apex-api.onrender.com`;function h(e,t){let n=t||`YOUR_KEY`,r=n.length>12?`${n.slice(0,10)}...`:n;return e===`curl`?`curl "${m}/v1/recommendations/id/550?n=5&explain=true" \\
   -H "X-Nova-API-Key: ${r}"`:e===`python`?`import httpx
 
 BASE = "${m}"

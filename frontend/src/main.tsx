@@ -3071,9 +3071,6 @@ function App() {
           <div className="topbar-left">
             <div style={{ display: "flex", alignItems: "center" }}>
               <button className="brand-logo" type="button" onClick={openHome} aria-label="NOVA Home">NOVA</button>
-              <span className="sota-system-badge" title="Rust APEX Core Active & Edge Cache Connected">
-                <span className="system-dot" /> 20M LAKEHOUSE
-              </span>
             </div>
             <nav className="topbar-links" aria-label="Main navigation">
               {navLinks.map((link, idx) => (

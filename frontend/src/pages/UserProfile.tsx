@@ -70,7 +70,7 @@ function BehaviorCard({ features }: { features: BehaviorFeatures }) {
       label: "Total Ratings",
       value: safeVal(features.total_ratings),
       ariaLabel: `Total ratings: ${safeVal(features.total_ratings)}`,
-      icon: <Star size={16} className="text-amber-400" aria-hidden="true" />,
+      icon: <Star size={16} aria-hidden="true" />,
       desc: "Explicit rating events registered in Lakehouse",
     },
     {
@@ -80,21 +80,21 @@ function BehaviorCard({ features }: { features: BehaviorFeatures }) {
           ? features.avg_rating.toFixed(1)
           : "—",
       ariaLabel: `Average rating: ${features.avg_rating?.toFixed(1) ?? "—"}`,
-      icon: <TrendingUp size={16} className="text-emerald-400" aria-hidden="true" />,
+      icon: <TrendingUp size={16} aria-hidden="true" />,
       desc: "Weighted mean score across interaction history",
     },
     {
       label: "Clicks",
       value: safeVal(features.click_count),
       ariaLabel: `Click count: ${safeVal(features.click_count)}`,
-      icon: <MousePointerClick size={16} className="text-indigo-400" aria-hidden="true" />,
+      icon: <MousePointerClick size={16} aria-hidden="true" />,
       desc: "Implicit item engagements and modal expansions",
     },
     {
       label: "Views",
       value: safeVal(features.view_count),
       ariaLabel: `View count: ${safeVal(features.view_count)}`,
-      icon: <Eye size={16} className="text-cyan-400" aria-hidden="true" />,
+      icon: <Eye size={16} aria-hidden="true" />,
       desc: "Catalog impressions recorded by telemetry stream",
     },
   ];
@@ -361,7 +361,7 @@ export function UserProfilePage({
       <div id="section-watchlist" className="dashboard-card sota-watchlist-container" aria-label="My Watchlist">
         <div className="dashboard-card-header">
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <Bookmark size={18} style={{ color: "#f59e0b" }} aria-hidden="true" />
+            <Bookmark size={18} style={{ color: "#ffffff" }} aria-hidden="true" />
             <div>
               <h3 className="dashboard-card-title">
                 My Watchlist
@@ -406,7 +406,7 @@ export function UserProfilePage({
                     borderRadius: "50%",
                     width: "24px",
                     height: "24px",
-                    color: "#f87171",
+                    color: "#ffffff",
                     display: "grid",
                     placeItems: "center",
                     cursor: "pointer",
@@ -548,7 +548,7 @@ export function UserProfilePage({
               className="profile-tool-card"
               onClick={() => onNavigate("data-platform")}
             >
-              <div className="tool-card-icon" style={{ background: "rgba(59, 130, 246, 0.12)", color: "#60a5fa" }}>
+              <div className="tool-card-icon" style={{ background: "rgba(255, 255, 255, 0.05)", color: "#ffffff" }}>
                 <Database size={22} />
               </div>
               <div className="tool-card-body">
@@ -562,7 +562,7 @@ export function UserProfilePage({
               className="profile-tool-card"
               onClick={() => onNavigate("dashboard")}
             >
-              <div className="tool-card-icon" style={{ background: "rgba(99, 102, 241, 0.12)", color: "var(--accent)" }}>
+              <div className="tool-card-icon" style={{ background: "rgba(255, 255, 255, 0.05)", color: "#ffffff" }}>
                 <BarChart3 size={22} />
               </div>
               <div className="tool-card-body">
@@ -576,7 +576,7 @@ export function UserProfilePage({
               className="profile-tool-card"
               onClick={() => onNavigate("knowledge-graph")}
             >
-              <div className="tool-card-icon" style={{ background: "rgba(168, 85, 247, 0.12)", color: "#c084fc" }}>
+              <div className="tool-card-icon" style={{ background: "rgba(255, 255, 255, 0.05)", color: "#ffffff" }}>
                 <Network size={22} />
               </div>
               <div className="tool-card-body">
@@ -590,7 +590,7 @@ export function UserProfilePage({
               className="profile-tool-card"
               onClick={() => onNavigate("evaluation")}
             >
-              <div className="tool-card-icon" style={{ background: "rgba(244, 63, 94, 0.12)", color: "#fb7185" }}>
+              <div className="tool-card-icon" style={{ background: "rgba(255, 255, 255, 0.05)", color: "#ffffff" }}>
                 <Activity size={22} />
               </div>
               <div className="tool-card-body">
@@ -604,7 +604,7 @@ export function UserProfilePage({
               className="profile-tool-card"
               onClick={() => onNavigate("admin")}
             >
-              <div className="tool-card-icon" style={{ background: "rgba(245, 158, 11, 0.12)", color: "#fbbf24" }}>
+              <div className="tool-card-icon" style={{ background: "rgba(255, 255, 255, 0.05)", color: "#ffffff" }}>
                 <Settings size={22} />
               </div>
               <div className="tool-card-body">
