@@ -600,19 +600,21 @@ input:focus-visible {
   align-items: center;
 }
 
-/* ─── Neural Cinema Spectrum Tuner ─── */
+/* ─── Browse by Mood Quick Filters ─── */
+.mood-deck-container,
 .spectrum-deck-container {
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding: 16px 20px;
   background: rgba(10, 10, 14, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 14px;
   backdrop-filter: blur(16px);
   margin-top: 8px;
 }
 
+.mood-deck-header,
 .spectrum-deck-header {
   display: flex;
   align-items: center;
@@ -621,28 +623,19 @@ input:focus-visible {
   gap: 8px;
 }
 
+.mood-deck-title,
 .spectrum-deck-title {
   display: flex;
   align-items: center;
   gap: 8px;
   font-family: var(--font-headline);
-  font-size: 0.82rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
   color: #ffffff;
 }
 
-.spectrum-readout {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: monospace;
-  font-size: 0.72rem;
-  color: var(--muted);
-  letter-spacing: 0.05em;
-}
-
+.mood-pills-row,
 .spectrum-pills-row {
   display: flex;
   gap: 10px;
@@ -650,10 +643,12 @@ input:focus-visible {
   scrollbar-width: none;
   padding-bottom: 2px;
 }
+.mood-pills-row::-webkit-scrollbar,
 .spectrum-pills-row::-webkit-scrollbar {
   display: none;
 }
 
+.mood-pill,
 .spectrum-pill {
   display: inline-flex;
   align-items: center;
@@ -669,12 +664,14 @@ input:focus-visible {
   white-space: nowrap;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
+.mood-pill:hover,
 .spectrum-pill:hover {
   background: rgba(255, 255, 255, 0.1);
   color: #ffffff;
   border-color: rgba(255, 255, 255, 0.25);
   transform: translateY(-1px);
 }
+.mood-pill.active,
 .spectrum-pill.active {
   background: #ffffff;
   color: #000000;
