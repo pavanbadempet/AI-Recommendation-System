@@ -3,7 +3,6 @@ import { createRoot } from "react-dom/client";
 import {
   Activity,
   AlertTriangle,
-  ArrowRight,
   BarChart3,
   Bookmark,
   Calendar,
@@ -437,7 +436,7 @@ const SEED_SHOWCASE_MOVIES: Movie[] = [
     vote_count: 31000,
     popularity: 110.0,
     release_date: "2009-12-15",
-    poster_path: "/kyeqWdyUXW608qlYkRqosgbbnKR.jpg",
+    poster_path: "/kyeqWdyUXW608qlYkRqosgbbJyK.jpg",
     director: "James Cameron",
     runtime: 162,
   },
@@ -1808,48 +1807,6 @@ const HomePage = React.memo(function HomePage({
                 ))}
               </div>
             </div>
-
-            {/* Data Engineering Architecture Provenance Banner */}
-            <button
-              type="button"
-              className="provenance-banner-btn"
-              onClick={() => onNavigate?.("data-platform")}
-              style={{
-                cursor: "pointer",
-                margin: "32px 0 16px 0",
-                padding: "20px 24px",
-                borderRadius: "16px",
-                background: "linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%)",
-                border: "1px solid rgba(6, 182, 212, 0.25)",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                flexWrap: "wrap",
-                gap: "16px",
-                boxShadow: "0 8px 32px rgba(6, 182, 212, 0.04)",
-                width: "100%",
-                textAlign: "left",
-                color: "inherit",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-                <div style={{ width: "42px", height: "42px", borderRadius: "10px", background: "rgba(6, 182, 212, 0.18)", display: "flex", alignItems: "center", justifyContent: "center", color: "#22d3ee" }}>
-                  <Database size={20} />
-                </div>
-                <div>
-                  <h3 style={{ margin: "0 0 4px 0", fontSize: "1.05rem", color: "#ffffff", fontWeight: "700" }}>
-                    Engineered with PySpark 4.2 &amp; Databricks Delta Lakehouse
-                  </h3>
-                  <p style={{ margin: 0, fontSize: "0.84rem", color: "var(--muted)" }}>
-                    Processing 21M+ records with SCD Type 2 dimension versioning &amp; 10-shard Neon pgvector HNSW indexing.
-                  </p>
-                </div>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#22d3ee", fontSize: "0.85rem", fontWeight: "700" }}>
-                <span>Explore Data Platform</span>
-                <ArrowRight size={16} />
-              </div>
-            </button>
           </div>
         </div>
       ) : (
