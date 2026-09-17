@@ -277,6 +277,26 @@ No installation required on your machine. Click below to launch a fully configur
 ---
 
 ## 🎯 Core Platform Specifications & Tech Stack
+---
+
+## ⚡ Latest Production Stack & Ecosystem Matrix (2026 Standards)
+
+The platform is standardized on the latest 2026 enterprise open-source and cloud-native versions, ensuring zero legacy debt and adherence to modern security/performance standards:
+
+| Infrastructure Layer | Latest Version (2026) | Framework & Protocol | Architectural Role & Modern Capability |
+| :--- | :---: | :--- | :--- |
+| **Distributed Compute** | PySpark 4.0+ | Apache Spark 4.x / Databricks DBR 16.x | Native Apache Arrow vectorization, Catalyst SIMD codegen, Adaptive Query Execution (AQE). |
+| **Lakehouse Storage** | Delta Lake 4.0+ | Delta 4.x ACID Transaction Log | Dynamic **Liquid Clustering** (clusterBy), SCD Type 2 temporal versioning, Auto Loader streaming. |
+| **Vector Database** | PostgreSQL 17 | pgvector 0.8+ | 10-shard hash-partitioned HNSW graph indexing (
+ector_cosine_ops), covering indexes, sub-5ms lookups. |
+| **Deep Learning** | PyTorch 2.6+ | TorchDynamo / CUDA 12.6+ | 6-Model ensemble (SASRec, KAN, LightGCN, Neural ODE, Poincaré, Latent Diffusion) with DR-IPS debiasing. |
+| **Serving Gateway** | FastAPI 0.136+ | Starlette 1.3+ / Uvicorn 0.46+ | High-throughput asynchronous ASGI gateway, native Pydantic v2 schemas, zero-copy orjson serialization. |
+| **Edge SIMD Core** | Rust 2024 Edition | Axum 0.8+ / PyO3 0.23+ / Maturin 1.8+ | Sub-0.3ms AVX2/NEON vector math, zero Python GIL bottleneck, memory-safe standalone binary. |
+| **Client Workstation** | React 19.2+ | TypeScript 5.8+ / Vite 8.0+ | Glassmorphic cinema SPA, concurrent rendering, dynamic trailer player, WebGL 3D vector galaxy. |
+| **Runtime Toolchain** | Bun 1.2+ | Native JavaScript/TypeScript Engine | 30x faster package installation, native test runner (un test), instant compilation. |
+| **Secret Mesh & MLOps**| Doppler | OpenTelemetry & Doppler CLI | Zero-sprawl centralized secret injection, automated Kaggle GPU triggers, 17 GitHub Actions CI DAGs. |
+| **Data Contracts** | Pandera 0.31+ | PyArrow 23.0+ & Polars 1.41+ | Schema enforcement, dead-letter quarantine validation, type-safe feature pipelines. |
+
 
 | Category | Core Specs & Technologies (Search Optimization Keywords) |
 | :--- | :--- |
