@@ -1970,10 +1970,23 @@ export const MovieDialog = React.memo(function MovieDialog({
 
 
 
+function CinemaWaveformPulse() {
+  return (
+    <div className="cinema-waveform" aria-hidden="true">
+      <span className="wave-bar wave-bar-1" />
+      <span className="wave-bar wave-bar-2" />
+      <span className="wave-bar wave-bar-3" />
+      <span className="wave-bar wave-bar-4" />
+      <span className="wave-bar wave-bar-5" />
+    </div>
+  );
+}
+
 function CinematicRow({
   title,
   subtitle,
   movies,
+  variant = "standard",
   isTop10 = false,
   onOpenMovie,
   onHoverMovie,
@@ -1981,6 +1994,7 @@ function CinematicRow({
   title: string;
   subtitle?: string;
   movies: Movie[];
+  variant?: "standard" | "anamorphic" | "vault";
   isTop10?: boolean;
   onOpenMovie: (movie: Movie) => void;
   onHoverMovie?: (movieId?: number) => void;
@@ -1988,6 +2002,9 @@ function CinematicRow({
   const rowRef = React.useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = React.useState(false);
   const [canScrollRight, setCanScrollRight] = React.useState(true);
+
+  const effectiveVariant: "standard" | "anamorphic" | "vault" =
+    variant !== "standard" ? variant : isTop10 ? "vault" : "standard";
 
   const checkScroll = React.useCallback(() => {
     const el = rowRef.current;
@@ -2021,7 +2038,7 @@ function CinematicRow({
   if (!movies || movies.length === 0) return null;
 
   return (
-    <div className={`cinematic-row ${isTop10 ? "top10-row" : ""}`}>
+    <div className={`cinematic-row cinematic-row-${effectiveVariant}`}>
       <div className="row-header">
         <h3 className="row-title">{title}</h3>
         {subtitle && <span className="row-subtitle">{subtitle}</span>}
@@ -2038,49 +2055,142 @@ function CinematicRow({
           </button>
         )}
         <div className="carousel-track" ref={rowRef}>
-          {movies.map((movie, index) => (
-            <div
-              key={`${title}-${movie.id}-${index}`}
-              className={`movie-card-container ${isTop10 ? "top10-card-container" : ""}`}
-            >
-              {isTop10 && (
-                <span className="top10-rank" aria-hidden="true">
-                  {index + 1}
-                </span>
-              )}
-              <button
-                type="button"
-                className="cinematic-movie-card"
-                onClick={() => onOpenMovie(movie)}
-                onPointerEnter={() => prefetchMovie(movie.id)}
-                onMouseEnter={() => onHoverMovie?.(movie.id)}
-                onFocus={() => onHoverMovie?.(movie.id)}
-                title={`${movie.title} (${movieYear(movie)}) - Watch Cinema Trailer`}
+          {movies.map((movie, index) => {
+            if (effectiveVariant === "vault") {
+              return (
+                <div
+                  key={`${title}-${movie.id}-${index}`}
+                  className="vault-card-container"
+                >
+                  <button
+                    type="button"
+                    className="vault-movie-card"
+                    onClick={() => onOpenMovie(movie)}
+                    onPointerEnter={() => prefetchMovie(movie.id)}
+                    onMouseEnter={() => onHoverMovie?.(movie.id)}
+                    onFocus={() => onHoverMovie?.(movie.id)}
+                    title={`${movie.title} (${movieYear(movie)}) - Criterion Archive Vault Master`}
+                  >
+                    <div className="vault-poster-wrap">
+                      <span className="vault-ledger-badge">
+                        VAULT · {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <img
+                        src={posterUrl(movie.poster_path)}
+                        alt={movie.title}
+                        loading="lazy"
+                        className="card-poster"
+                      />
+                      <div className="card-overlay-gradient" />
+                      <span className="vault-coherence-pill">
+                        {(99.8 - index * 0.2).toFixed(1)}% COHERENCE
+                      </span>
+                      <div className="card-quick-badge">
+                        <Play size={12} fill="currentColor" />
+                      </div>
+                    </div>
+                    <div className="card-caption">
+                      <span className="card-caption-title">{movie.title}</span>
+                      <div className="card-caption-meta">
+                        <span>{movieYear(movie)}</span>
+                        {directorLabel(movie) && <span>• {directorLabel(movie)}</span>}
+                        {movieScore(movie) !== "NR" && (
+                          <span className="card-caption-score">★ {movieScore(movie)}</span>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              );
+            }
+
+            if (effectiveVariant === "anamorphic") {
+              return (
+                <div
+                  key={`${title}-${movie.id}-${index}`}
+                  className="anamorphic-card-container"
+                >
+                  <button
+                    type="button"
+                    className="anamorphic-movie-card"
+                    onClick={() => onOpenMovie(movie)}
+                    onPointerEnter={() => prefetchMovie(movie.id)}
+                    onMouseEnter={() => onHoverMovie?.(movie.id)}
+                    onFocus={() => onHoverMovie?.(movie.id)}
+                    title={`${movie.title} (${movieYear(movie)}) - 2.39:1 Panavision Master`}
+                  >
+                    <div className="anamorphic-frame-wrap">
+                      <img
+                        src={backdropUrl(movie.poster_path)}
+                        alt={movie.title}
+                        loading="lazy"
+                        className="anamorphic-frame-img"
+                      />
+                      <div className="anamorphic-bottom-overlay">
+                        <div className="anamorphic-tags">
+                          <span className="anamorphic-aspect-badge">2.39:1 PANAVISION</span>
+                          <CinemaWaveformPulse />
+                        </div>
+                      </div>
+                      <div className="card-quick-badge">
+                        <Play size={12} fill="currentColor" />
+                      </div>
+                    </div>
+                    <div className="card-caption">
+                      <span className="card-caption-title">{movie.title}</span>
+                      <div className="card-caption-meta">
+                        <span>{movieYear(movie)}</span>
+                        {movie.runtime ? <span>• {movie.runtime}m</span> : null}
+                        {directorLabel(movie) && <span>• {directorLabel(movie)}</span>}
+                        {movieScore(movie) !== "NR" && (
+                          <span className="card-caption-score">★ {movieScore(movie)}</span>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              );
+            }
+
+            return (
+              <div
+                key={`${title}-${movie.id}-${index}`}
+                className="movie-card-container"
               >
-                <div className="card-poster-wrap">
-                  <img
-                    src={posterUrl(movie.poster_path)}
-                    alt={movie.title}
-                    loading="lazy"
-                    className="card-poster"
-                  />
-                  <div className="card-overlay-gradient" />
-                  <div className="card-quick-badge">
-                    <Play size={12} fill="currentColor" />
+                <button
+                  type="button"
+                  className="cinematic-movie-card"
+                  onClick={() => onOpenMovie(movie)}
+                  onPointerEnter={() => prefetchMovie(movie.id)}
+                  onMouseEnter={() => onHoverMovie?.(movie.id)}
+                  onFocus={() => onHoverMovie?.(movie.id)}
+                  title={`${movie.title} (${movieYear(movie)}) - Watch Cinema Trailer`}
+                >
+                  <div className="card-poster-wrap">
+                    <img
+                      src={posterUrl(movie.poster_path)}
+                      alt={movie.title}
+                      loading="lazy"
+                      className="card-poster"
+                    />
+                    <div className="card-overlay-gradient" />
+                    <div className="card-quick-badge">
+                      <Play size={12} fill="currentColor" />
+                    </div>
                   </div>
-                </div>
-                <div className="card-caption">
-                  <span className="card-caption-title">{movie.title}</span>
-                  <div className="card-caption-meta">
-                    <span>{movieYear(movie)}</span>
-                    {movieScore(movie) !== "NR" && (
-                      <span className="card-caption-score">★ {movieScore(movie)}</span>
-                    )}
+                  <div className="card-caption">
+                    <span className="card-caption-title">{movie.title}</span>
+                    <div className="card-caption-meta">
+                      <span>{movieYear(movie)}</span>
+                      {movieScore(movie) !== "NR" && (
+                        <span className="card-caption-score">★ {movieScore(movie)}</span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </button>
-            </div>
-          ))}
+                </button>
+              </div>
+            );
+          })}
         </div>
         {canScrollRight && (
           <button
@@ -2097,12 +2207,74 @@ function CinematicRow({
   );
 }
 
+type SpectrumId = "all" | "tension" | "cosmic" | "noir" | "poetry" | "sagas";
+
+interface SpectrumChannel {
+  id: SpectrumId;
+  label: string;
+  icon: string;
+  coherence: string;
+  tagline: string;
+  flagshipTitle: string;
+}
+
+const SPECTRUM_CHANNELS: SpectrumChannel[] = [
+  {
+    id: "all",
+    label: "Full Latent Space",
+    icon: "✦",
+    coherence: "99.8% RESONANCE",
+    tagline: "Omni-Spectrum Neural Synthesis across all 30 TMDB cinematic coordinates",
+    flagshipTitle: "Dune: Part Two",
+  },
+  {
+    id: "tension",
+    label: "High Tension & Pacing",
+    icon: "⚡",
+    coherence: "98.9% KINETIC COHERENCE",
+    tagline: "Adrenaline velocity, psychological suspense, and relentless momentum",
+    flagshipTitle: "The Dark Knight",
+  },
+  {
+    id: "cosmic",
+    label: "Cosmic & Deep Speculation",
+    icon: "🌌",
+    coherence: "99.4% TEMPORAL RESONANCE",
+    tagline: "Wormholes, simulation theory, existential horizons, and cosmic wonder",
+    flagshipTitle: "Interstellar",
+  },
+  {
+    id: "noir",
+    label: "Sovereign Noir & Moral Ruin",
+    icon: "🩸",
+    coherence: "99.1% SHADOW HARMONIC",
+    tagline: "Cynical detectives, underworld dynasties, fatalistic betrayals, and dark psychology",
+    flagshipTitle: "The Godfather",
+  },
+  {
+    id: "poetry",
+    label: "Sublime Visual Poetry",
+    icon: "✨",
+    coherence: "98.7% AESTHETIC HARMONIC",
+    tagline: "Hypnotic cinematography, dreamlike color palettes, and transcendent world-building",
+    flagshipTitle: "Spider-Man: Across the Spider-Verse",
+  },
+  {
+    id: "sagas",
+    label: "Human Triumph & Sagas",
+    icon: "⏳",
+    coherence: "99.6% EMOTIONAL FIDELITY",
+    tagline: "Decades-spanning epics, redemption arcs, and monumentally enduring legacies",
+    flagshipTitle: "The Shawshank Redemption",
+  },
+];
+
 const HomePage = React.memo(function HomePage({
   movies,
   heroIndex,
   loading,
   error,
-  onHeroIndex: _onHeroIndex,
+  onHeroIndex,
   onOpenMovie,
   recentMovies,
   forYouMovies,
@@ -2132,6 +2304,12 @@ const HomePage = React.memo(function HomePage({
 }) {
   const hero = movies[heroIndex] || movies[0] || null;
   const isLoading = loading && movies.length === 0;
+
+  const [activeSpectrum, setActiveSpectrum] = React.useState<SpectrumId>("all");
+
+  const activeChannel = React.useMemo(() => {
+    return SPECTRUM_CHANNELS.find((c) => c.id === activeSpectrum) || SPECTRUM_CHANNELS[0];
+  }, [activeSpectrum]);
 
   // Watchlist state for billboard button
   const [isHeroInWatchlist, setIsHeroInWatchlist] = React.useState(false);
@@ -2171,10 +2349,28 @@ const HomePage = React.memo(function HomePage({
     : "";
 
   // Themed Curated Rails
-  const top10Movies = React.useMemo(() => {
+  const vaultMovies = React.useMemo(() => {
     return [...movies]
       .sort((a, b) => ((b.vote_average ?? 0) * 1000 + (b.popularity ?? 0)) - ((a.vote_average ?? 0) * 1000 + (a.popularity ?? 0)))
       .slice(0, 10);
+  }, [movies]);
+
+  const anamorphicMovies = React.useMemo(() => {
+    const titles = [
+      "Dune: Part Two",
+      "Interstellar",
+      "The Matrix",
+      "Gladiator",
+      "Avatar",
+      "Jurassic Park",
+      "Inception",
+      "The Dark Knight",
+      "The Lord of the Rings: The Return of the King",
+    ];
+    const filtered = movies.filter((m) =>
+      titles.some((t) => m.title.toLowerCase().includes(t.toLowerCase()))
+    );
+    return filtered.length >= 4 ? filtered : movies.slice(0, 8);
   }, [movies]);
 
   const scifiMovies = React.useMemo(() => {
@@ -2262,14 +2458,62 @@ const HomePage = React.memo(function HomePage({
             </div>
           </section>
 
+          {/* Neural Cinema Spectrum Tuner Deck */}
+          <div className="spectrum-deck-container" role="region" aria-label="Neural Cinema Spectrum Tuner">
+            <div className="spectrum-deck-header">
+              <div className="spectrum-deck-title">
+                <span>NEURAL SPECTRUM TUNER</span>
+                <CinemaWaveformPulse />
+              </div>
+              <div className="spectrum-readout">
+                <span>FREQUENCY: {activeChannel.coherence}</span>
+                <span>•</span>
+                <span>{activeChannel.tagline}</span>
+              </div>
+            </div>
+            <div className="spectrum-pills-row" role="tablist" aria-label="Cinema frequency bands">
+              {SPECTRUM_CHANNELS.map((ch) => (
+                <button
+                  key={ch.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeSpectrum === ch.id}
+                  className={`spectrum-pill ${activeSpectrum === ch.id ? "active" : ""}`}
+                  onClick={() => {
+                    setActiveSpectrum(ch.id);
+                    const matchIdx = movies.findIndex((m) =>
+                      m.title.toLowerCase().includes(ch.flagshipTitle.toLowerCase())
+                    );
+                    if (matchIdx !== -1) {
+                      onHeroIndex(matchIdx);
+                    }
+                  }}
+                >
+                  <span>{ch.icon}</span>
+                  <span>{ch.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Curated Rails */}
           <div className="category-rows">
-            {/* Top 10 Masterpieces Today */}
+            {/* The Director's Archive Vault: Landmark Masterpieces */}
             <CinematicRow
-              title="Top 10 Masterpieces Today"
-              subtitle="Ranked by critical acclaim and global audience reception"
-              movies={top10Movies}
-              isTop10={true}
+              title="The Director's Archive Vault: Landmark Masterpieces"
+              subtitle="Archival reference masters encoded with 99%+ latent coherence & multi-hop cinematic provenance"
+              movies={vaultMovies}
+              variant="vault"
+              onOpenMovie={onOpenMovie}
+              onHoverMovie={onHoverMovie}
+            />
+
+            {/* 2.39:1 Panavision Horizon: Anamorphic Masterworks */}
+            <CinematicRow
+              title="2.39:1 Panavision Horizon: Anamorphic Masterworks"
+              subtitle="Ultra-widescreen compositions captured on 70mm IMAX and Panavision anamorphic glass"
+              movies={anamorphicMovies}
+              variant="anamorphic"
               onOpenMovie={onOpenMovie}
               onHoverMovie={onHoverMovie}
             />
@@ -2280,43 +2524,48 @@ const HomePage = React.memo(function HomePage({
                 title="Recommended For You"
                 subtitle="Curated by neural embeddings and multi-hop knowledge graph"
                 movies={forYouMovies}
+                variant="standard"
                 onOpenMovie={onOpenMovie}
                 onHoverMovie={onHoverMovie}
               />
             )}
 
-            {/* Mind-Bending Sci-Fi & Speculative Worlds */}
+            {/* Mind-Bending Sci-Fi & Speculative Horizons */}
             <CinematicRow
-              title="Mind-Bending Sci-Fi & Speculative Worlds"
+              title="Mind-Bending Sci-Fi & Speculative Horizons"
               subtitle="Interstellar voyages, high-concept timelines, and artificial realities"
               movies={scifiMovies}
+              variant="standard"
               onOpenMovie={onOpenMovie}
               onHoverMovie={onHoverMovie}
             />
 
-            {/* Award-Winning Crime, Mob & Thrillers */}
+            {/* Sovereign Noir & Moral Ambiguity */}
             <CinematicRow
-              title="Award-Winning Crime, Mob & Thrillers"
+              title="Sovereign Noir & Moral Ambiguity"
               subtitle="Dark psychology, noir investigations, and iconic mafia sagas"
               movies={crimeMovies}
+              variant="standard"
               onOpenMovie={onOpenMovie}
               onHoverMovie={onHoverMovie}
             />
 
-            {/* Cinematic Epics & Modern Classics */}
+            {/* Monumental Epics & Human Sagas */}
             <CinematicRow
-              title="Cinematic Epics & Modern Classics"
+              title="Monumental Epics & Human Sagas"
               subtitle="Historical monumental epics, human dramas, and emotional journeys"
               movies={epicsMovies}
+              variant="standard"
               onOpenMovie={onOpenMovie}
               onHoverMovie={onHoverMovie}
             />
 
-            {/* Animation & Visual Wonders */}
+            {/* Animation Renaissance: Stylized Universes */}
             <CinematicRow
-              title="Animation & Visual Wonders"
+              title="Animation Renaissance: Stylized Universes"
               subtitle="Boundary-pushing visual effects, anime masterworks, and stylized universes"
               movies={animationMovies}
+              variant="standard"
               onOpenMovie={onOpenMovie}
               onHoverMovie={onHoverMovie}
             />
@@ -2326,6 +2575,7 @@ const HomePage = React.memo(function HomePage({
               <CinematicRow
                 title="Continue Watching & Recently Explored"
                 movies={recentMovies}
+                variant="standard"
                 onOpenMovie={onOpenMovie}
                 onHoverMovie={onHoverMovie}
               />

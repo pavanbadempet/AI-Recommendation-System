@@ -600,29 +600,252 @@ input:focus-visible {
   align-items: center;
 }
 
-/* Top 10 Styling */
-.top10-card-container {
+/* ─── Neural Cinema Spectrum Tuner ─── */
+.spectrum-deck-container {
   display: flex;
-  align-items: flex-end;
-  position: relative;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 20px;
+  background: rgba(10, 10, 14, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  backdrop-filter: blur(16px);
+  margin-top: 8px;
 }
 
-.top10-rank {
-  font-family: var(--font-headline);
-  font-size: 7.5rem;
-  font-weight: 900;
-  line-height: 0.8;
-  color: #000000;
-  -webkit-text-stroke: 4px #555555;
-  margin-right: -24px;
-  z-index: 1;
-  pointer-events: none;
-  user-select: none;
-  letter-spacing: -0.06em;
-  transition: -webkit-text-stroke 0.2s ease, color 0.2s ease;
+.spectrum-deck-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
 }
-.top10-card-container:hover .top10-rank {
-  -webkit-text-stroke: 4px #ffffff;
+
+.spectrum-deck-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-headline);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.spectrum-readout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: monospace;
+  font-size: 0.72rem;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+}
+
+.spectrum-pills-row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.spectrum-pills-row::-webkit-scrollbar {
+  display: none;
+}
+
+.spectrum-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 650;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.spectrum-pill:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+.spectrum-pill.active {
+  background: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
+  box-shadow: 0 4px 16px rgba(255, 255, 255, 0.25);
+}
+
+/* ─── Cinema Waveform Pulse ─── */
+.cinema-waveform {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 14px;
+}
+.wave-bar {
+  width: 2.5px;
+  background: currentColor;
+  border-radius: 1px;
+  animation: wavePulse 1.4s ease-in-out infinite alternate;
+}
+.wave-bar-1 { height: 40%; animation-delay: 0.1s; }
+.wave-bar-2 { height: 80%; animation-delay: 0.4s; }
+.wave-bar-3 { height: 100%; animation-delay: 0.2s; }
+.wave-bar-4 { height: 60%; animation-delay: 0.5s; }
+.wave-bar-5 { height: 90%; animation-delay: 0.3s; }
+
+@keyframes wavePulse {
+  0% { transform: scaleY(0.35); opacity: 0.6; }
+  100% { transform: scaleY(1); opacity: 1; }
+}
+
+/* ─── Anamorphic 2.39:1 Horizon Card ─── */
+.anamorphic-movie-card {
+  width: 320px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  z-index: 2;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.anamorphic-movie-card:hover {
+  transform: scale(1.04) translateY(-3px);
+  z-index: 5;
+}
+
+.anamorphic-frame-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2.39 / 1;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: #09090c;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.anamorphic-movie-card:hover .anamorphic-frame-wrap {
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.9);
+}
+
+.anamorphic-frame-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.anamorphic-bottom-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.2) 60%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+.anamorphic-tags {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.anamorphic-aspect-badge {
+  font-family: monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.18);
+  padding: 2px 6px;
+  border-radius: 3px;
+  backdrop-filter: blur(4px);
+}
+
+/* ─── The Director's Archive Vault Card ─── */
+.vault-movie-card {
+  width: 185px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  z-index: 2;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.vault-movie-card:hover {
+  transform: scale(1.06) translateY(-4px);
+  z-index: 5;
+}
+
+.vault-poster-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: #111114;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.7);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.vault-movie-card:hover .vault-poster-wrap {
+  border-color: #ffffff;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.9), 0 0 18px rgba(255, 255, 255, 0.15);
+}
+
+.vault-ledger-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-family: monospace;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 3px 7px;
+  border-radius: 4px;
+  backdrop-filter: blur(6px);
+  z-index: 2;
+}
+
+.vault-coherence-pill {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  font-family: monospace;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 2px 6px;
+  border-radius: 3px;
+  z-index: 2;
 }
 
 /* Cinematic Movie Card */
