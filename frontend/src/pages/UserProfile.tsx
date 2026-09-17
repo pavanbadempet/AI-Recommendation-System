@@ -17,11 +17,12 @@ import {
   TrendingUp,
   MousePointerClick,
   Eye,
-  Play
+  Play,
+  Bookmark
 } from "lucide-react";
 import { getUserRecommendations, apiGet } from "../api";
 import type { Movie } from "../types";
-import { safeGetLocalStorage } from "../storage";
+import { safeGetLocalStorage, safeSetLocalStorage } from "../storage";
 
 const imageBase = "https://image.tmdb.org/t/p/w500";
 
@@ -222,6 +223,18 @@ function WatchHistorySection({ onSelectMovie }: { onSelectMovie: (movie: Movie) 
 
 // ─── User Profile Page ────────────────────────────────────────────────────────
 
+const WATCHLIST_STORAGE_KEY = "nova_watchlist_v2";
+
+function loadWatchlistMovies(): Movie[] {
+  try {
+    const raw = safeGetLocalStorage(WATCHLIST_STORAGE_KEY);
+    const parsed = JSON.parse(raw || "[]") as Movie[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 export function UserProfilePage({
   token,
   username,
@@ -235,6 +248,23 @@ export function UserProfilePage({
   onSelectMovie: (movie: Movie) => void;
   onNavigate?: (page: string) => void;
 }) {
+  const [watchlist, setWatchlist] = useState<Movie[]>(() => loadWatchlistMovies());
+
+  useEffect(() => {
+    setWatchlist(loadWatchlistMovies());
+  }, []);
+
+  const handleRemoveFromWatchlist = (movieId: number, event: React.MouseEvent) => {
+    event.stopPropagation();
+    try {
+      const updated = watchlist.filter((m) => m.id !== movieId);
+      safeSetLocalStorage(WATCHLIST_STORAGE_KEY, JSON.stringify(updated));
+      setWatchlist(updated);
+    } catch {
+      // ignore
+    }
+  };
+
   const [features, setFeatures] = useState<BehaviorFeatures | null>(null);
   const [featuresLoading, setFeaturesLoading] = useState(false);
   const [featuresError, setFeaturesError] = useState<string | null>(null);
@@ -325,6 +355,71 @@ export function UserProfilePage({
             <span className="taste-chip low"><span className="taste-dot purple" /> Neo-Noir & Mystery (76%)</span>
           </div>
         </div>
+      </div>
+
+      {/* Saved Watchlist Section */}
+      <div id="section-watchlist" className="dashboard-card sota-watchlist-container" aria-label="My Watchlist">
+        <div className="dashboard-card-header">
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <Bookmark size={18} style={{ color: "#f59e0b" }} aria-hidden="true" />
+            <div>
+              <h3 className="dashboard-card-title">
+                My Watchlist
+              </h3>
+              <p className="dashboard-card-subtitle">
+                {watchlist.length} {watchlist.length === 1 ? "movie" : "movies"} saved to your personal queue
+              </p>
+            </div>
+          </div>
+          <span className="telemetry-live-chip">
+            {watchlist.length} Saved
+          </span>
+        </div>
+
+        {watchlist.length === 0 ? (
+          <div className="watchlist-empty-state" style={{ padding: "32px 16px", textAlign: "center", background: "rgba(255, 255, 255, 0.02)", borderRadius: "12px", border: "1px dashed rgba(255, 255, 255, 0.08)", marginTop: "12px" }}>
+            <Bookmark size={28} style={{ color: "var(--muted)", opacity: 0.5, margin: "0 auto 8px auto", display: "block" }} />
+            <strong style={{ color: "#f1f5f9", display: "block", marginBottom: "4px" }}>Your Watchlist is Empty</strong>
+            <p style={{ color: "#94a3b8", fontSize: "0.84rem", margin: 0 }}>
+              Click the <strong>Watchlist</strong> bookmark button on any movie card or popup to save titles directly here.
+            </p>
+          </div>
+        ) : (
+          <div className="poster-grid" aria-label="Saved watchlist movies" style={{ marginTop: "12px" }}>
+            {watchlist.map((movie) => (
+              <div key={`watchlist-${movie.id}`} style={{ position: "relative" }}>
+                <MiniRecommendationCard
+                  movie={movie}
+                  onSelect={onSelectMovie}
+                />
+                <button
+                  type="button"
+                  onClick={(e) => handleRemoveFromWatchlist(movie.id, e)}
+                  title="Remove from Watchlist"
+                  aria-label={`Remove ${movie.title} from watchlist`}
+                  style={{
+                    position: "absolute",
+                    top: "6px",
+                    left: "6px",
+                    background: "rgba(0, 0, 0, 0.75)",
+                    border: "1px solid rgba(255, 255, 255, 0.2)",
+                    borderRadius: "50%",
+                    width: "24px",
+                    height: "24px",
+                    color: "#f87171",
+                    display: "grid",
+                    placeItems: "center",
+                    cursor: "pointer",
+                    zIndex: 10,
+                    fontSize: "11px",
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Collaborative Recommendation Engine Architecture Callout */}

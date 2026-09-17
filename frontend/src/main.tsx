@@ -1290,7 +1290,16 @@ export const MovieDialog = React.memo(function MovieDialog({
   // Masterpiece States
   const [userRating, setUserRating] = React.useState(0);
   const [hoverRating, setHoverRating] = React.useState(0);
-  const [inWatchlist, setInWatchlist] = React.useState(false);
+  const WATCHLIST_STORAGE_KEY = "nova_watchlist_v2";
+  const [inWatchlist, setInWatchlist] = React.useState(() => {
+    try {
+      const raw = safeGetLocalStorage(WATCHLIST_STORAGE_KEY);
+      const list = raw ? JSON.parse(raw) : [];
+      return Array.isArray(list) && list.some((m: { id?: number }) => m.id === movie.id);
+    } catch {
+      return false;
+    }
+  });
   const [toast, setToast] = React.useState("");
 
   const dialogRef = React.useRef<HTMLElement>(null);
@@ -1479,8 +1488,25 @@ export const MovieDialog = React.memo(function MovieDialog({
                     type="button"
                     className={`action-pill-btn ${inWatchlist ? "active" : ""}`}
                     onClick={() => {
-                      setInWatchlist(!inWatchlist);
-                      showToast(inWatchlist ? "Removed from Watchlist" : "Saved to Watchlist!");
+                      try {
+                        const raw = safeGetLocalStorage(WATCHLIST_STORAGE_KEY);
+                        let list = raw ? JSON.parse(raw) : [];
+                        if (!Array.isArray(list)) list = [];
+                        const exists = list.some((m: { id?: number }) => m.id === movie.id);
+                        if (exists) {
+                          list = list.filter((m: { id?: number }) => m.id !== movie.id);
+                          safeSetLocalStorage(WATCHLIST_STORAGE_KEY, JSON.stringify(list));
+                          setInWatchlist(false);
+                          showToast("Removed from Watchlist");
+                        } else {
+                          list = [movie, ...list.filter((m: { id?: number }) => m.id !== movie.id)];
+                          safeSetLocalStorage(WATCHLIST_STORAGE_KEY, JSON.stringify(list));
+                          setInWatchlist(true);
+                          showToast("Saved to Watchlist!");
+                        }
+                      } catch {
+                        setInWatchlist(!inWatchlist);
+                      }
                     }}
                   >
                     <Bookmark size={15} fill={inWatchlist ? "currentColor" : "none"} />
