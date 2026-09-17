@@ -250,6 +250,7 @@ async def startup(
         ``tier_detector``, ``keepalive_task``.
     """
     import time
+
     import numpy as np
 
     # 1. Enforce single-threaded CPU execution across PyTorch and math runtimes

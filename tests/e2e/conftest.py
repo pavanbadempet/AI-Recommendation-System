@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from contextlib import contextmanager
 import logging
 import os
-from pathlib import Path
 import socket
 import time
-from typing import Any, Callable
+from typing import Any
 from unittest.mock import AsyncMock, patch
 
 import numpy as np
@@ -45,10 +45,11 @@ async def _fast_rate_limiter_dispatch(self, request, call_next):
 RedisRateLimiter.dispatch = _fast_rate_limiter_dispatch
 
 from fastapi.testclient import TestClient
+
 from backend.api.fast_cache import clear_all_caches
 from backend.main import app, get_rec
+from backend.pipeline.recommender import MODELS_DIR, ONNXSBERTEncoder, Recommender
 import backend.pipeline.recommender_core as rcore
-from backend.pipeline.recommender import Recommender, ONNXSBERTEncoder, MODELS_DIR
 
 
 # 3. Direct ONNX Query Encoder Loading (Feature 2)
@@ -123,6 +124,7 @@ rcore.apply_query_mmr = _fixed_apply_query_mmr
 def _safe_build_sparse_retrieval_index(rec) -> None:
     """Safe sparse index builder avoiding vocabulary attribute exceptions."""
     import os as _os
+
     import numpy as _np
     import pandas as _pd
     from sklearn.feature_extraction.text import TfidfVectorizer
@@ -203,19 +205,21 @@ def e2e_app():
             rec.recommend_by_id(550, n=5)
             rec.search_movies("action", limit=5)
             rec.ai_search("action", n=5)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("Pre-warm failed: %s", exc)
     return app
 
 
 @pytest.fixture(scope="session")
 def client(e2e_app):
     """Session-wide TestClient context manager triggering full ASGI lifespan."""
-    with patch("redis.asyncio.from_url", return_value=_mock_redis):
-        with TestClient(e2e_app, raise_server_exceptions=True) as c:
-            # Ensure first request / warming is done
-            c.get("/health")
-            yield c
+    with (
+        patch("redis.asyncio.from_url", return_value=_mock_redis),
+        TestClient(e2e_app, raise_server_exceptions=True) as c,
+    ):
+        # Ensure first request / warming is done
+        c.get("/health")
+        yield c
 
 
 @pytest.fixture

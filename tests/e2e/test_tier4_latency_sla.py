@@ -12,10 +12,8 @@ from __future__ import annotations
 
 import time
 
-import numpy as np
-import pytest
-import torch
 from fastapi.testclient import TestClient
+import torch
 
 from backend.api.fast_cache import clear_all_caches
 from backend.main import app
@@ -65,7 +63,9 @@ class TestTier4LatencySLAs:
         )
         assert resp.status_code == 200
         # Cold SLA target: < 25ms
-        assert elapsed_ms < 60.0, f"Cold recommendation latency {elapsed_ms:.2f}ms exceeded tolerance (<25ms SLA target)"
+        assert elapsed_ms < 60.0, (
+            f"Cold recommendation latency {elapsed_ms:.2f}ms exceeded tolerance (<25ms SLA target)"
+        )
 
     def test_sla_4_cached_ai_search_latency_under_15ms(self, client):
         """SLA 4: Cached /v1/search/ai responds in < 15ms (p95)."""
@@ -103,9 +103,7 @@ class TestTier4LatencySLAs:
             data = resp.json()
             assert data["status"] in {"healthy", "degraded"}
         boot_duration_sec = time.perf_counter() - t0
-        assert boot_duration_sec < 2.0, (
-            f"Container boot time {boot_duration_sec:.3f}s exceeded 2.0s SLA target"
-        )
+        assert boot_duration_sec < 2.0, f"Container boot time {boot_duration_sec:.3f}s exceeded 2.0s SLA target"
 
     def test_sla_7_zero_network_calls_enforcement(self, client, sample_movie_ids):
         """SLA 7: 0 outbound network requests occur during query serving across all routes."""

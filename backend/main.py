@@ -413,6 +413,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.middleware("http")
 async def wire_cache_control_middleware(request: Request, call_next):
     """Set optimal wire Cache-Control, CDN-Cache-Control, and ETag headers on GET endpoints."""
@@ -451,10 +452,7 @@ async def wire_cache_control_middleware(request: Request, call_next):
             cache_control = "public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800"
         elif path == "/v1/catalog" or path.startswith("/v1/catalog/"):
             cache_control = "public, max-age=600, s-maxage=600, stale-while-revalidate=7200"
-        elif (
-            path.startswith("/v1/recommendations/id/")
-            or path.startswith("/recommend/id/")
-        ):
+        elif path.startswith("/v1/recommendations/id/") or path.startswith("/recommend/id/"):
             cache_control = "public, max-age=600, s-maxage=600, stale-while-revalidate=7200"
         elif (
             path == "/movie"
@@ -741,7 +739,6 @@ async def spa_fallback(full_path: str, request: Request):
 
         return FileResponse(frontend_index)
     raise HTTPException(status_code=404, detail="Resource not found")
-
 
 
 # =====================================================================

@@ -228,10 +228,9 @@ class TestSystemResilienceBoundaries:
 
     def test_zero_network_guard_blocks_outbound_connection(self):
         """Verify assert_zero_network_calls strictly catches outbound network attempts."""
-        with pytest.raises(NetworkCallBlockedError) as exc_info:
-            with assert_zero_network_calls():
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.connect(("8.8.8.8", 53))
+        with pytest.raises(NetworkCallBlockedError) as exc_info, assert_zero_network_calls():
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect(("8.8.8.8", 53))
         assert "Blocked outbound network attempt" in str(exc_info.value)
 
     def test_fastcache_ttl_expiration(self):

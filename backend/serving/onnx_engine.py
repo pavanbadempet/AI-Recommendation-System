@@ -175,7 +175,6 @@ class ONNXEngine:
         )
         return outputs[0]
 
-
     def prewarm_all_sessions(self) -> int:
         """Execute a dummy forward pass through all loaded ONNX sessions.
 

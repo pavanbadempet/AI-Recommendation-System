@@ -15,15 +15,14 @@ import gc
 import os
 from pathlib import Path
 import socket
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
 
 from backend.pipeline.recommender import ONNXSBERTEncoder, Recommender
 from backend.serving.app_startup import configure_cpu_threading, startup
-from backend.serving.onnx_engine import ONNXEngine, get_onnx_engine
-
+from backend.serving.onnx_engine import ONNXEngine
 
 # =====================================================================
 # 1. Zero-Network Boot & Socket Isolation Tests
@@ -72,13 +71,13 @@ def test_onnxsbertencoder_offline_tokenizer_loading():
     with (
         patch("onnxruntime.SessionOptions"),
         patch("onnxruntime.InferenceSession", return_value=mock_ort_session),
-        patch("transformers.AutoTokenizer.from_pretrained", return_value=mock_tokenizer_instance) as mock_from_pretrained,
+        patch(
+            "transformers.AutoTokenizer.from_pretrained", return_value=mock_tokenizer_instance
+        ) as mock_from_pretrained,
     ):
         encoder = ONNXSBERTEncoder("dummy_path.onnx", "sentence-transformers/all-MiniLM-L6-v2")
 
-        mock_from_pretrained.assert_called_with(
-            "sentence-transformers/all-MiniLM-L6-v2", local_files_only=True
-        )
+        mock_from_pretrained.assert_called_with("sentence-transformers/all-MiniLM-L6-v2", local_files_only=True)
         assert encoder.tokenizer is mock_tokenizer_instance
 
 
@@ -212,7 +211,6 @@ def test_recommender_fallback_when_onnx_init_fails(tmp_path):
 
         assert encoder is mock_st_instance
         mock_st_cls.assert_called_once_with("all-mpnet-base-v2")
-
 
 
 def test_dense_query_enabled_flag(tmp_path, monkeypatch):

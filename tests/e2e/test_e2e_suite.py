@@ -21,10 +21,10 @@ import threading
 import time
 from typing import Any
 
+from fastapi.testclient import TestClient
 import numpy as np
 import pytest
 import torch
-from fastapi.testclient import TestClient
 
 from backend.api.fast_cache import FastCache, clear_all_caches
 from backend.main import app, get_rec
@@ -35,7 +35,6 @@ from tests.e2e.conftest import (
     benchmark_latencies,
     measure_latency_ms,
 )
-
 
 # =====================================================================
 # TIER 1: CORE FEATURE ISOLATION
@@ -112,9 +111,7 @@ class TestTier1Feature2Recommendations:
         assert isinstance(query_movie.get("title"), str)
         assert len(query_movie["title"]) > 0
 
-    def test_recommendations_list_non_empty_with_scores(
-        self, client: TestClient, sample_movie_ids: list[int]
-    ) -> None:
+    def test_recommendations_list_non_empty_with_scores(self, client: TestClient, sample_movie_ids: list[int]) -> None:
         """Verify recommended movies list is non-empty and contains similarity scores."""
         movie_id = sample_movie_ids[0]
         response = client.get(f"/v1/recommendations/id/{movie_id}", params={"n": 10})
@@ -468,9 +465,7 @@ class TestTier2RecommendationBoundaries:
         response = client.get("/v1/recommendations/id/inception")
         assert response.status_code == 422
 
-    def test_recommendations_limit_n_zero_returns_422(
-        self, client: TestClient, sample_movie_ids: list[int]
-    ) -> None:
+    def test_recommendations_limit_n_zero_returns_422(self, client: TestClient, sample_movie_ids: list[int]) -> None:
         """Verify n=0 returns 422 Unprocessable Entity (ge=1 constraint)."""
         movie_id = sample_movie_ids[0]
         response = client.get(f"/v1/recommendations/id/{movie_id}", params={"n": 0})
@@ -642,10 +637,9 @@ class TestTier2SystemResilienceBoundaries:
 
     def test_zero_network_guard_blocks_outbound_connection(self) -> None:
         """Verify assert_zero_network_calls strictly catches outbound network attempts."""
-        with pytest.raises(NetworkCallBlockedError) as exc_info:
-            with assert_zero_network_calls():
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.connect(("8.8.8.8", 53))
+        with pytest.raises(NetworkCallBlockedError) as exc_info, assert_zero_network_calls():
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect(("8.8.8.8", 53))
         assert "Blocked outbound network attempt" in str(exc_info.value)
 
     def test_fastcache_ttl_expiration(self) -> None:
@@ -754,16 +748,12 @@ class TestTier3CombinationsAndWorkflows:
         search_results = search_resp.json()
         assert isinstance(search_results, list)
 
-    def test_workflow_cold_to_warm_cache_transition(
-        self, client: TestClient, sample_movie_ids: list[int]
-    ) -> None:
+    def test_workflow_cold_to_warm_cache_transition(self, client: TestClient, sample_movie_ids: list[int]) -> None:
         """Workflow 4: Measure cold request latency vs warm cached latency, asserting speedup."""
         movie_id = sample_movie_ids[0]
         clear_all_caches()
 
-        _, cold_time_ms = measure_latency_ms(
-            lambda: client.get(f"/v1/recommendations/id/{movie_id}", params={"n": 10})
-        )
+        _, cold_time_ms = measure_latency_ms(lambda: client.get(f"/v1/recommendations/id/{movie_id}", params={"n": 10}))
 
         warm_resp, warm_time_ms = measure_latency_ms(
             lambda: client.get(f"/v1/recommendations/id/{movie_id}", params={"n": 10})
@@ -775,9 +765,7 @@ class TestTier3CombinationsAndWorkflows:
         fresh_resp = client.get(f"/v1/recommendations/id/{movie_id}", params={"n": 10})
         assert fresh_resp.status_code == 200
 
-    def test_workflow_cache_parameter_isolation(
-        self, client: TestClient, sample_movie_ids: list[int]
-    ) -> None:
+    def test_workflow_cache_parameter_isolation(self, client: TestClient, sample_movie_ids: list[int]) -> None:
         """Workflow 5: Ensure different query parameters generate distinct cache entries."""
         movie_id = sample_movie_ids[0]
         clear_all_caches()
@@ -790,9 +778,7 @@ class TestTier3CombinationsAndWorkflows:
         assert resp_7.status_code == 200
         assert len(resp_7.json()["recommendations"]) == 7
 
-    def test_workflow_explain_flag_isolation(
-        self, client: TestClient, sample_movie_ids: list[int]
-    ) -> None:
+    def test_workflow_explain_flag_isolation(self, client: TestClient, sample_movie_ids: list[int]) -> None:
         """Workflow 6: Ensure explain=True and explain=False operate independently in cache."""
         movie_id = sample_movie_ids[0]
         clear_all_caches()
@@ -834,9 +820,7 @@ class TestTier3CombinationsAndWorkflows:
         assert results_by_genre[genres[0]] != results_by_genre[genres[1]]
         assert results_by_genre[genres[1]] != results_by_genre[genres[2]]
 
-    def test_workflow_concurrent_multi_user_traffic(
-        self, client: TestClient, sample_movie_ids: list[int]
-    ) -> None:
+    def test_workflow_concurrent_multi_user_traffic(self, client: TestClient, sample_movie_ids: list[int]) -> None:
         """Workflow 9: Verify 24 concurrent requests across endpoints complete without corruption."""
         sample_ids = sample_movie_ids[:4]
         queries = ["action", "thriller", "comedy", "drama"]
@@ -867,9 +851,7 @@ class TestTier3CombinationsAndWorkflows:
             assert res["search"] == 200
             assert res["showcase"] == 200
 
-    def test_workflow_health_under_active_load(
-        self, client: TestClient, sample_movie_ids: list[int]
-    ) -> None:
+    def test_workflow_health_under_active_load(self, client: TestClient, sample_movie_ids: list[int]) -> None:
         """Workflow 10: Health check responds quickly even while recommendations are computing."""
         mid = sample_movie_ids[0]
 
@@ -893,9 +875,7 @@ class TestTier3CombinationsAndWorkflows:
 
         assert all(lat < 20.0 for lat in health_latencies)
 
-    def test_workflow_cache_invalidation_lifecycle(
-        self, client: TestClient, sample_movie_ids: list[int]
-    ) -> None:
+    def test_workflow_cache_invalidation_lifecycle(self, client: TestClient, sample_movie_ids: list[int]) -> None:
         """Workflow 11: Verify clear_all_caches() resets cached responses across all routes."""
         mid = sample_movie_ids[0]
         client.get("/movies/showcase", params={"limit": 5})
@@ -956,7 +936,9 @@ class TestTier4LatencySLAsAndBenchmarks:
             lambda: client.get(f"/v1/recommendations/id/{movie_id}", params={"n": 10})
         )
         assert resp.status_code == 200
-        assert elapsed_ms < 60.0, f"Cold recommendation latency {elapsed_ms:.2f}ms exceeded tolerance (<25ms SLA target)"
+        assert elapsed_ms < 60.0, (
+            f"Cold recommendation latency {elapsed_ms:.2f}ms exceeded tolerance (<25ms SLA target)"
+        )
 
     def test_sla_4_cached_ai_search_latency_under_15ms(self, client: TestClient) -> None:
         """SLA 4: Cached /v1/search/ai responds in < 15ms (p95)."""
@@ -991,13 +973,9 @@ class TestTier4LatencySLAsAndBenchmarks:
             data = resp.json()
             assert data["status"] in {"healthy", "degraded"}
         boot_duration_sec = time.perf_counter() - t0
-        assert boot_duration_sec < 2.0, (
-            f"Container boot time {boot_duration_sec:.3f}s exceeded 2.0s SLA target"
-        )
+        assert boot_duration_sec < 2.0, f"Container boot time {boot_duration_sec:.3f}s exceeded 2.0s SLA target"
 
-    def test_sla_7_zero_network_calls_enforcement(
-        self, client: TestClient, sample_movie_ids: list[int]
-    ) -> None:
+    def test_sla_7_zero_network_calls_enforcement(self, client: TestClient, sample_movie_ids: list[int]) -> None:
         """SLA 7: 0 outbound network requests occur during query serving across all routes."""
         movie_id = sample_movie_ids[0]
 

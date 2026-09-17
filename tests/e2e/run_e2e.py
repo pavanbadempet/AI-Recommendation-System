@@ -62,13 +62,15 @@ def run_e2e_suite() -> int:
         if not passed:
             overall_exit_code = exit_code
 
-        tier_results.append({
-            "name": name,
-            "file": file_path,
-            "passed": passed,
-            "exit_code": int(exit_code),
-            "duration": tier_duration,
-        })
+        tier_results.append(
+            {
+                "name": name,
+                "file": file_path,
+                "passed": passed,
+                "exit_code": int(exit_code),
+                "duration": tier_duration,
+            }
+        )
 
     total_duration = time.perf_counter() - start_total_time
 

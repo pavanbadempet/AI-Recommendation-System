@@ -10,19 +10,15 @@ Validates:
 
 from __future__ import annotations
 
-import gc
 import os
-import sys
 import time
+
+from fastapi.testclient import TestClient
+import numpy as np
 import psutil
 import pytest
-import numpy as np
-from fastapi.testclient import TestClient
 
 from backend.main import app, get_rec
-from backend.serving.app_startup import startup, shutdown, configure_cpu_threading
-from backend.pipeline.recommender import Recommender, ONNXSBERTEncoder
-from backend.serving.onnx_engine import get_onnx_engine
 
 
 def get_process_memory_mb() -> float:
@@ -51,7 +47,9 @@ def test_empirical_app_startup_and_lifespan():
 
         print(f"\n[EMPIRICAL] Lifespan Startup Time: {startup_duration:.4f}s")
         print(f"[EMPIRICAL] Initial Health Check Latency: {h_latency_ms:.2f}ms")
-        print(f"[EMPIRICAL] Memory Delta at Startup: {mem_after_startup - mem_before:.2f}MB (Current RSS: {mem_after_startup:.2f}MB)")
+        print(
+            f"[EMPIRICAL] Memory Delta at Startup: {mem_after_startup - mem_before:.2f}MB (Current RSS: {mem_after_startup:.2f}MB)"
+        )
 
         # Verify startup latency threshold (Acceptance Criteria R2 / Milestone 1 target: < 2.0s)
         # Note: In test runner on Windows without cold import cache it might be slightly higher, let's observe
@@ -79,7 +77,7 @@ def test_empirical_first_query_vs_subsequent_latency():
         ai_p50 = float(np.percentile(latencies_ai, 50))
         ai_p95 = float(np.percentile(latencies_ai, 95))
 
-        print(f"\n[EMPIRICAL AI SEARCH LATENCY]")
+        print("\n[EMPIRICAL AI SEARCH LATENCY]")
         print(f"  First Query Latency: {first_ai_latency:.2f}ms")
         print(f"  Subsequent Queries Avg: {subsequent_ai_avg:.2f}ms")
         print(f"  Min Latency: {ai_min:.2f}ms | p50: {ai_p50:.2f}ms | p95: {ai_p95:.2f}ms")
@@ -103,7 +101,7 @@ def test_empirical_first_query_vs_subsequent_latency():
         rec_p50 = float(np.percentile(latencies_rec, 50))
         rec_p95 = float(np.percentile(latencies_rec, 95))
 
-        print(f"\n[EMPIRICAL RECOMMENDATIONS LATENCY]")
+        print("\n[EMPIRICAL RECOMMENDATIONS LATENCY]")
         print(f"  First Query Latency: {first_rec_latency:.2f}ms")
         print(f"  Subsequent Queries Avg: {subsequent_rec_avg:.2f}ms")
         print(f"  Min Latency: {rec_min:.2f}ms | p50: {rec_p50:.2f}ms | p95: {rec_p95:.2f}ms")
@@ -121,7 +119,7 @@ def test_empirical_mmap_vector_faulting_and_memory():
 
     # Verify mmap representation
     is_mmap = isinstance(vectors, np.memmap) or (hasattr(vectors, "base") and isinstance(vectors.base, np.memmap))
-    print(f"\n[EMPIRICAL MMAP VERIFICATION]")
+    print("\n[EMPIRICAL MMAP VERIFICATION]")
     print(f"  Type of _vectors: {type(vectors)}")
     print(f"  Base of _vectors: {type(getattr(vectors, 'base', None))}")
     print(f"  Is memmap: {is_mmap}")
@@ -169,10 +167,9 @@ def test_direct_prewarm_execution_and_stress():
         t3 = time.perf_counter()
         enc_time2_ms = (t3 - t2) * 1000.0
 
-        print(f"\n[EMPIRICAL DIRECT ONNX ENCODER BENCHMARK]")
+        print("\n[EMPIRICAL DIRECT ONNX ENCODER BENCHMARK]")
         print(f"  Single query 1 encode time: {enc_time1_ms:.2f}ms (shape: {emb1.shape})")
         print(f"  Single query 2 encode time: {enc_time2_ms:.2f}ms (shape: {emb2.shape})")
         assert emb1.shape[-1] in (384, 768)
         assert enc_time1_ms < 250.0, f"ONNX encoding took too long: {enc_time1_ms:.2f}ms"
         assert enc_time2_ms < 250.0, f"ONNX encoding took too long: {enc_time2_ms:.2f}ms"
-

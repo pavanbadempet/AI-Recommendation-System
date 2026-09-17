@@ -14,17 +14,13 @@ import os
 from pathlib import Path
 import socket
 import time
-from typing import Any
-from unittest.mock import patch
 import urllib.request
 
 import numpy as np
 import pytest
 
 from backend.pipeline.recommender import ONNXSBERTEncoder, Recommender
-from backend.serving.app_startup import configure_cpu_threading, startup
-from backend.serving.onnx_engine import ONNXEngine
-
+from backend.serving.app_startup import configure_cpu_threading
 
 # ============================================================================
 # 1. Thread Pinning Under Simulated Concurrent Load
@@ -90,6 +86,7 @@ def test_onnx_encoder_concurrent_thread_pinning_under_load():
 
 def test_concurrent_configure_cpu_threading_idempotence():
     """Verify configure_cpu_threading is thread-safe and idempotent under concurrent invocation."""
+
     def worker():
         for _ in range(20):
             configure_cpu_threading(1)

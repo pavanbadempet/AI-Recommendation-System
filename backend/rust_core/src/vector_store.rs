@@ -811,7 +811,7 @@ mod tests {
 
         for &row in &test_rows {
             let q = store.get_vector(row);
-            
+
             // Quantized only
             let t_q = std::time::Instant::now();
             let _ = store.top_k_quantized_similarity(&q_i8, Some(row), 64);
@@ -854,4 +854,3 @@ mod tests {
         );
     }
 }
-

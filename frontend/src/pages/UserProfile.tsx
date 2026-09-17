@@ -1,24 +1,16 @@
 import React, { useEffect, useState } from "react";
 import {
+  Bookmark,
   Database,
+  Eye,
   Film,
   Loader2,
-  Star,
-  User,
-  Activity,
-  Network,
-  Settings,
-  BarChart3,
-  Sparkles,
-  Cpu,
-  ShieldCheck,
-  Zap,
-  Layers,
-  TrendingUp,
   MousePointerClick,
-  Eye,
   Play,
-  Bookmark
+  Sparkles,
+  Star,
+  TrendingUp,
+  User,
 } from "lucide-react";
 import { getUserRecommendations, apiGet } from "../api";
 import type { Movie } from "../types";
@@ -488,7 +480,7 @@ export function UserProfilePage({
               <Database size={16} aria-hidden="true" />
               Local Watch History
             </h3>
-            <p className="dashboard-card-subtitle">Titles you've recently explored and previewed</p>
+            <p className="dashboard-card-subtitle">Titles you&apos;ve recently explored and previewed</p>
           </div>
         </div>
         <WatchHistorySection onSelectMovie={onSelectMovie} />

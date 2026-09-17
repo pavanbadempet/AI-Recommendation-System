@@ -1,9 +1,10 @@
-import os
-import sys
 import json
+import os
 import struct
 import time
+
 import numpy as np
+
 
 def precompute():
     t0 = time.perf_counter()
@@ -54,8 +55,7 @@ def precompute():
     for i in range(num_movies):
         mid = int(sorted_movie_ids[i])
         recs = [
-            [int(sorted_movie_ids[topk_indices[i, rank]]), round(float(topk_scores[i, rank]), 4)]
-            for rank in range(k)
+            [int(sorted_movie_ids[topk_indices[i, rank]]), round(float(topk_scores[i, rank]), 4)] for rank in range(k)
         ]
         topk_dict[str(mid)] = recs
 
@@ -79,6 +79,7 @@ def precompute():
 
     elapsed = time.perf_counter() - t0
     print(f"Precomputation complete in {elapsed:.2f}s!")
+
 
 if __name__ == "__main__":
     precompute()

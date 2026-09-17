@@ -1080,7 +1080,8 @@ class Recommender:
                 precomputed_path = MODELS_DIR / "precomputed_topk.json"
                 if precomputed_path.exists():
                     import json
-                    with open(precomputed_path, "r", encoding="utf-8") as f:
+
+                    with open(precomputed_path, encoding="utf-8") as f:
                         self._precomputed_topk = json.load(f)
             except Exception:
                 self._precomputed_topk = None
@@ -1096,6 +1097,7 @@ class Recommender:
                         item = self._movies.iloc[rec_idx].to_dict()
                         item["similarity_score"] = float(score)
                         from backend.pipeline.recommender_core import candidate_to_dict
+
                         results.append(candidate_to_dict(self, item))
                 if results:
                     return results

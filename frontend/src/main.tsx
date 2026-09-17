@@ -794,7 +794,9 @@ function loadCachedShowcaseMovies(): Movie[] {
       const parsed = JSON.parse(raw) as Movie[];
       if (Array.isArray(parsed) && parsed.length > 0) return parsed.slice(0, 30);
     }
-  } catch {}
+  } catch {
+    /* ignore */
+  }
   return SEED_SHOWCASE_MOVIES;
 }
 
@@ -803,7 +805,9 @@ function saveCachedShowcaseMovies(movies: Movie[]) {
     if (movies.length > 0) {
       safeSetLocalStorage(SHOWCASE_STORAGE_KEY, JSON.stringify(movies.slice(0, 30)));
     }
-  } catch {}
+  } catch {
+    /* ignore */
+  }
 }
 
 function loadCachedLatestMovies(): Movie[] {
@@ -813,7 +817,9 @@ function loadCachedLatestMovies(): Movie[] {
       const parsed = JSON.parse(raw) as Movie[];
       if (Array.isArray(parsed) && parsed.length > 0) return parsed.slice(0, 30);
     }
-  } catch {}
+  } catch {
+    /* ignore */
+  }
   return SEED_SHOWCASE_MOVIES.slice().reverse();
 }
 
@@ -822,7 +828,9 @@ function saveCachedLatestMovies(movies: Movie[]) {
     if (movies.length > 0) {
       safeSetLocalStorage(LATEST_STORAGE_KEY, JSON.stringify(movies.slice(0, 30)));
     }
-  } catch {}
+  } catch {
+    /* ignore */
+  }
 }
 
 function createSessionId(): string {
@@ -1980,19 +1988,6 @@ export const MovieDialog = React.memo(function MovieDialog({
 });
 
 
-
-function CinemaWaveformPulse() {
-  return (
-    <div className="cinema-waveform" aria-hidden="true">
-      <span className="wave-bar wave-bar-1" />
-      <span className="wave-bar wave-bar-2" />
-      <span className="wave-bar wave-bar-3" />
-      <span className="wave-bar wave-bar-4" />
-      <span className="wave-bar wave-bar-5" />
-    </div>
-  );
-}
-
 function CinematicRow({
   title,
   subtitle,
@@ -2294,7 +2289,9 @@ const HomePage = React.memo(function HomePage({
         setIsHeroInWatchlist(true);
       }
       safeSetLocalStorage("nova_watchlist_v2", JSON.stringify(updated));
-    } catch {}
+    } catch {
+      /* ignore */
+    }
   }, [hero]);
 
   const heroOverview = hero?.overview
@@ -3201,6 +3198,7 @@ function App() {
     if (loadedHomeShowcase.current) return;
     loadedHomeShowcase.current = true;
     void loadHomeShowcase();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   React.useEffect(() => {
@@ -3230,6 +3228,7 @@ function App() {
         void loadLatestShowcase();
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [catalogState, homeMovies.length, homeLoading, latestMovies.length, latestLoading]);
 
   React.useEffect(() => {
@@ -3418,6 +3417,7 @@ function App() {
       window.history.replaceState({ page, mode }, "", initialPath);
     }
     return () => window.removeEventListener("popstate", handlePopState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const catalogValue = platform?.movie_count || titles.length;
@@ -4569,7 +4569,6 @@ if ("serviceWorker" in navigator && import.meta.env.PROD) {
       if (window.self === window.top) {
         navigator.serviceWorker
           .register("/sw.js")
-          .then((reg) => console.log("Service Worker registered successfully:", reg.scope))
           .catch((err) => console.warn("Service Worker registration skipped:", err));
       }
     } catch {

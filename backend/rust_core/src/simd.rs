@@ -508,4 +508,3 @@ mod tests {
         assert!((v[1] - 0.8).abs() < 1e-6);
     }
 }
-

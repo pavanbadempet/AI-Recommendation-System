@@ -7,19 +7,13 @@ guarantees for all core platform endpoints and background serving components.
 from __future__ import annotations
 
 import os
-import re
-import socket
 import threading
-from typing import Any
 
 import numpy as np
-import pytest
 import torch
 
 from backend.main import get_rec
-from backend.pipeline.recommender import Recommender
-from backend.response_models import HealthResponse, Movie, RecommendationResponse
-from tests.e2e.conftest import NetworkCallBlockedError, assert_zero_network_calls
+from backend.response_models import HealthResponse
 
 
 # =====================================================================

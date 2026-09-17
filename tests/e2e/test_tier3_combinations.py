@@ -10,8 +10,6 @@ import concurrent.futures
 import time
 from typing import Any
 
-import pytest
-
 from backend.api.fast_cache import clear_all_caches
 from tests.e2e.conftest import measure_latency_ms
 
@@ -80,9 +78,7 @@ class TestTier3Combinations:
         clear_all_caches()
 
         # Step 1: Cold request (cache miss)
-        _, cold_time_ms = measure_latency_ms(
-            lambda: client.get(f"/v1/recommendations/id/{movie_id}", params={"n": 10})
-        )
+        _, cold_time_ms = measure_latency_ms(lambda: client.get(f"/v1/recommendations/id/{movie_id}", params={"n": 10}))
 
         # Step 2: Warm request (FastCache hit)
         warm_resp, warm_time_ms = measure_latency_ms(
