@@ -10,11 +10,12 @@
 [![Neon pgvector](https://img.shields.io/badge/Neon-pgvector_10--Shard_HNSW-00E599?style=for-the-badge&logo=postgresql&logoColor=white)](https://neon.tech/)
 [![Apache Kafka](https://img.shields.io/badge/Apache_Kafka-Confluent_7.3-231F20?style=for-the-badge&logo=apachekafka&logoColor=white)](https://kafka.apache.org/)
 [![Pandera Contracts](https://img.shields.io/badge/Data_Contracts-Pandera_0.20-8A2BE2?style=for-the-badge&logo=python&logoColor=white)](https://pandera.readthedocs.io/)
+[![Mobile Book](https://img.shields.io/badge/📱%20Mobile%20Book-Offline%20PWA%20Reader-8B5CF6?style=for-the-badge&logo=pwa&logoColor=white)](https://pavanbadempet.github.io/AI-Recommendation-System/book/)
 [![License](https://img.shields.io/badge/License-AGPL--3.0-blue?style=for-the-badge)](LICENSE)
 
 <br/>
 
-[**🏛️ Main Architecture Spec**](docs/ARCHITECTURE.md) • [**📊 Live Cinema & MLOps Portal**](https://pavanbadempet.github.io/AI-Recommendation-System/) • [**📓 Databricks Notebooks**](databricks_notebooks/) • [**🗄️ SQL Star Schema**](sql/postgres_init.sql) • [**📜 Schema Contracts**](docs/DATA_CONTRACTS.md)
+[**📱 Mobile E-Reader Book**](https://pavanbadempet.github.io/AI-Recommendation-System/book/) • [**🏛️ Main Architecture Spec**](docs/ARCHITECTURE.md) • [**📊 Live Cinema & MLOps Portal**](https://pavanbadempet.github.io/AI-Recommendation-System/) • [**📓 Databricks Notebooks**](databricks_notebooks/) • [**🗄️ SQL Star Schema**](sql/postgres_init.sql) • [**📜 Schema Contracts**](docs/DATA_CONTRACTS.md)
 
 </div>
 

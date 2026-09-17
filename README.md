@@ -14,6 +14,8 @@ Engineered as an authentic production-grade blueprint for large-scale distribute
 <br/>
 
 <p align="center">
+  <a href="https://pavanbadempet.github.io/AI-Recommendation-System/book/"><img src="https://img.shields.io/badge/📱%20Mobile%20Book-Offline%20PWA%20Reader-8B5CF6?style=for-the-badge&logo=pwa&logoColor=white" height="34" alt="Mobile DE Book Reader"/></a>
+  &nbsp;
   <a href="README_DATA_ENGINEERING.md"><img src="https://img.shields.io/badge/🌊%20Data%20Engineering-Lakehouse%20Blueprint-006699?style=for-the-badge&logo=apachespark&logoColor=white" height="34" alt="Data Engineering Blueprint"/></a>
   &nbsp;
   <a href="https://pavanbadempet.github.io/AI-Recommendation-System/"><img src="https://img.shields.io/badge/🌐%20Live%20Cinema%20Portal-GitHub%20Pages-22c55e?style=for-the-badge&logo=googlechrome&logoColor=white" height="34" alt="Live Cinema Portal"/></a>

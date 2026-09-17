@@ -1,0 +1,16 @@
+{
+  "name": "APEX Data Engineering Handbook",
+  "short_name": "DE Handbook",
+  "description": "Enterprise Medallion Lakehouse, PySpark Tuning and High-Concurrency Systems Design Handbook by Pavan Badempet",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#fbf0db",
+  "theme_color": "#fbf0db",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}

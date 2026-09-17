@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - "frontend/**"
+      - "book/**"
+      - "README_DATA_ENGINEERING.md"
       - ".github/workflows/frontend-pages.yml"
   workflow_dispatch:
 
@@ -20,31 +22,81 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-      - name: Install frontend deps (bun)
-        working-directory: frontend
-        run: bun install
-      - name: Build redirect page
+      - name: Build redirect and book pages
         run: |
           mkdir -p dist-redirect
+          cp -r book dist-redirect/book
           cat << 'EOF' > dist-redirect/index.html
           <!DOCTYPE html>
           <html lang="en">
           <head>
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>APEX Movie Recommendation System — Dynamic Ensemble Discovery</title>
-            <meta http-equiv="refresh" content="0; url=https://movie-recommendation-system-6bm.pages.dev/">
-            <script type="text/javascript">
-              window.location.replace("https://movie-recommendation-system-6bm.pages.dev/");
-            </script>
+            <title>APEX Data Engineering Platform & Handbook — Pavan Badempet</title>
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+            <style>
+              * { box-sizing: border-box; }
+              body {
+                margin: 0; padding: 20px;
+                background-color: #090a0f; color: #f1f5f9;
+                font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+                display: flex; align-items: center; justify-content: center;
+                min-height: 100vh; text-align: center;
+              }
+              .portal-card {
+                max-width: 520px; width: 100%;
+                padding: 2.5rem 2rem;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                background: rgba(18, 20, 29, 0.8);
+                border-radius: 20px;
+                backdrop-filter: blur(16px);
+                box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+              }
+              .portal-badge {
+                display: inline-block;
+                background: rgba(16, 185, 129, 0.15);
+                color: #10b981;
+                font-size: 0.75rem;
+                font-weight: 700;
+                padding: 4px 12px;
+                border-radius: 20px;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                margin-bottom: 12px;
+              }
+              h1 { margin: 0 0 0.5rem 0; font-size: 1.85rem; font-weight: 800; letter-spacing: -0.02em; }
+              p { margin: 0 0 1.8rem 0; color: #94a3b8; font-size: 0.95rem; line-height: 1.6; }
+              .button-group { display: flex; flex-direction: column; gap: 12px; }
+              .btn {
+                display: flex; align-items: center; justify-content: center; gap: 10px;
+                padding: 1rem 1.5rem; border-radius: 10px; font-weight: 700; font-size: 0.95rem;
+                text-decoration: none; transition: all 0.2s;
+              }
+              .btn-primary { background: #0284c7; color: #ffffff; }
+              .btn-primary:hover { background: #0369a1; transform: translateY(-2px); }
+              .btn-secondary { background: rgba(255, 255, 255, 0.05); color: #f1f5f9; border: 1px solid rgba(255, 255, 255, 0.15); }
+              .btn-secondary:hover { background: rgba(255, 255, 255, 0.1); transform: translateY(-2px); }
+              .footer-author { margin-top: 1.8rem; font-size: 0.8rem; color: #64748b; }
+            </style>
           </head>
-          <body style="margin: 0; padding: 0; background-color: #090a0f; color: #f1f5f9; display: flex; align-items: center; justify-content: center; min-height: 100vh; text-align: center; font-family: system-ui, sans-serif;">
-            <div style="max-width: 480px; padding: 2.5rem; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.02); border-radius: 16px; backdrop-filter: blur(10px);">
-              <h1 style="margin: 0 0 0.5rem 0; font-size: 1.75rem; font-weight: 800;">APEX Movie Recs</h1>
-              <p style="margin: 0 0 1.5rem 0; color: #94a3b8; font-size: 0.95rem; line-height: 1.6;">Redirecting to the live application portal...</p>
-              <a href="https://movie-recommendation-system-6bm.pages.dev/" style="display: inline-flex; align-items: center; justify-content: center; background-color: #10b981; color: #ffffff; padding: 0.75rem 1.75rem; font-size: 0.9rem; font-weight: 700; text-decoration: none; border-radius: 8px; text-transform: uppercase; letter-spacing: 0.05em;">Launch Application</a>
+          <body>
+            <div class="portal-card">
+              <span class="portal-badge">Pavan Badempet</span>
+              <h1>APEX Engineering Platform</h1>
+              <p>Explore the live recommendation intelligence system or open the mobile digital handbook.</p>
+              <div class="button-group">
+                <a href="./book/" class="btn btn-primary">
+                  <span>📖</span> Read Data Engineering Handbook (Mobile E-Reader)
+                </a>
+                <a href="https://movie-recommendation-system-6bm.pages.dev/" class="btn btn-secondary">
+                  <span>🎬</span> Launch React 19 Cinema Portal
+                </a>
+              </div>
+              <div class="footer-author">
+                Offline PWA • PySpark & Delta Lake • Sub-5ms Vector Ingestion
+              </div>
             </div>
           </body>
           </html>
