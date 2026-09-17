@@ -61,6 +61,7 @@ import type {
 } from "./types";
 import "./styles.css";
 import "./apex-product.css";
+import "./profile-sota.css";
 import { AuthPage } from "./AuthPage";
 import { ErrorBoundary } from "./ErrorBoundary";
 import {
@@ -2957,21 +2958,30 @@ function App() {
         {/* Unified Sticky top navigation header */}
         <header className="topbar">
           <div className="topbar-left">
-            <button className="brand-logo" type="button" onClick={openHome} aria-label="NOVA Home">NOVA</button>
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <button className="brand-logo" type="button" onClick={openHome} aria-label="NOVA Home">NOVA</button>
+              <span className="sota-system-badge" title="Rust APEX Core Active & Edge Cache Connected">
+                <span className="system-dot" /> 20M LAKEHOUSE
+              </span>
+            </div>
             <nav className="topbar-links" aria-label="Main navigation">
-              {navLinks.map((link) => (
-                <button
-                  key={link.id}
-                  className={`topbar-link ${page === link.id ? "active" : ""}`}
-                  type="button"
-                  onClick={() => {
-                    if (link.id === "home") openHome();
-                    else if (link.id === "search") openSearch();
-                    else navigateTo(link.id as AppPage);
-                  }}
-                >
-                  {link.label}
-                </button>
+              {navLinks.map((link, idx) => (
+                <React.Fragment key={link.id}>
+                  {idx === 3 && <span className="topbar-nav-divider" key="div-platform" aria-hidden="true" />}
+                  {idx === 4 && <span className="topbar-nav-divider" key="div-mlops" aria-hidden="true" />}
+                  {idx === 7 && <span className="topbar-nav-divider" key="div-profile" aria-hidden="true" />}
+                  <button
+                    className={`topbar-link ${page === link.id ? "active" : ""}`}
+                    type="button"
+                    onClick={() => {
+                      if (link.id === "home") openHome();
+                      else if (link.id === "search") openSearch();
+                      else navigateTo(link.id as AppPage);
+                    }}
+                  >
+                    {link.label}
+                  </button>
+                </React.Fragment>
               ))}
             </nav>
           </div>
