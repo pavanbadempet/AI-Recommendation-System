@@ -26,8 +26,19 @@ import { safeGetLocalStorage, safeSetLocalStorage } from "../storage";
 
 const imageBase = "https://image.tmdb.org/t/p/w500";
 
+const FALLBACK_POSTER_SVG =
+  "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 750' width='500' height='750'%3E%3Crect width='100%25' height='100%25' fill='%23121216'/%3E%3Ccircle cx='250' cy='340' r='54' fill='%231e222d' stroke='%23334155' stroke-width='4'/%3E%3Cpolygon points='240,320 270,340 240,360' fill='%2364748b'/%3E%3Ctext x='50%25' y='440' font-family='sans-serif' font-size='22' font-weight='700' fill='%2394a3b8' text-anchor='middle' letter-spacing='1.5'%3ENULLA CINEMA%3C/text%3E%3Ctext x='50%25' y='475' font-family='sans-serif' font-size='14' font-weight='500' fill='%23475569' text-anchor='middle'%3EPoster Preview%3C/text%3E%3C/svg%3E";
+
+function handlePosterError(e: React.SyntheticEvent<HTMLImageElement>) {
+  const el = e.currentTarget;
+  if (!el.dataset.hasFallback) {
+    el.dataset.hasFallback = "true";
+    el.src = FALLBACK_POSTER_SVG;
+  }
+}
+
 function posterUrl(path?: string | null): string {
-  if (!path) return "https://placehold.co/500x750/141418/f8fafc?text=Movie";
+  if (!path) return FALLBACK_POSTER_SVG;
   if (path.startsWith("http")) return path;
   return `${imageBase}${path}`;
 }
@@ -71,7 +82,7 @@ function BehaviorCard({ features }: { features: BehaviorFeatures }) {
       value: safeVal(features.total_ratings),
       ariaLabel: `Total ratings: ${safeVal(features.total_ratings)}`,
       icon: <Star size={16} aria-hidden="true" />,
-      desc: "Explicit rating events registered in Lakehouse",
+      desc: "Films you've rated in your personal catalog",
     },
     {
       label: "Avg Rating",
@@ -81,21 +92,21 @@ function BehaviorCard({ features }: { features: BehaviorFeatures }) {
           : "—",
       ariaLabel: `Average rating: ${features.avg_rating?.toFixed(1) ?? "—"}`,
       icon: <TrendingUp size={16} aria-hidden="true" />,
-      desc: "Weighted mean score across interaction history",
+      desc: "Average score across your rated titles",
     },
     {
       label: "Clicks",
       value: safeVal(features.click_count),
       ariaLabel: `Click count: ${safeVal(features.click_count)}`,
       icon: <MousePointerClick size={16} aria-hidden="true" />,
-      desc: "Implicit item engagements and modal expansions",
+      desc: "Movies inspected and explored in detail",
     },
     {
       label: "Views",
       value: safeVal(features.view_count),
       ariaLabel: `View count: ${safeVal(features.view_count)}`,
       icon: <Eye size={16} aria-hidden="true" />,
-      desc: "Catalog impressions recorded by telemetry stream",
+      desc: "Catalog impressions across your viewing sessions",
     },
   ];
 
@@ -107,12 +118,12 @@ function BehaviorCard({ features }: { features: BehaviorFeatures }) {
           Behavior Statistics
         </h3>
         <span className="telemetry-live-chip">
-          <span className="telemetry-live-dot" /> Live Telemetry
+          <span className="telemetry-live-dot" /> Profile Activity
         </span>
       </div>
 
       <p className="behavior-card-intro">
-        Continuous behavioral telemetry consumed by the online SASRec sequential transformer and ALS matrix factorization models.
+        Your viewing and rating activity helps tailor recommendations to your personal taste.
       </p>
 
       {/* Semantic definition list and micro-visual telemetry grid */}
@@ -160,15 +171,18 @@ function MiniRecommendationCard({
             src={posterUrl(movie.poster_path)}
             alt={`Poster for ${movie.title}`}
             loading="lazy"
+            onError={handlePosterError}
           />
           <div className="poster-overlay-glow">
             <span className="poster-play-pill">
               <Play size={12} fill="currentColor" /> Preview
             </span>
           </div>
-          <span className="rec-match-badge">
-            98% Match
-          </span>
+          {movie.vote_average ? (
+            <span className="rec-match-badge">
+              ★ {Number(movie.vote_average).toFixed(1)}
+            </span>
+          ) : null}
         </button>
       </div>
       <div className="recommendation-body">
@@ -319,40 +333,37 @@ export function UserProfilePage({
                 <User size={22} aria-hidden="true" />
                 {username ? `Hi, ${username}` : "Your Profile"}
               </h2>
-              <span className="lakehouse-tier-badge">
-                <ShieldCheck size={14} aria-hidden="true" /> Enterprise Lakehouse Access
+              <span className="lakehouse-tier-badge" style={{ background: "rgba(255, 255, 255, 0.08)", borderColor: "rgba(255, 255, 255, 0.16)", color: "#f8fafc" }}>
+                <Sparkles size={14} aria-hidden="true" /> Cinema Pass Member
               </span>
             </div>
             <p className="dashboard-subtitle">
-              Your personalized recommendations, implicit behavioral vectors, and collaborative matrix interaction history.
+              Your personal film collection, saved queue, and personalized recommendations.
             </p>
 
             <div className="profile-meta-pills">
               <span className="profile-pill">
-                <Sparkles size={13} aria-hidden="true" /> 20M Matrix Factorization ALS
+                <Bookmark size={13} aria-hidden="true" /> {watchlist.length} Saved in Queue
               </span>
               <span className="profile-pill">
-                <Cpu size={13} aria-hidden="true" /> SASRec Transformer Attention
+                <Star size={13} aria-hidden="true" /> Member Since 2024
               </span>
               <span className="profile-pill">
-                <Layers size={13} aria-hidden="true" /> LightGCN Graph Convolution
-              </span>
-              <span className="profile-pill">
-                <Database size={13} aria-hidden="true" /> 10-Shard Neon Vectors
+                <Film size={13} aria-hidden="true" /> 4K Ultra HD & Spatial Audio
               </span>
             </div>
           </div>
         </div>
 
-        {/* Personalized Taste Vector Chips */}
+        {/* Personalized Taste Chips */}
         <div className="profile-taste-vector-strip">
-          <span className="taste-strip-label">Inferred Taste Vector:</span>
+          <span className="taste-strip-label">Favorite Genres:</span>
           <div className="taste-chips-list">
-            <span className="taste-chip high"><span className="taste-dot green" /> Sci-Fi & Space (98%)</span>
-            <span className="taste-chip high"><span className="taste-dot green" /> Psychological Thriller (94%)</span>
-            <span className="taste-chip med"><span className="taste-dot blue" /> Cyberpunk & AI (88%)</span>
-            <span className="taste-chip med"><span className="taste-dot blue" /> Action & Adventure (82%)</span>
-            <span className="taste-chip low"><span className="taste-dot purple" /> Neo-Noir & Mystery (76%)</span>
+            <span className="taste-chip high"><span className="taste-dot green" /> Sci-Fi & Space</span>
+            <span className="taste-chip high"><span className="taste-dot green" /> Psychological Thrillers</span>
+            <span className="taste-chip med"><span className="taste-dot blue" /> Action & Adventure</span>
+            <span className="taste-chip med"><span className="taste-dot blue" /> Crime & Mystery</span>
+            <span className="taste-chip low"><span className="taste-dot purple" /> Dystopian & Mind-Benders</span>
           </div>
         </div>
       </div>
@@ -422,53 +433,6 @@ export function UserProfilePage({
         )}
       </div>
 
-      {/* Collaborative Recommendation Engine Architecture Callout */}
-      <div className="collaborative-engine-card" aria-label="Collaborative recommendation architecture">
-        <div className="engine-card-header">
-          <div className="engine-card-title-group">
-            <Zap size={18} className="engine-icon-glow" aria-hidden="true" />
-            <div>
-              <h3 className="engine-headline">Collaborative Neural Filtering Architecture</h3>
-              <p className="engine-subheadline">Dual-engine offline + real-time inference pipeline powering your recommendations</p>
-            </div>
-          </div>
-          <span className="engine-status-pill">
-            <span className="engine-status-dot" /> Online & Warm
-          </span>
-        </div>
-
-        <div className="engine-pipeline-grid">
-          <div className="pipeline-node">
-            <div className="pipeline-node-number">01</div>
-            <strong className="pipeline-node-title">Medallion Gold ALS</strong>
-            <p className="pipeline-node-desc">
-              Spark PySpark alternating least squares over 20M MovieLens matrix factorizations yielding 64-dim latent factors.
-            </p>
-          </div>
-          <div className="pipeline-node">
-            <div className="pipeline-node-number">02</div>
-            <strong className="pipeline-node-title">SASRec Sequential</strong>
-            <p className="pipeline-node-desc">
-              Multi-head self-attention transformer scoring your rolling click and rating sequence with positional encodings.
-            </p>
-          </div>
-          <div className="pipeline-node">
-            <div className="pipeline-node-number">03</div>
-            <strong className="pipeline-node-title">LightGCN Graph</strong>
-            <p className="pipeline-node-desc">
-              Neighborhood graph convolutions traversing high-order bipartite user-movie connectivity without feature bloat.
-            </p>
-          </div>
-          <div className="pipeline-node">
-            <div className="pipeline-node-number">04</div>
-            <strong className="pipeline-node-title">Rust SIMD Reranker</strong>
-            <p className="pipeline-node-desc">
-              AVX2/NEON SIMD cosine similarity ranking & Maximal Marginal Relevance (MMR) for optimal catalog diversity.
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Behavior stats */}
       {featuresLoading && (
         <div role="status" aria-live="polite" className="eval-loading">
@@ -488,7 +452,7 @@ export function UserProfilePage({
               Recommended for You
             </h3>
             <p className="dashboard-card-subtitle">
-              Collaborative neural filtering based on your implicit feedback and 20M MovieLens interactions
+              Personalized film recommendations tailored to your viewing taste and ratings
             </p>
           </div>
         </div>
@@ -524,7 +488,7 @@ export function UserProfilePage({
               <Database size={16} aria-hidden="true" />
               Local Watch History
             </h3>
-            <p className="dashboard-card-subtitle">Locally tracked viewing sessions cached in browser local storage</p>
+            <p className="dashboard-card-subtitle">Titles you've recently explored and previewed</p>
           </div>
         </div>
         <WatchHistorySection onSelectMovie={onSelectMovie} />
@@ -532,87 +496,32 @@ export function UserProfilePage({
 
       {/* Developer and platform analytics options inside My Space */}
       {onNavigate && (
-        <div className="dashboard-card sota-tools-container" aria-label="Platform and Analytics Tools">
-          <div className="dashboard-card-header">
-            <div>
-              <h3 className="dashboard-card-title">
-                <Activity size={16} aria-hidden="true" />
-                Developer & Platform Tools
-              </h3>
-              <p className="dashboard-card-subtitle">Enterprise consoles for Lakehouse storage, graph traversal, telemetry, and MLOps tuning</p>
-            </div>
+        <div className="profile-platform-link-bar" style={{ marginTop: "24px", padding: "16px 20px", background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.06)", borderRadius: "12px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
+          <div>
+            <span style={{ color: "#f8fafc", fontSize: "0.88rem", fontWeight: 600, display: "block" }}>
+              Platform Engineering & Consoles
+            </span>
+            <span style={{ color: "var(--muted)", fontSize: "0.8rem" }}>
+              Explore data pipelines, neural galaxy vectors, and evaluation benchmarks
+            </span>
           </div>
-          <div className="profile-tools-grid">
-            <button
-              type="button"
-              className="profile-tool-card"
-              onClick={() => onNavigate("data-platform")}
-            >
-              <div className="tool-card-icon" style={{ background: "rgba(255, 255, 255, 0.05)", color: "#ffffff" }}>
-                <Database size={22} />
-              </div>
-              <div className="tool-card-body">
-                <strong className="tool-card-title">Lakehouse Platform</strong>
-                <span className="tool-card-desc">Medallion PySpark & 10-shard Neon vectors</span>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              className="profile-tool-card"
-              onClick={() => onNavigate("dashboard")}
-            >
-              <div className="tool-card-icon" style={{ background: "rgba(255, 255, 255, 0.05)", color: "#ffffff" }}>
-                <BarChart3 size={22} />
-              </div>
-              <div className="tool-card-body">
-                <strong className="tool-card-title">Telemetry & SLOs</strong>
-                <span className="tool-card-desc">Real-time p95 latency & edge cache ratios</span>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              className="profile-tool-card"
-              onClick={() => onNavigate("knowledge-graph")}
-            >
-              <div className="tool-card-icon" style={{ background: "rgba(255, 255, 255, 0.05)", color: "#ffffff" }}>
-                <Network size={22} />
-              </div>
-              <div className="tool-card-body">
-                <strong className="tool-card-title">Knowledge Graph</strong>
-                <span className="tool-card-desc">Bipartite entity multi-hop neighborhood</span>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              className="profile-tool-card"
-              onClick={() => onNavigate("evaluation")}
-            >
-              <div className="tool-card-icon" style={{ background: "rgba(255, 255, 255, 0.05)", color: "#ffffff" }}>
-                <Activity size={22} />
-              </div>
-              <div className="tool-card-body">
-                <strong className="tool-card-title">Evaluation Suite</strong>
-                <span className="tool-card-desc">NDCG@10, MAP@10, and semantic benchmarks</span>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              className="profile-tool-card"
-              onClick={() => onNavigate("admin")}
-            >
-              <div className="tool-card-icon" style={{ background: "rgba(255, 255, 255, 0.05)", color: "#ffffff" }}>
-                <Settings size={22} />
-              </div>
-              <div className="tool-card-body">
-                <strong className="tool-card-title">Ensemble Admin</strong>
-                <span className="tool-card-desc">Adjust 6-model weights & cache invalidation</span>
-              </div>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => onNavigate("data-platform")}
+            style={{
+              background: "transparent",
+              border: "1px solid rgba(255, 255, 255, 0.16)",
+              color: "#ffffff",
+              padding: "7px 16px",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontSize: "0.8rem",
+              fontWeight: 600,
+              transition: "all 0.2s ease",
+            }}
+          >
+            Open Data Platform →
+          </button>
         </div>
       )}
     </section>

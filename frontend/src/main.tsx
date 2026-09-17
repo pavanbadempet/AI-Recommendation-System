@@ -185,8 +185,19 @@ export function pageToPath(targetPage: AppPage, searchMode?: SearchMode): string
 }
 
 
+const FALLBACK_POSTER_SVG =
+  "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 750' width='500' height='750'%3E%3Crect width='100%25' height='100%25' fill='%23121216'/%3E%3Ccircle cx='250' cy='340' r='54' fill='%231e222d' stroke='%23334155' stroke-width='4'/%3E%3Cpolygon points='240,320 270,340 240,360' fill='%2364748b'/%3E%3Ctext x='50%25' y='440' font-family='sans-serif' font-size='22' font-weight='700' fill='%2394a3b8' text-anchor='middle' letter-spacing='1.5'%3ENULLA CINEMA%3C/text%3E%3Ctext x='50%25' y='475' font-family='sans-serif' font-size='14' font-weight='500' fill='%23475569' text-anchor='middle'%3EPoster Preview%3C/text%3E%3C/svg%3E";
+
+function handlePosterError(e: React.SyntheticEvent<HTMLImageElement>) {
+  const el = e.currentTarget;
+  if (!el.dataset.hasFallback) {
+    el.dataset.hasFallback = "true";
+    el.src = FALLBACK_POSTER_SVG;
+  }
+}
+
 function posterUrl(path?: string | null): string {
-  if (!path) return "https://placehold.co/500x750/141418/f8fafc?text=Movie";
+  if (!path) return FALLBACK_POSTER_SVG;
   if (path.startsWith("http")) return path;
   return `${imageBase}${path}`;
 }
@@ -391,7 +402,7 @@ const SEED_SHOWCASE_MOVIES: Movie[] = [
     vote_count: 34500,
     popularity: 125.4,
     release_date: "2010-07-15",
-    poster_path: "/8IB2e4r4oVhHn97LIXAWawzuv00.jpg",
+    poster_path: "/xlaY2zyzMfkhk0HSC5VUwzoZPU1.jpg",
     trailer_key: "YoHD9XEInc0",
     director: "Christopher Nolan",
     runtime: 148,
@@ -755,7 +766,7 @@ const SEED_SHOWCASE_MOVIES: Movie[] = [
     vote_count: 23500,
     popularity: 130.0,
     release_date: "2001-12-18",
-    poster_path: "/6oom5QYQ2yQTMJIbnvbkBL9cDK6.jpg",
+    poster_path: "/6oom5QYQ2yQTMJIbnvbkBL9cHo6.jpg",
     trailer_key: "V75dMMW-qqc",
     director: "Peter Jackson",
     runtime: 178,
@@ -2077,6 +2088,7 @@ function CinematicRow({
                         alt={movie.title}
                         loading="lazy"
                         className="card-poster"
+                        onError={handlePosterError}
                       />
                       <div className="card-overlay-gradient" />
                       <div className="card-quick-badge">
@@ -2119,6 +2131,7 @@ function CinematicRow({
                         alt={movie.title}
                         loading="lazy"
                         className="anamorphic-frame-img"
+                        onError={handlePosterError}
                       />
                       <div className="card-overlay-gradient" />
                       <div className="card-quick-badge">
@@ -2161,6 +2174,7 @@ function CinematicRow({
                       alt={movie.title}
                       loading="lazy"
                       className="card-poster"
+                      onError={handlePosterError}
                     />
                     <div className="card-overlay-gradient" />
                     <div className="card-quick-badge">
@@ -2338,7 +2352,7 @@ const HomePage = React.memo(function HomePage({
   const animationMovies = React.useMemo(() => {
     return movies.filter((m) => {
       const g = typeof m.genres === "string" ? m.genres : Array.isArray(m.genres) ? m.genres.join(" ") : "";
-      return /animation|fantasy|family/i.test(g);
+      return /animation|family/i.test(g);
     });
   }, [movies]);
 
@@ -2580,7 +2594,7 @@ const HomePage = React.memo(function HomePage({
                   title="Family & Fantasy Adventures"
                   subtitle="Heartwarming adventures and imaginative family classics"
                   movies={movies.filter((m) =>
-                    ["Spirited Away", "Coco", "Barbie", "The Lord of the Rings: The Return of the King", "Jurassic Park"].some((t) =>
+                    ["Spirited Away", "Coco", "Barbie", "Spider-Man: Into the Spider-Verse"].some((t) =>
                       m.title.toLowerCase().includes(t.toLowerCase())
                     )
                   )}
