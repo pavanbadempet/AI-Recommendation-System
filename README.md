@@ -9,7 +9,7 @@
 
 **A production-grade recommendation intelligence platform and distributed Databricks Lakehouse serving sub-5ms personalized movie recommendations over 21 Million+ records.**
 
-Engineered for **FAANG / Tier-1 Data Platform Engineers, Machine Learning Systems Architects, and Technical Leads**. Bridges large-scale distributed batch/stream data engineering (**Databricks Serverless, Apache Spark 4.x, Delta Lake 4.x Medallion Architecture, SCD Type 2 dimension versioning, Auto Loader streaming, and data quality quarantine gates**) with real-time online AI serving (**10-Shard Neon PostgreSQL `pgvector` HNSW cluster, sub-5ms vector search, Redis caching, and an autonomous Multi-Agent AI reasoning mesh**).
+Engineered as an authentic production-grade blueprint for large-scale distributed data engineering, Lakehouse architecture, and sub-5ms neural vector serving over 21 Million+ records. Bridges large-scale distributed batch/stream data engineering (**Databricks Serverless, Apache Spark 4.x, Delta Lake 4.x Medallion Architecture, SCD Type 2 dimension versioning, Auto Loader streaming, and data quality quarantine gates**) with real-time online AI serving (**10-Shard Neon PostgreSQL `pgvector` HNSW cluster, sub-5ms vector search, Redis caching, and an autonomous Multi-Agent AI reasoning mesh**).
 
 <br/>
 
@@ -20,7 +20,7 @@ Engineered for **FAANG / Tier-1 Data Platform Engineers, Machine Learning System
   &nbsp;
   <a href="https://huggingface.co/spaces/pavanbadempet/movie-rec-api"><img src="https://img.shields.io/badge/🤗%20Hugging%20Face-Live%20Space-yellow?style=for-the-badge&logo=huggingface&logoColor=black" height="34" alt="Hugging Face Live Space" /></a>
   &nbsp;
-  <a href="interview_prep/master_faang_de_interview_guide.md"><img src="https://img.shields.io/badge/🏆%20FAANG%20DE%20Interview%20Guide-1%2C200+%20Lines-orange?style=for-the-badge&logo=gitbook&logoColor=white" height="34" alt="FAANG DE Interview Guide"/></a>
+  <a href="docs/ARCHITECTURE.md"><img src="https://img.shields.io/badge/🏛️%20Architecture-System%20Design%20Spec-blue?style=for-the-badge&logo=blueprint&logoColor=white" height="34" alt="System Design Spec"/></a>
 </p>
 
 <p align="center">
@@ -55,9 +55,9 @@ Engineered for **FAANG / Tier-1 Data Platform Engineers, Machine Learning System
 
 ---
 
-## 📌 The 90-Second Pitch (FAANG Interview Defense)
+## 💡 Why I Built This & Executive Architecture Summary
 
-> *"In this project, I engineered a high-throughput, hybrid Lakehouse and AI Vector Serving pipeline processing over **21 Million real-world records** (1M+ TMDB movies and 20M+ MovieLens user interaction ratings).*
+> *"Most recommendation projects stop at small toy datasets inside isolated Jupyter notebooks. I engineered this platform from the ground up as a production-hardened blueprint solving the full end-to-end data engineering lifecycle: ingesting and processing over **21 Million real-world records** (1M+ TMDB movies and 20M+ MovieLens user interaction ratings).*
 >
 > *The architecture uses a **Databricks Serverless Medallion Lakehouse with PySpark and Delta Lake** for distributed ETL, **SCD Type 2 dimension versioning**, and **Liquid Clustering**. We decouple long-term OLAP Lakehouse storage from low-latency OLTP vector serving by hash-partitioning and exporting Gold records across a **10-shard Neon Serverless PostgreSQL cluster using `pgvector` HNSW indexes (<5ms query latency)**.*
 >
@@ -315,7 +315,7 @@ ector_cosine_ops), covering indexes, sub-5ms lookups. |
 
 ---
 
-## 🏆 FAANG Data Engineering Deep-Dive & System Design
+## 🏛️ Data Engineering & Distributed Systems Deep-Dive
 
 ### 1. System Design & DDIA Principles (*Designing Data-Intensive Applications*)
 
@@ -675,10 +675,10 @@ erDiagram
 
 ---
 
-## 💡 Top FAANG System Design Interview Questions & Exact Answers
+## 🌊 Architecture Deep-Dive: Scaling & Technical Decisions
 
-### Q1: *"How would you scale this pipeline from 21 Million records to 21 Billion records?"*
-> **Answer (Compute $\rightarrow$ Storage $\rightarrow$ Ingestion $\rightarrow$ Serving):**
+### 🚀 1. Scaling Architecture: Scaling from 21 Million to 21 Billion Records
+> **Architectural Evolution Strategy (Compute $\rightarrow$ Storage $\rightarrow$ Ingestion $\rightarrow$ Serving):**
 > 1. **Compute & Partitioning:**
 >    - At 21B rows, file ingestion cannot rely on directory globbing. Migrate raw ingestion from Volume files to a distributed event streaming backbone like **Apache Kafka** or **AWS Kinesis** with 64+ partitions.
 >    - Tune PySpark shuffle partitions: increase `spark.sql.shuffle.partitions` from 200 to 2,000–5,000 based on the 128MB partition rule of thumb.
@@ -690,22 +690,22 @@ erDiagram
 
 ---
 
-### Q2: *"Why did you use Delta Lake SCD Type 2 instead of just overwriting the Gold table (SCD Type 1)?"*
-> **Answer:**
+### ⏱️ 2. Temporal State Fidelity: Why Delta Lake SCD Type 2 for Feature Stores
+> **Engineering Decision:**
 > *"In production Machine Learning and recommendation systems, feature store integrity is critical. If a movie's genres, description, or rating stats change over time and we overwrite the record (SCD Type 1), we create **data leakage** and prevent historical backtesting. When evaluating how a recommendation model performed on historical user interactions from 6 months ago, the model must see the exact movie metadata that existed at that point in time. SCD Type 2 provides temporal auditability through `is_current`, `effective_start_at`, and `effective_end_at`, allowing point-in-time ML training and compliance auditing."*
 
 ---
 
-### Q3: *"Explain the difference between Liquid Clustering and Z-Ordering in Delta Lake. Why choose Liquid Clustering?"*
-> **Answer:**
+### ⚡ 3. Storage Optimization: Liquid Clustering vs. Legacy Z-Ordering
+> **Engineering Decision:**
 > *"Z-Ordering maps multi-dimensional data into a one-dimensional space along a Space-Filling Z-Curve to achieve data skipping. However, Z-Ordering is a static clustering technique that requires a full table rewrite every time `OPTIMIZE ... ZORDER BY` is called. For tables receiving frequent streaming appends or CDC updates, Z-Ordering causes severe write-amplification.*
 >
 > *Liquid Clustering (`clusterBy`) replaces fixed partition hierarchies and Z-Ordering with dynamic, incremental clustering. As new micro-batches arrive, Spark clusters only the newly written data without rewriting historical partitions. It allows cluster keys to be redefined without rebuilding the table and speeds up query pruning by up to 10x for concurrent workloads."*
 
 ---
 
-### Q4: *"What happens if a worker node crashes during PySpark ETL or during the Neon Database export? How is idempotency guaranteed?"*
-> **Answer:**
+### 🛡️ 4. Fault Tolerance & Idempotency: Handling Worker Failures
+> **Engineering Decision:**
 > *"Two mechanisms guarantee end-to-end fault tolerance and idempotence:*
 > 1. **Delta Lake ACID Log (`_delta_log`):** PySpark writes data files as temporary parquet files. A commit is only recorded if the entire batch completes. If an executor dies, Spark's DAG scheduler retries the failed task. If the entire job fails, no commit is written to `_delta_log`, and future readers simply ignore the uncommitted parquet files.
 > 2. **Idempotent Upserts:** The Gold layer ETL uses deterministic `MERGE INTO` logic. Re-running the pipeline on the same source batch produces the exact same table state without creating duplicate active records.
@@ -713,16 +713,16 @@ erDiagram
 
 ---
 
-### Q5: *"Why did you choose HNSW over IVF for your pgvector index?"*
-> **Answer:**
+### 🔍 5. Vector Indexing Trade-offs: Why HNSW over IVF for Online Serving
+> **Engineering Decision:**
 > *"IVF (Inverted File Index) clusters vectors into Voronoi cells using K-Means and searches only the nearest centroids. While IVF has a small memory footprint and fast build time, its recall drops significantly if query vectors lie near cluster boundaries, and it requires periodic retraining as the dataset distribution shifts.*
 >
 > *HNSW (Hierarchical Navigable Small World) constructs a multi-layer geometric graph structure. Top layers allow fast logarithmic skipping across vector space ($O(\log N)$), while bottom layers navigate fine-grained local neighborhoods. HNSW offers superior recall (>98%), sub-5ms query latency, and does not require periodic centroid retraining, making it the ideal choice for high-precision real-time recommendation retrieval."*
 
 ---
 
-### Q6: *"How did you prevent out-of-memory (OOM) errors when serializing 768-D dense vectors for database export?"*
-> **Answer:**
+### 💥 6. Memory Efficiency: Zero-OOM Catalyst Vector Serialization
+> **Engineering Decision:**
 > *"In PySpark, running standard Python UDFs like `df.apply(lambda row: json.dumps(row.embedding))` causes severe JVM-to-Python pickling overhead, bottlenecks on the single driver node, and triggers driver OOM crashes.*
 >
 > *We solved this with two techniques:*
@@ -776,8 +776,8 @@ AI-Recommendation-System/
 │   ├── src/                         # React UI source tree (Components, Pages, Hooks)
 │   ├── package.json                 # Frontend manifests and scripts
 │   └── vite.config.ts               # Vite 8 compilation and compression configuration
-├── interview_prep/                  # FAANG Data Engineering & System Design Study Guides
-│   └── master_faang_de_interview_guide.md # Comprehensive 1,200+ line technical handbook
+├── interview_prep/                  # Systems Design & Data Engineering In-Depth Guide
+│   └── master_faang_de_interview_guide.md # Comprehensive technical systems architecture guide
 ├── k8s/                             # Kubernetes Deployment Manifests & Helm Charts
 ├── load-tests/                      # k6 Performance & SLO Verification Scripts
 │   └── recommendation_slo.js        # p95/p99 latency and throughput load harness
@@ -814,8 +814,8 @@ The repository contains extensive documentation covering system design, mathemat
 * [ONLINE_LEARNING.md](docs/ONLINE_LEARNING.md) &mdash; Real-time gradient updates, event buffering, and checkpointing.
 * [MODEL_HOSTING.md](docs/MODEL_HOSTING.md) &mdash; Hugging Face Hub integration and ONNX quantization guides.
 
-### 4. FAANG Interview & Career Prep
-* [master_faang_de_interview_guide.md](interview_prep/master_faang_de_interview_guide.md) &mdash; 1,200+ line FAANG Data Engineering and ML system design handbook.
+### 4. Technical System Design & Deep-Dive Guides
+* [master_faang_de_interview_guide.md](interview_prep/master_faang_de_interview_guide.md) &mdash; Comprehensive technical systems design, trade-offs, and architectural scenario handbook.
 
 </details>
 
@@ -1005,7 +1005,7 @@ We welcome contributions of all kinds!
 
 Distributed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**. See [`LICENSE`](LICENSE) for details.
 
-For comprehensive interview preparation based on this architecture, read the [`interview_prep/master_faang_de_interview_guide.md`](interview_prep/master_faang_de_interview_guide.md).
+For an in-depth systems design and scenario breakdown based on this architecture, see [`interview_prep/master_faang_de_interview_guide.md`](interview_prep/master_faang_de_interview_guide.md).
 
 <div align="center">
   <br/>
