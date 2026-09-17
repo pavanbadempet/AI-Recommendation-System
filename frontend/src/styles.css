@@ -318,6 +318,7 @@ input:focus-visible {
   background: linear-gradient(to top, #050508 5%, rgba(5, 5, 8, 0.3) 50%, transparent 100%),
               linear-gradient(to right, rgba(5, 5, 8, 0.6) 0%, transparent 40%);
   z-index: 1;
+  pointer-events: none;
 }
 .video-toggle {
   position: absolute;

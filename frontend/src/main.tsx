@@ -29,6 +29,7 @@ import {
   User,
   LogOut,
   Network,
+  Volume2,
 } from "lucide-react";
 import {
   apiGet,
@@ -1031,10 +1032,19 @@ const MovieSpotlight = React.memo(function MovieSpotlight({
   );
 });
 
-function TrailerFrame({ movie }: { movie: Movie }) {
+function TrailerFrame({
+  movie,
+  initialTrailerKey,
+  interactive = false,
+}: {
+  movie: Movie;
+  initialTrailerKey?: string | null;
+  interactive?: boolean;
+}) {
   const [playing, setPlaying] = React.useState(true);
+  const [isMuted, setIsMuted] = React.useState(!interactive);
   const [trailerKey, setTrailerKey] = React.useState<string | null>(
-    movie.trailer_key || KNOWN_TRAILERS[movie.id] || null
+    initialTrailerKey || movie.trailer_key || KNOWN_TRAILERS[movie.id] || null
   );
   const [videoError, setVideoError] = React.useState(false);
   const [isCached, setIsCached] = React.useState<boolean | null>(false);
@@ -1067,7 +1077,7 @@ function TrailerFrame({ movie }: { movie: Movie }) {
   }, []);
 
   React.useEffect(() => {
-    const key = movie.trailer_key || KNOWN_TRAILERS[movie.id] || null;
+    const key = initialTrailerKey || movie.trailer_key || KNOWN_TRAILERS[movie.id] || null;
     setTrailerKey(key);
     if (!key) {
       getMovieEnriched(movie.id)
@@ -1076,7 +1086,7 @@ function TrailerFrame({ movie }: { movie: Movie }) {
         })
         .catch(() => {});
     }
-  }, [movie.id, movie.trailer_key]);
+  }, [movie.id, movie.trailer_key, initialTrailerKey]);
 
   // Check if trailer is cached when trailerKey changes
   React.useEffect(() => {
@@ -1108,7 +1118,7 @@ function TrailerFrame({ movie }: { movie: Movie }) {
   // Restart playback and reload video when movie, trailerKey, or isCached changes
   React.useEffect(() => {
     setPlaying(true);
-    setVideoError(false); // Reset error state when movie changes
+    setVideoError(false);
     if (isCached && videoRef.current && !isMobile) {
       videoRef.current.load();
       videoRef.current.play().catch(() => {});
@@ -1131,15 +1141,68 @@ function TrailerFrame({ movie }: { movie: Movie }) {
   const videoSrc = trailerKey ? `${backendUrl}/v1/videos/stream/${trailerKey}` : "";
 
   return (
-    <div className="trailer-frame">
+    <div className={`trailer-frame ${interactive ? "interactive-trailer" : ""}`} style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", background: "#05060b" }}>
       {!isTabVisible ? (
         <>
           <img src={backdropUrl(movie.poster_path)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
           <div className="trailer-overlay" />
         </>
       ) : trailerKey ? (
-        isMobile ? (
-          /* Mobile: YouTube iframe embed scaled to hide all player chrome */
+        interactive ? (
+          /* Interactive cinema player with controls and audio toggle */
+          <div style={{ position: "relative", width: "100%", height: "100%", background: "#000" }}>
+            <iframe
+              key={`interactive-${trailerKey}-${isMuted ? "muted" : "unmuted"}`}
+              src={`https://www.youtube-nocookie.com/embed/${trailerKey}?autoplay=1&mute=${isMuted ? 1 : 0}&controls=1&modestbranding=1&rel=0&playsinline=1&enablejsapi=1`}
+              title={`${movie.title} Trailer`}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                display: "block",
+                border: "none",
+                zIndex: 2,
+                pointerEvents: "auto",
+              }}
+            />
+            {isMuted && (
+              <button
+                type="button"
+                className="unmute-trailer-pill"
+                onClick={() => setIsMuted(false)}
+                style={{
+                  position: "absolute",
+                  bottom: "14px",
+                  right: "14px",
+                  zIndex: 10,
+                  background: "rgba(15, 23, 42, 0.88)",
+                  color: "#38bdf8",
+                  border: "1px solid rgba(56, 189, 248, 0.3)",
+                  borderRadius: "20px",
+                  padding: "6px 14px",
+                  fontSize: "0.8rem",
+                  fontWeight: 700,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  cursor: "pointer",
+                  backdropFilter: "blur(12px)",
+                  boxShadow: "0 4px 14px rgba(0, 0, 0, 0.5)",
+                }}
+                aria-label="Unmute trailer audio"
+              >
+                <Volume2 size={15} />
+                <span>Unmute Audio</span>
+              </button>
+            )}
+          </div>
+        ) : isMobile ? (
+          /* Mobile: YouTube iframe embed scaled to hide player chrome */
           <div style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", background: "#000", pointerEvents: "none" }}>
             <iframe
               src={`https://www.youtube-nocookie.com/embed/${trailerKey}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&playsinline=1&iv_load_policy=3&disablekb=1&fs=0&loop=1&playlist=${trailerKey}`}
@@ -1207,7 +1270,7 @@ function TrailerFrame({ movie }: { movie: Movie }) {
           <div className="trailer-overlay" />
         </>
       )}
-      {trailerKey && isCached && !videoError && !isMobile && (
+      {trailerKey && isCached && !videoError && !isMobile && !interactive && (
         <button className="video-toggle" type="button" onClick={togglePlayback} aria-label={playing ? "Pause trailer" : "Play trailer"}>
           <span className="visually-hidden">{playing ? "Pause trailer" : "Play trailer"}</span>
         </button>
@@ -1301,6 +1364,23 @@ export const MovieDialog = React.memo(function MovieDialog({
     }
   });
   const [toast, setToast] = React.useState("");
+  const [currentTrailerKey, setCurrentTrailerKey] = React.useState<string | null>(
+    movie.trailer_key || KNOWN_TRAILERS[movie.id] || null
+  );
+
+  React.useEffect(() => {
+    const initialKey = movie.trailer_key || KNOWN_TRAILERS[movie.id] || null;
+    setCurrentTrailerKey(initialKey);
+    if (!initialKey) {
+      getMovieEnriched(movie.id)
+        .then((res) => {
+          if (res.data.trailer_key) {
+            setCurrentTrailerKey(res.data.trailer_key);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [movie.id, movie.trailer_key]);
 
   const dialogRef = React.useRef<HTMLElement>(null);
   const previousFocusRef = React.useRef<HTMLElement | null>(null);
@@ -1351,7 +1431,7 @@ export const MovieDialog = React.memo(function MovieDialog({
         </button>
 
         <div className="dialog-media">
-          <TrailerFrame movie={movie} />
+          <TrailerFrame movie={movie} initialTrailerKey={currentTrailerKey} interactive={true} />
         </div>
 
         <div className="dialog-content">
@@ -1531,10 +1611,15 @@ export const MovieDialog = React.memo(function MovieDialog({
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: "8px", width: "100%" }}>
-                {(movie.trailer_key || KNOWN_TRAILERS[movie.id]) && (
-                  <a className="dialog-action-btn primary" href={`https://www.youtube.com/watch?v=${movie.trailer_key || KNOWN_TRAILERS[movie.id]}`} target="_blank" rel="noreferrer">
+                {currentTrailerKey ? (
+                  <a className="dialog-action-btn primary" href={`https://www.youtube.com/watch?v=${currentTrailerKey}`} target="_blank" rel="noreferrer">
                     <Play size={16} fill="currentColor" />
                     <span>Watch Full Trailer</span>
+                  </a>
+                ) : (
+                  <a className="dialog-action-btn primary" href={`https://www.youtube.com/results?search_query=${encodeURIComponent(movie.title + " " + (movie.release_date?.slice(0, 4) || "") + " official trailer")}`} target="_blank" rel="noreferrer">
+                    <Play size={16} fill="currentColor" />
+                    <span>Find Trailer on YouTube</span>
                   </a>
                 )}
                 <a
