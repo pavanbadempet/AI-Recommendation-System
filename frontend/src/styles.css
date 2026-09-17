@@ -379,6 +379,94 @@ input:focus-visible {
   color: var(--text);
 }
 
+.bb-tagline-badge {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-headline);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  padding: 4px 10px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  backdrop-filter: blur(8px);
+}
+
+.bb-title {
+  font-family: var(--font-headline);
+  font-size: clamp(2rem, 4.2vw, 3.8rem);
+  font-weight: 850;
+  line-height: 0.95;
+  color: #fff;
+  margin: 0 0 12px;
+  letter-spacing: -0.03em;
+  text-shadow: 0 4px 24px rgba(0,0,0,0.8);
+}
+
+.bb-rating-pill {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.16);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 800;
+}
+
+.billboard-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.bb-play-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  background: #ffffff;
+  color: #000000;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 750;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+.bb-play-btn:hover {
+  background: rgba(255, 255, 255, 0.85);
+  transform: scale(1.03);
+}
+
+.bb-list-btn, .bb-info-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 22px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 650;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.bb-list-btn:hover, .bb-info-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.02);
+}
+.bb-list-btn.in-list {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: #ffffff;
+}
+
 .bb-details-button {
   display: inline-flex;
   align-items: center;
@@ -405,7 +493,7 @@ input:focus-visible {
 .category-rows {
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 44px;
 }
 .category-row {
   display: flex;
@@ -420,6 +508,224 @@ input:focus-visible {
   font-weight: 800;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+}
+
+/* Cinematic Row Layout */
+.cinematic-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+}
+
+.row-header {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 0 4px;
+}
+
+.row-title {
+  margin: 0;
+  color: #ffffff;
+  font-family: var(--font-headline);
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.row-subtitle {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+.carousel-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.carousel-track {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding: 12px 4px 20px;
+  scrollbar-width: none;
+}
+.carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+/* Carousel Scroll Arrows */
+.carousel-arrow {
+  position: absolute;
+  top: 45%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 44px;
+  height: calc(100% - 44px);
+  max-height: 250px;
+  background: rgba(0, 0, 0, 0.75);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  transition: opacity 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+.carousel-wrapper:hover .carousel-arrow {
+  opacity: 1;
+}
+.carousel-arrow:hover {
+  background: rgba(0, 0, 0, 0.95);
+  border-color: rgba(255, 255, 255, 0.45);
+}
+.carousel-arrow-left {
+  left: -12px;
+}
+.carousel-arrow-right {
+  right: -12px;
+}
+
+/* Movie Card Container */
+.movie-card-container {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+}
+
+/* Top 10 Styling */
+.top10-card-container {
+  display: flex;
+  align-items: flex-end;
+  position: relative;
+}
+
+.top10-rank {
+  font-family: var(--font-headline);
+  font-size: 7.5rem;
+  font-weight: 900;
+  line-height: 0.8;
+  color: #000000;
+  -webkit-text-stroke: 4px #555555;
+  margin-right: -24px;
+  z-index: 1;
+  pointer-events: none;
+  user-select: none;
+  letter-spacing: -0.06em;
+  transition: -webkit-text-stroke 0.2s ease, color 0.2s ease;
+}
+.top10-card-container:hover .top10-rank {
+  -webkit-text-stroke: 4px #ffffff;
+}
+
+/* Cinematic Movie Card */
+.cinematic-movie-card {
+  width: 170px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  z-index: 2;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cinematic-movie-card:hover {
+  transform: scale(1.06) translateY(-4px);
+  z-index: 5;
+}
+
+.card-poster-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #111114;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.cinematic-movie-card:hover .card-poster-wrap {
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.85);
+}
+
+.card-poster {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.card-overlay-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.card-quick-badge {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease;
+}
+.cinematic-movie-card:hover .card-quick-badge {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.card-caption {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 2px;
+}
+
+.card-caption-title {
+  color: #ffffff;
+  font-size: 0.88rem;
+  font-weight: 650;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-caption-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.card-caption-score {
+  color: #ffffff;
+  font-weight: 700;
 }
 
 /* Fluid Horizontal Carousel Strip */

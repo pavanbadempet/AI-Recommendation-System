@@ -720,7 +720,7 @@ pub async fn get_movie_showcase_handler(
     State(state): State<Arc<AppState>>,
     Query(params): Query<CatalogQueryParams>,
 ) -> Response {
-    let limit = params.limit.unwrap_or(8);
+    let limit = params.limit.unwrap_or(30);
     if limit == 0 {
         return (
             StatusCode::UNPROCESSABLE_ENTITY,
@@ -732,13 +732,13 @@ pub async fn get_movie_showcase_handler(
         )
             .into_response();
     }
-    if limit > 20 {
+    if limit > 100 {
         return (
             StatusCode::UNPROCESSABLE_ENTITY,
             Json(ErrorResponse {
                 error: "Limit exceeded",
                 status: "unprocessable_entity",
-                detail: "Limit must be <= 20".to_string(),
+                detail: "Limit must be <= 100".to_string(),
             }),
         )
             .into_response();

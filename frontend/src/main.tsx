@@ -6,14 +6,19 @@ import {
   BarChart3,
   Bookmark,
   Calendar,
+  Check,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Clock3,
   Database,
   ExternalLink,
   Film,
   Gauge,
+  Info,
   Loader2,
   Play,
+  Plus,
   RefreshCw,
   Search,
   Server,
@@ -350,82 +355,186 @@ function saveRecentMovies(movies: Movie[]) {
 
 const SEED_SHOWCASE_MOVIES: Movie[] = [
   {
+    id: 693134,
+    title: "Dune: Part Two",
+    overview: "Follow the mythic journey of Paul Atreides as he unites with Chani and the Fremen while on a path of revenge against the conspirators who destroyed his family.",
+    genres: "Science Fiction, Adventure",
+    vote_average: 8.3,
+    vote_count: 14200,
+    popularity: 180.0,
+    release_date: "2024-02-27",
+    poster_path: "/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg",
+    trailer_key: "Way9Dexny3w",
+    director: "Denis Villeneuve",
+    runtime: 166,
+  },
+  {
     id: 157336,
     title: "Interstellar",
     overview: "The adventures of a group of explorers who make use of a newly discovered wormhole to surpass the limitations on human space travel and conquer the vast distances involved in an interstellar voyage.",
     genres: "Adventure, Drama, Science Fiction",
     vote_average: 8.4,
-    vote_count: 35000,
-    popularity: 150.2,
+    vote_count: 32100,
+    popularity: 142.1,
     release_date: "2014-11-05",
     poster_path: "/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",
+    trailer_key: "zSWdZVtXT7E",
     director: "Christopher Nolan",
     runtime: 169,
   },
   {
     id: 27205,
     title: "Inception",
-    overview: "Cobb, a skilled thief who commits corporate espionage by infiltrating the subconscious of his targets, is offered a chance to regain his old life as payment for a task considered to be impossible: 'inception'.",
+    overview: "A thief who steals corporate secrets through dream-sharing technology is given the inverse task of planting an idea.",
     genres: "Action, Science Fiction, Adventure",
     vote_average: 8.4,
-    vote_count: 36000,
-    popularity: 140.5,
+    vote_count: 34500,
+    popularity: 125.4,
     release_date: "2010-07-15",
-    poster_path: "/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg",
+    poster_path: "/8IB2e4r4oVhHn97LIXAWawzuv00.jpg",
+    trailer_key: "YoHD9XEInc0",
     director: "Christopher Nolan",
     runtime: 148,
   },
   {
     id: 155,
     title: "The Dark Knight",
-    overview: "Batman raises the stakes in his war on crime. With the help of Lt. Jim Gordon and District Attorney Harvey Dent, Batman sets out to dismantle the remaining criminal organizations that plague the streets.",
+    overview: "Batman raises the stakes in his war on crime with the help of Lt. Jim Gordon and District Attorney Harvey Dent against the Joker.",
     genres: "Drama, Action, Crime, Thriller",
     vote_average: 8.5,
-    vote_count: 32000,
-    popularity: 130.0,
+    vote_count: 30500,
+    popularity: 118.6,
     release_date: "2008-07-16",
     poster_path: "/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
+    trailer_key: "EXeTwQWrcwY",
     director: "Christopher Nolan",
     runtime: 152,
   },
   {
-    id: 680,
-    title: "Pulp Fiction",
-    overview: "A burger-loving hit man, his philosophical partner, a drug-addled gangster's moll and a washed-up boxer converge in this sprawling, comedic crime caper.",
-    genres: "Thriller, Crime",
-    vote_average: 8.5,
-    vote_count: 27000,
-    popularity: 120.0,
-    release_date: "1994-09-10",
-    poster_path: "/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg",
-    director: "Quentin Tarantino",
-    runtime: 154,
+    id: 872585,
+    title: "Oppenheimer",
+    overview: "The story of J. Robert Oppenheimer's role in the development of the atomic bomb during World War II.",
+    genres: "Drama, History",
+    vote_average: 8.1,
+    vote_count: 12500,
+    popularity: 160.0,
+    release_date: "2023-07-19",
+    poster_path: "/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg",
+    trailer_key: "uYPbbksJxIg",
+    director: "Christopher Nolan",
+    runtime: 180,
   },
   {
     id: 238,
     title: "The Godfather",
-    overview: "Spanning the years 1945 to 1955, a chronicle of the fictional Italian-American Corleone crime family. When organized crime family patriarch, Vito Corleone barely survives an attempt on his life, his youngest son, Michael steps in to take care of the would-be killers.",
+    overview: "Spanning the years 1945 to 1955, a chronicle of the fictional Italian-American Corleone crime family.",
     genres: "Drama, Crime",
     vote_average: 8.7,
-    vote_count: 20000,
-    popularity: 160.0,
+    vote_count: 18900,
+    popularity: 115.0,
     release_date: "1972-03-14",
     poster_path: "/3bhkrj58Vtu7enYsRolD1fZdja1.jpg",
+    trailer_key: "sY1S34973zA",
     director: "Francis Ford Coppola",
     runtime: 175,
   },
   {
-    id: 299536,
-    title: "Avengers: Infinity War",
-    overview: "As the Avengers and their allies have continued to protect the world from threats too large for any one hero to handle, a new danger has emerged from the cosmic shadows: Thanos.",
-    genres: "Adventure, Action, Science Fiction",
-    vote_average: 8.3,
-    vote_count: 29000,
-    popularity: 180.0,
-    release_date: "2018-04-25",
-    poster_path: "/7WsyChQLEftFiDOVTGkv3hFpyyt.jpg",
-    director: "Anthony Russo, Joe Russo",
-    runtime: 149,
+    id: 680,
+    title: "Pulp Fiction",
+    overview: "A burger-loving hit man, his philosophical partner, a drug-addled gangster's moll and a washed-up boxer converge in four tales of violence.",
+    genres: "Thriller, Crime",
+    vote_average: 8.5,
+    vote_count: 26000,
+    popularity: 105.1,
+    release_date: "1994-09-10",
+    poster_path: "/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg",
+    trailer_key: "s7EdQ4FqbhY",
+    director: "Quentin Tarantino",
+    runtime: 154,
+  },
+  {
+    id: 603,
+    title: "The Matrix",
+    overview: "Set in the 22nd century, The Matrix tells the story of a computer hacker who joins a group of underground insurgents fighting the machines.",
+    genres: "Action, Science Fiction",
+    vote_average: 8.2,
+    vote_count: 24000,
+    popularity: 95.0,
+    release_date: "1999-03-30",
+    poster_path: "/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg",
+    trailer_key: "vKQi3bBA1y8",
+    director: "Lana Wachowski, Lilly Wachowski",
+    runtime: 136,
+  },
+  {
+    id: 496243,
+    title: "Parasite",
+    overview: "All unemployed, Ki-taek's family takes peculiar interest in the wealthy and glamorous Parks for their livelihood until they get entangled in an unexpected incident.",
+    genres: "Comedy, Thriller, Drama",
+    vote_average: 8.5,
+    vote_count: 16500,
+    popularity: 108.0,
+    release_date: "2019-05-30",
+    poster_path: "/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg",
+    trailer_key: "5xH0RZE7t4E",
+    director: "Bong Joon-ho",
+    runtime: 132,
+  },
+  {
+    id: 278,
+    title: "The Shawshank Redemption",
+    overview: "Framed in the 1940s for the double murder of his wife and her lover, upstanding banker Andy Dufresne begins a new life at the Shawshank prison.",
+    genres: "Drama, Crime",
+    vote_average: 8.7,
+    vote_count: 26000,
+    popularity: 140.0,
+    release_date: "1994-09-23",
+    poster_path: "/9cqNxx0GxF0bflZmeSMuL5tnGzr.jpg",
+    trailer_key: "PLl99DlL6b4",
+    director: "Frank Darabont",
+    runtime: 142,
+  },
+  {
+    id: 324857,
+    title: "Spider-Man: Into the Spider-Verse",
+    overview: "Miles Morales is juggling his life between being a high school student and being a spider-man when he crosses paths with five counterparts from other dimensions.",
+    genres: "Animation, Action, Adventure, Science Fiction",
+    vote_average: 8.4,
+    vote_count: 14500,
+    popularity: 120.0,
+    release_date: "2018-12-06",
+    poster_path: "/iiZZdoQBEYBv6id8su7ImL0oCbD.jpg",
+    trailer_key: "tg52up16eq0",
+    director: "Bob Persichetti, Peter Ramsey",
+    runtime: 117,
+  },
+  {
+    id: 129,
+    title: "Spirited Away",
+    overview: "A young girl, Chihiro, becomes trapped in a strange new world of spirits. When her parents undergo a mysterious transformation, she must call upon the courage she never knew she had.",
+    genres: "Animation, Family, Fantasy",
+    vote_average: 8.5,
+    vote_count: 15000,
+    popularity: 92.0,
+    release_date: "2001-07-20",
+    poster_path: "/39wmItIWsg5sZMyRUHLkWBcuVCM.jpg",
+    trailer_key: "ByXuk9QqQkk",
+    director: "Hayao Miyazaki",
+    runtime: 125,
+  },
+  {
+    id: 98,
+    title: "Gladiator",
+    overview: "In the year 180, the death of emperor Marcus Aurelius throws the Roman Empire into turmoil. Maximus Decimus Meridius is betrayed and becomes a gladiator.",
+    genres: "Action, Drama, Adventure",
+    vote_average: 8.2,
+    vote_count: 16800,
+    popularity: 88.0,
+    release_date: "2000-05-01",
+    poster_path: "/ty8TGRuvJLPUmAR1H1nRIsgwvim.jpg",
+    trailer_key: "owK1qxDselE",
+    director: "Ridley Scott",
+    runtime: 155,
   },
   {
     id: 19995,
@@ -433,26 +542,238 @@ const SEED_SHOWCASE_MOVIES: Movie[] = [
     overview: "In the 22nd century, a paraplegic Marine is dispatched to the moon Pandora on a unique mission, but becomes torn between following orders and protecting an alien civilization.",
     genres: "Action, Adventure, Fantasy, Science Fiction",
     vote_average: 7.6,
-    vote_count: 31000,
+    vote_count: 29800,
     popularity: 110.0,
     release_date: "2009-12-15",
     poster_path: "/kyeqWdyUXW608qlYkRqosgbbJyK.jpg",
+    trailer_key: "5PSNL1qE6VY",
     director: "James Cameron",
     runtime: 162,
   },
   {
+    id: 597,
+    title: "Titanic",
+    overview: "101-year-old Rose DeWitt Bukater tells the story of her life aboard the Titanic, 84 years later. A young Rose boards the ship with her mother and fiance.",
+    genres: "Drama, Romance",
+    vote_average: 7.9,
+    vote_count: 23700,
+    popularity: 102.0,
+    release_date: "1997-11-18",
+    poster_path: "/9xjZS2rlVxm8SFx8kPC3aIGCOYQ.jpg",
+    trailer_key: "2e-eXJ6HgkQ",
+    director: "James Cameron",
+    runtime: 194,
+  },
+  {
     id: 550,
     title: "Fight Club",
-    overview: "A ticking-time-bomb insomniac and a slippery soap salesman channel primal male aggression into a shocking new form of therapy. Their concept catches on, with underground 'fight clubs' forming in every town.",
-    genres: "Drama",
+    overview: "An insomniac office worker looking for a way to change his life crosses paths with a devil-may-care soap maker.",
+    genres: "Drama, Thriller",
     vote_average: 8.4,
-    vote_count: 28000,
-    popularity: 115.0,
+    vote_count: 27200,
+    popularity: 98.4,
     release_date: "1999-10-15",
     poster_path: "/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg",
+    trailer_key: "qtRKdVHc-cE",
     director: "David Fincher",
     runtime: 139,
-  }
+  },
+  {
+    id: 244786,
+    title: "Whiplash",
+    overview: "Under the direction of a ruthless instructor, a talented young drummer begins to pursue perfection at any cost, even his humanity.",
+    genres: "Drama, Music",
+    vote_average: 8.4,
+    vote_count: 13800,
+    popularity: 85.0,
+    release_date: "2014-10-10",
+    poster_path: "/7fn624j5lj3xTme2SgiLCeuedmO.jpg",
+    trailer_key: "7d_jQycdQGo",
+    director: "Damien Chazelle",
+    runtime: 107,
+  },
+  {
+    id: 335984,
+    title: "Blade Runner 2049",
+    overview: "Thirty years after the events of the first film, a new blade runner, LAPD Officer K, unearths a long-buried secret that has the potential to plunge what's left of society into chaos.",
+    genres: "Science Fiction, Drama",
+    vote_average: 7.9,
+    vote_count: 12500,
+    popularity: 95.0,
+    release_date: "2017-10-04",
+    poster_path: "/gajva2L0rPYkEWjzgFlBXCAVBE5.jpg",
+    trailer_key: "gCcx85zbxz4",
+    director: "Denis Villeneuve",
+    runtime: 164,
+  },
+  {
+    id: 769,
+    title: "GoodFellas",
+    overview: "The true story of Henry Hill, a half-Irish, half-Sicilian Brooklyn kid who is adopted by neighborhood gangsters at an early age and climbs the ranks of a Mafia family.",
+    genres: "Drama, Crime",
+    vote_average: 8.5,
+    vote_count: 11800,
+    popularity: 78.0,
+    release_date: "1990-09-12",
+    poster_path: "/aKuFiU82s5ISJpGZp7YkIr3kCUd.jpg",
+    trailer_key: "2ilzidi_J8Q",
+    director: "Martin Scorsese",
+    runtime: 145,
+  },
+  {
+    id: 807,
+    title: "Seven",
+    overview: "Two homicide detectives are on a desperate hunt for a serial killer whose crimes are based on the 'seven deadly sins'.",
+    genres: "Crime, Mystery, Thriller",
+    vote_average: 8.4,
+    vote_count: 19400,
+    popularity: 84.0,
+    release_date: "1995-09-22",
+    poster_path: "/69Sns8WoET6CfaYlIkHbla4l7nC.jpg",
+    trailer_key: "znmZoVkCjpI",
+    director: "David Fincher",
+    runtime: 127,
+  },
+  {
+    id: 13,
+    title: "Forrest Gump",
+    overview: "A man with a low IQ has accomplished great things in his life and been present during significant historic events—in each case, far exceeding what anyone imagined he could do.",
+    genres: "Comedy, Drama, Romance",
+    vote_average: 8.5,
+    vote_count: 25500,
+    popularity: 115.0,
+    release_date: "1994-07-06",
+    poster_path: "/arw2vcBveWOVZr6pxd9XTd1TdQa.jpg",
+    trailer_key: "bLvqoHBptjg",
+    director: "Robert Zemeckis",
+    runtime: 142,
+  },
+  {
+    id: 329,
+    title: "Jurassic Park",
+    overview: "A wealthy entrepreneur secretly creates a theme park featuring living dinosaurs drawn from prehistoric DNA.",
+    genres: "Adventure, Science Fiction",
+    vote_average: 7.9,
+    vote_count: 15300,
+    popularity: 90.0,
+    release_date: "1993-06-11",
+    poster_path: "/oU7Oq2kFAAlGqbU4VoAE36g4hoI.jpg",
+    trailer_key: "lc0UehYemQA",
+    director: "Steven Spielberg",
+    runtime: 127,
+  },
+  {
+    id: 105,
+    title: "Back to the Future",
+    overview: "Eighties teenager Marty McFly is accidentally sent back in time to 1955 in a plutonium-powered DeLorean by his eccentric scientist friend Doc Brown.",
+    genres: "Adventure, Comedy, Science Fiction",
+    vote_average: 8.3,
+    vote_count: 18500,
+    popularity: 88.0,
+    release_date: "1985-07-03",
+    poster_path: "/fNOH9f1aA7XRTzl1sAOx9iF553Q.jpg",
+    trailer_key: "qvsgGtivCgs",
+    director: "Robert Zemeckis",
+    runtime: 116,
+  },
+  {
+    id: 354912,
+    title: "Coco",
+    overview: "Despite his family’s baffling generations-old ban on music, Miguel dreams of becoming an accomplished musician like his idol, Ernesto de la Cruz.",
+    genres: "Animation, Family, Music, Adventure",
+    vote_average: 8.2,
+    vote_count: 17900,
+    popularity: 94.0,
+    release_date: "2017-10-27",
+    poster_path: "/gGEsBPAijhVUFoiNpgZXqRVWJt2.jpg",
+    trailer_key: "Rvr68u6k5sI",
+    director: "Lee Unkrich",
+    runtime: 105,
+  },
+  {
+    id: 348,
+    title: "Alien",
+    overview: "During its return to the earth, the commercial spaceship Nostromo intercepts a distress signal from a distant planet and discovers a deadly extraterrestrial life form.",
+    genres: "Horror, Science Fiction",
+    vote_average: 8.1,
+    vote_count: 13400,
+    popularity: 76.0,
+    release_date: "1979-05-25",
+    poster_path: "/vfrQk5IPloGg1v9Rzbh2Eg3VGyM.jpg",
+    trailer_key: "LjLamj-b0I8",
+    director: "Ridley Scott",
+    runtime: 117,
+  },
+  {
+    id: 274,
+    title: "The Silence of the Lambs",
+    overview: "Clarice Starling is a top student at the FBI's training academy. Jack Crawford wants Clarice to interview Dr. Hannibal Lecter, a brilliant psychiatrist who is also a violent psychopath.",
+    genres: "Crime, Drama, Thriller",
+    vote_average: 8.3,
+    vote_count: 14900,
+    popularity: 82.0,
+    release_date: "1991-02-01",
+    poster_path: "/uS9m8OBk1A8eM9I042bx8XXpqAq.jpg",
+    trailer_key: "W6Mm8Sbe__o",
+    director: "Jonathan Demme",
+    runtime: 118,
+  },
+  {
+    id: 299534,
+    title: "Avengers: Endgame",
+    overview: "After the devastating events of Avengers: Infinity War, the universe is in ruins. With the help of remaining allies, the Avengers assemble once more to reverse Thanos' actions.",
+    genres: "Adventure, Science Fiction, Action",
+    vote_average: 8.3,
+    vote_count: 23800,
+    popularity: 155.0,
+    release_date: "2019-04-24",
+    poster_path: "/or06FN3Dka5tukK1e9sl16pB3iy.jpg",
+    trailer_key: "TcMBFSGVi1c",
+    director: "Anthony Russo, Joe Russo",
+    runtime: 181,
+  },
+  {
+    id: 346698,
+    title: "Barbie",
+    overview: "Barbie and Ken are having the time of their lives in the colorful and seemingly perfect world of Barbie Land. However, when they get a chance to go to the real world, they soon discover the joys and perils of living among humans.",
+    genres: "Comedy, Adventure",
+    vote_average: 7.1,
+    vote_count: 8400,
+    popularity: 135.0,
+    release_date: "2023-07-19",
+    poster_path: "/iuFNMS8U5cb6xfzi51Dbkovj7vM.jpg",
+    trailer_key: "pBk4NYhWNMM",
+    director: "Greta Gerwig",
+    runtime: 114,
+  },
+  {
+    id: 120,
+    title: "The Lord of the Rings: The Fellowship of the Ring",
+    overview: "Young hobbit Frodo Baggins, after inheriting a mysterious ring from his uncle Bilbo, must leave his home to destroy it.",
+    genres: "Adventure, Fantasy, Action",
+    vote_average: 8.4,
+    vote_count: 23500,
+    popularity: 130.0,
+    release_date: "2001-12-18",
+    poster_path: "/6oom5QYQ2yQTMJIbnvbkBL9cDK6.jpg",
+    trailer_key: "V75dMMW-qqc",
+    director: "Peter Jackson",
+    runtime: 178,
+  },
+  {
+    id: 122,
+    title: "The Lord of the Rings: The Return of the King",
+    overview: "As armies mass for a final battle that will decide the fate of the world, one member of the Fellowship of the Ring is revealed as the noble heir to the throne of Men.",
+    genres: "Adventure, Fantasy, Action",
+    vote_average: 8.5,
+    vote_count: 22400,
+    popularity: 125.0,
+    release_date: "2003-12-01",
+    poster_path: "/rCzpDGLbOoPwLjy3OAm5NUPOTrC.jpg",
+    trailer_key: "r5X-hFf6Bwo",
+    director: "Peter Jackson",
+    runtime: 201,
+  },
 ];
 
 function loadCachedShowcaseMovies(): Movie[] {
@@ -460,7 +781,7 @@ function loadCachedShowcaseMovies(): Movie[] {
     const raw = safeGetLocalStorage(SHOWCASE_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as Movie[];
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed.slice(0, 10);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed.slice(0, 30);
     }
   } catch {}
   return SEED_SHOWCASE_MOVIES;
@@ -469,7 +790,7 @@ function loadCachedShowcaseMovies(): Movie[] {
 function saveCachedShowcaseMovies(movies: Movie[]) {
   try {
     if (movies.length > 0) {
-      safeSetLocalStorage(SHOWCASE_STORAGE_KEY, JSON.stringify(movies.slice(0, 10)));
+      safeSetLocalStorage(SHOWCASE_STORAGE_KEY, JSON.stringify(movies.slice(0, 30)));
     }
   } catch {}
 }
@@ -479,7 +800,7 @@ function loadCachedLatestMovies(): Movie[] {
     const raw = safeGetLocalStorage(LATEST_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as Movie[];
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed.slice(0, 10);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed.slice(0, 30);
     }
   } catch {}
   return SEED_SHOWCASE_MOVIES.slice().reverse();
@@ -488,7 +809,7 @@ function loadCachedLatestMovies(): Movie[] {
 function saveCachedLatestMovies(movies: Movie[]) {
   try {
     if (movies.length > 0) {
-      safeSetLocalStorage(LATEST_STORAGE_KEY, JSON.stringify(movies.slice(0, 10)));
+      safeSetLocalStorage(LATEST_STORAGE_KEY, JSON.stringify(movies.slice(0, 30)));
     }
   } catch {}
 }
@@ -1649,21 +1970,148 @@ export const MovieDialog = React.memo(function MovieDialog({
 
 
 
+function CinematicRow({
+  title,
+  subtitle,
+  movies,
+  isTop10 = false,
+  onOpenMovie,
+  onHoverMovie,
+}: {
+  title: string;
+  subtitle?: string;
+  movies: Movie[];
+  isTop10?: boolean;
+  onOpenMovie: (movie: Movie) => void;
+  onHoverMovie?: (movieId?: number) => void;
+}) {
+  const rowRef = React.useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = React.useState(false);
+  const [canScrollRight, setCanScrollRight] = React.useState(true);
+
+  const checkScroll = React.useCallback(() => {
+    const el = rowRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 10);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 10);
+  }, []);
+
+  React.useEffect(() => {
+    checkScroll();
+    const el = rowRef.current;
+    if (!el) return;
+    el.addEventListener("scroll", checkScroll, { passive: true });
+    window.addEventListener("resize", checkScroll);
+    return () => {
+      el.removeEventListener("scroll", checkScroll);
+      window.removeEventListener("resize", checkScroll);
+    };
+  }, [checkScroll, movies.length]);
+
+  const handleScroll = (direction: "left" | "right") => {
+    const el = rowRef.current;
+    if (!el) return;
+    const distance = el.clientWidth * 0.75;
+    el.scrollBy({
+      left: direction === "left" ? -distance : distance,
+      behavior: "smooth",
+    });
+  };
+
+  if (!movies || movies.length === 0) return null;
+
+  return (
+    <div className={`cinematic-row ${isTop10 ? "top10-row" : ""}`}>
+      <div className="row-header">
+        <h3 className="row-title">{title}</h3>
+        {subtitle && <span className="row-subtitle">{subtitle}</span>}
+      </div>
+      <div className="carousel-wrapper">
+        {canScrollLeft && (
+          <button
+            type="button"
+            className="carousel-arrow carousel-arrow-left"
+            onClick={() => handleScroll("left")}
+            aria-label={`Scroll ${title} left`}
+          >
+            <ChevronLeft size={24} />
+          </button>
+        )}
+        <div className="carousel-track" ref={rowRef}>
+          {movies.map((movie, index) => (
+            <div
+              key={`${title}-${movie.id}-${index}`}
+              className={`movie-card-container ${isTop10 ? "top10-card-container" : ""}`}
+            >
+              {isTop10 && (
+                <span className="top10-rank" aria-hidden="true">
+                  {index + 1}
+                </span>
+              )}
+              <button
+                type="button"
+                className="cinematic-movie-card"
+                onClick={() => onOpenMovie(movie)}
+                onPointerEnter={() => prefetchMovie(movie.id)}
+                onMouseEnter={() => onHoverMovie?.(movie.id)}
+                onFocus={() => onHoverMovie?.(movie.id)}
+                title={`${movie.title} (${movieYear(movie)}) - Watch Cinema Trailer`}
+              >
+                <div className="card-poster-wrap">
+                  <img
+                    src={posterUrl(movie.poster_path)}
+                    alt={movie.title}
+                    loading="lazy"
+                    className="card-poster"
+                  />
+                  <div className="card-overlay-gradient" />
+                  <div className="card-quick-badge">
+                    <Play size={12} fill="currentColor" />
+                  </div>
+                </div>
+                <div className="card-caption">
+                  <span className="card-caption-title">{movie.title}</span>
+                  <div className="card-caption-meta">
+                    <span>{movieYear(movie)}</span>
+                    {movieScore(movie) !== "NR" && (
+                      <span className="card-caption-score">★ {movieScore(movie)}</span>
+                    )}
+                  </div>
+                </div>
+              </button>
+            </div>
+          ))}
+        </div>
+        {canScrollRight && (
+          <button
+            type="button"
+            className="carousel-arrow carousel-arrow-right"
+            onClick={() => handleScroll("right")}
+            aria-label={`Scroll ${title} right`}
+          >
+            <ChevronRight size={24} />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 const HomePage = React.memo(function HomePage({
   movies,
   heroIndex,
   loading,
   error,
-  onHeroIndex,
+  onHeroIndex: _onHeroIndex,
   onOpenMovie,
   recentMovies,
   forYouMovies,
-  forYouLoading,
-  latestMovies,
-  latestLoading,
-  homeMode,
-  onToggleMode,
-  onNavigate,
+  forYouLoading: _forYouLoading,
+  latestMovies: _latestMovies,
+  latestLoading: _latestLoading,
+  homeMode: _homeMode,
+  onToggleMode: _onToggleMode,
+  onNavigate: _onNavigate,
   onHoverMovie,
 }: {
   movies: Movie[];
@@ -1682,25 +2130,80 @@ const HomePage = React.memo(function HomePage({
   onNavigate?: (page: AppPage) => void;
   onHoverMovie?: (movieId?: number) => void;
 }) {
-  const hasForYou = recentMovies.length > 0 || forYouMovies.length > 0;
-  const activeMovies = (homeMode === "foryou" && forYouMovies.length > 0)
-    ? forYouMovies
-    : (homeMode === "latest" && latestMovies.length > 0)
-      ? latestMovies
-      : movies;
-  const hero = activeMovies[heroIndex] || activeMovies[0] || movies[0] || null;
-  const isCurrentModeLoading = homeMode === "foryou" ? forYouLoading : homeMode === "latest" ? latestLoading : loading;
-  const isLoading = isCurrentModeLoading && activeMovies.length === 0;
-  const heroMeta = hero
-    ? [movieScore(hero) !== "NR" ? `Rating ${movieScore(hero)}` : "", compactGenres(hero.genres), hero.runtime ? `${hero.runtime} min` : ""]
-        .filter(Boolean)
-        .join(" | ")
-    : "";
+  const hero = movies[heroIndex] || movies[0] || null;
+  const isLoading = loading && movies.length === 0;
+
+  // Watchlist state for billboard button
+  const [isHeroInWatchlist, setIsHeroInWatchlist] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!hero?.id) return;
+    try {
+      const raw = safeGetLocalStorage("nova_watchlist_v2");
+      const list = raw ? JSON.parse(raw) : [];
+      setIsHeroInWatchlist(Array.isArray(list) && list.some((m: { id?: number }) => m.id === hero.id));
+    } catch {
+      setIsHeroInWatchlist(false);
+    }
+  }, [hero?.id]);
+
+  const handleToggleWatchlist = React.useCallback(() => {
+    if (!hero?.id) return;
+    try {
+      const raw = safeGetLocalStorage("nova_watchlist_v2");
+      const list = raw ? JSON.parse(raw) : [];
+      let updated: Movie[];
+      if (list.some((m: { id?: number }) => m.id === hero.id)) {
+        updated = list.filter((m: { id?: number }) => m.id !== hero.id);
+        setIsHeroInWatchlist(false);
+      } else {
+        updated = [hero, ...list];
+        setIsHeroInWatchlist(true);
+      }
+      safeSetLocalStorage("nova_watchlist_v2", JSON.stringify(updated));
+    } catch {}
+  }, [hero]);
+
   const heroOverview = hero?.overview
-    ? hero.overview.length > 160
-      ? `${hero.overview.slice(0, 160).replace(/\s+\S*$/, "")}...`
+    ? hero.overview.length > 200
+      ? `${hero.overview.slice(0, 200).replace(/\s+\S*$/, "")}...`
       : hero.overview
     : "";
+
+  // Themed Curated Rails
+  const top10Movies = React.useMemo(() => {
+    return [...movies]
+      .sort((a, b) => ((b.vote_average ?? 0) * 1000 + (b.popularity ?? 0)) - ((a.vote_average ?? 0) * 1000 + (a.popularity ?? 0)))
+      .slice(0, 10);
+  }, [movies]);
+
+  const scifiMovies = React.useMemo(() => {
+    return movies.filter((m) => {
+      const g = typeof m.genres === "string" ? m.genres : Array.isArray(m.genres) ? m.genres.join(" ") : "";
+      return /science fiction|sci-fi/i.test(g);
+    });
+  }, [movies]);
+
+  const crimeMovies = React.useMemo(() => {
+    return movies.filter((m) => {
+      const g = typeof m.genres === "string" ? m.genres : Array.isArray(m.genres) ? m.genres.join(" ") : "";
+      return /crime|thriller|mystery/i.test(g);
+    });
+  }, [movies]);
+
+  const epicsMovies = React.useMemo(() => {
+    return movies.filter((m) => {
+      const g = typeof m.genres === "string" ? m.genres : Array.isArray(m.genres) ? m.genres.join(" ") : "";
+      return /drama|history|adventure/i.test(g) && !/science fiction|sci-fi|animation/i.test(g);
+    });
+  }, [movies]);
+
+  const animationMovies = React.useMemo(() => {
+    return movies.filter((m) => {
+      const g = typeof m.genres === "string" ? m.genres : Array.isArray(m.genres) ? m.genres.join(" ") : "";
+      return /animation|fantasy|family/i.test(g);
+    });
+  }, [movies]);
 
   return (
     <main className="home-shell full-width-layout">
@@ -1712,9 +2215,17 @@ const HomePage = React.memo(function HomePage({
               <TrailerFrame movie={hero} />
             </div>
             <div className="billboard-info">
-              <h2>{hero.title}</h2>
-              <div className="bb-meta">{heroMeta}</div>
-              <p>{heroOverview}</p>
+              <div className="bb-tagline-badge">FEATURED PRESENTATION</div>
+              <h2 className="bb-title">{hero.title}</h2>
+              <div className="bb-meta">
+                {movieScore(hero) !== "NR" && (
+                  <span className="bb-rating-pill">★ {movieScore(hero)}</span>
+                )}
+                <span className="bb-year">{movieYear(hero)}</span>
+                {hero.runtime && <span className="bb-runtime">{hero.runtime} min</span>}
+                <span className="bb-genres">{compactGenres(hero.genres)}</span>
+              </div>
+              <p className="bb-overview">{heroOverview}</p>
               <div className="bb-credits">
                 {directorLabel(hero) && (
                   <span>
@@ -1722,91 +2233,103 @@ const HomePage = React.memo(function HomePage({
                   </span>
                 )}
               </div>
-              <button className="bb-details-button" type="button" onClick={() => onOpenMovie(hero)}>
-                <Play size={14} />
-                View details
-              </button>
+              <div className="billboard-actions">
+                <button
+                  className="bb-play-btn"
+                  type="button"
+                  onClick={() => onOpenMovie(hero)}
+                >
+                  <Play size={18} fill="currentColor" />
+                  <span>Watch Trailer</span>
+                </button>
+                <button
+                  className={`bb-list-btn ${isHeroInWatchlist ? "in-list" : ""}`}
+                  type="button"
+                  onClick={handleToggleWatchlist}
+                >
+                  {isHeroInWatchlist ? <Check size={18} /> : <Plus size={18} />}
+                  <span>{isHeroInWatchlist ? "In My List" : "My List"}</span>
+                </button>
+                <button
+                  className="bb-info-btn"
+                  type="button"
+                  onClick={() => onOpenMovie(hero)}
+                >
+                  <Info size={18} />
+                  <span>More Info</span>
+                </button>
+              </div>
             </div>
           </section>
 
-          {/* Cinematic Scrolling Rows (Netflix/Prime Style) */}
+          {/* Curated Rails */}
           <div className="category-rows">
-            {/* Row 1: Popular & Trending */}
-            <div className="category-row">
-              <h3 className="category-title">Popular & Trending</h3>
-              <div className="trending-strip">
-                {movies.slice(0, 10).map((movie, index) => (
-                  <button
-                    className={movie.id === hero.id ? "active" : ""}
-                    type="button"
-                    key={`trending-${movie.id}`}
-                    onPointerEnter={() => prefetchMovie(movie.id)}
-                    onMouseEnter={() => onHoverMovie?.(movie.id)}
-                    onFocus={() => onHoverMovie?.(movie.id)}
-                    onClick={() => {
-                      onToggleMode("trending");
-                      onHeroIndex(index);
-                    }}
-                    onDoubleClick={() => onOpenMovie(movie)}
-                    title={movie.title}
-                  >
-                    <img src={posterUrl(movie.poster_path)} alt={movie.title} loading="lazy" />
-                  </button>
-                ))}
-              </div>
-            </div>
+            {/* Top 10 Masterpieces Today */}
+            <CinematicRow
+              title="Top 10 Masterpieces Today"
+              subtitle="Ranked by critical acclaim and global audience reception"
+              movies={top10Movies}
+              isTop10={true}
+              onOpenMovie={onOpenMovie}
+              onHoverMovie={onHoverMovie}
+            />
 
-            {/* Row 2: Personalized For You recommendations */}
-            {hasForYou && (
-              <div className="category-row">
-                <h3 className="category-title">Recommended For You</h3>
-                <div className="trending-strip">
-                  {forYouMovies.slice(0, 10).map((movie, index) => (
-                    <button
-                      className={movie.id === hero.id ? "active" : ""}
-                      type="button"
-                      key={`foryou-${movie.id}`}
-                      onPointerEnter={() => prefetchMovie(movie.id)}
-                      onMouseEnter={() => onHoverMovie?.(movie.id)}
-                      onFocus={() => onHoverMovie?.(movie.id)}
-                      onClick={() => {
-                        onToggleMode("foryou");
-                        onHeroIndex(index);
-                      }}
-                      onDoubleClick={() => onOpenMovie(movie)}
-                      title={movie.title}
-                    >
-                      <img src={posterUrl(movie.poster_path)} alt={movie.title} loading="lazy" />
-                    </button>
-                  ))}
-                </div>
-              </div>
+            {/* Personalized Recommendations (if available) */}
+            {forYouMovies.length > 0 && (
+              <CinematicRow
+                title="Recommended For You"
+                subtitle="Curated by neural embeddings and multi-hop knowledge graph"
+                movies={forYouMovies}
+                onOpenMovie={onOpenMovie}
+                onHoverMovie={onHoverMovie}
+              />
             )}
 
-            {/* Row 3: Latest Releases */}
-            <div className="category-row">
-              <h3 className="category-title">Latest Releases</h3>
-              <div className="trending-strip">
-                {latestMovies.slice(0, 10).map((movie, index) => (
-                  <button
-                    className={movie.id === hero.id ? "active" : ""}
-                    type="button"
-                    key={`latest-${movie.id}`}
-                    onPointerEnter={() => prefetchMovie(movie.id)}
-                    onMouseEnter={() => onHoverMovie?.(movie.id)}
-                    onFocus={() => onHoverMovie?.(movie.id)}
-                    onClick={() => {
-                      onToggleMode("latest");
-                      onHeroIndex(index);
-                    }}
-                    onDoubleClick={() => onOpenMovie(movie)}
-                    title={movie.title}
-                  >
-                    <img src={posterUrl(movie.poster_path)} alt={movie.title} loading="lazy" />
-                  </button>
-                ))}
-              </div>
-            </div>
+            {/* Mind-Bending Sci-Fi & Speculative Worlds */}
+            <CinematicRow
+              title="Mind-Bending Sci-Fi & Speculative Worlds"
+              subtitle="Interstellar voyages, high-concept timelines, and artificial realities"
+              movies={scifiMovies}
+              onOpenMovie={onOpenMovie}
+              onHoverMovie={onHoverMovie}
+            />
+
+            {/* Award-Winning Crime, Mob & Thrillers */}
+            <CinematicRow
+              title="Award-Winning Crime, Mob & Thrillers"
+              subtitle="Dark psychology, noir investigations, and iconic mafia sagas"
+              movies={crimeMovies}
+              onOpenMovie={onOpenMovie}
+              onHoverMovie={onHoverMovie}
+            />
+
+            {/* Cinematic Epics & Modern Classics */}
+            <CinematicRow
+              title="Cinematic Epics & Modern Classics"
+              subtitle="Historical monumental epics, human dramas, and emotional journeys"
+              movies={epicsMovies}
+              onOpenMovie={onOpenMovie}
+              onHoverMovie={onHoverMovie}
+            />
+
+            {/* Animation & Visual Wonders */}
+            <CinematicRow
+              title="Animation & Visual Wonders"
+              subtitle="Boundary-pushing visual effects, anime masterworks, and stylized universes"
+              movies={animationMovies}
+              onOpenMovie={onOpenMovie}
+              onHoverMovie={onHoverMovie}
+            />
+
+            {/* Recently Viewed / History */}
+            {recentMovies.length > 0 && (
+              <CinematicRow
+                title="Continue Watching & Recently Explored"
+                movies={recentMovies}
+                onOpenMovie={onOpenMovie}
+                onHoverMovie={onHoverMovie}
+              />
+            )}
           </div>
         </div>
       ) : (
@@ -2035,9 +2558,9 @@ function App() {
 
     // Phase 1: Instant showcase from in-memory catalog (no TMDB, no ML — sub-200ms)
     try {
-      const showcaseResponse = await getShowcaseMovies(8);
+      const showcaseResponse = await getShowcaseMovies(30);
       if (showcaseResponse.data && showcaseResponse.data.length > 0) {
-        const movies = dedupeMovies(showcaseResponse.data).slice(0, 8);
+        const movies = dedupeMovies(showcaseResponse.data).slice(0, 30);
         setBackend(showcaseResponse.baseUrl);
         setHomeMovies(movies);
         saveCachedShowcaseMovies(movies);
@@ -2045,15 +2568,14 @@ function App() {
         setCatalogState("ready");
         setHomeLoading(false);
 
-        // Phase 2: Lazy-upgrade to real ML recommendations in background
+        // Phase 2: Lazy-warmup ML recommendations in background for For You rail
         const seeds = [155, 27205, 157336, 680, 238];
         const seedId = seeds[Math.floor(Math.random() * seeds.length)];
-        getRecommendations(seedId, 8, 8000)
+        getRecommendations(seedId, 10, 8000)
           .then((recResponse) => {
-            const recMovies = dedupeMovies(recResponse.data.recommendations || []).slice(0, 8);
+            const recMovies = dedupeMovies(recResponse.data.recommendations || []).slice(0, 10);
             if (recMovies.length > 0) {
-              setHomeMovies(recMovies);
-              saveCachedShowcaseMovies(recMovies);
+              setForYouMovies(recMovies);
             }
           })
           .catch(() => { /* Showcase already visible, ML upgrade is optional */ });
@@ -2067,7 +2589,7 @@ function App() {
     try {
       const searchResponse = await searchMovies("Batman");
       if (searchResponse.data && searchResponse.data.length > 0) {
-        const movies = dedupeMovies(searchResponse.data).slice(0, 8);
+        const movies = dedupeMovies(searchResponse.data).slice(0, 30);
         setBackend(searchResponse.baseUrl);
         setHomeMovies(movies);
         saveCachedShowcaseMovies(movies);
