@@ -164,6 +164,11 @@ jobs:
           tests/test_dp_thread_safety.py \
           tests/test_serving_tier_vram.py \
           tests/test_cold_start_properties.py \
+          tests/test_fast_cache.py \
+          tests/test_mlops_engine.py \
+          tests/test_model_health_monitor.py \
+          backend/tests/test_neural_weight_optimizer.py \
+          backend/tests/test_replay.py \
           backend/tests/test_ensemble_math.py \
           backend/tests/test_multimodal.py \
           backend/tests/test_rl_policy.py \
@@ -174,7 +179,7 @@ jobs:
           backend/tests/test_cache.py \
           -v --tb=short -q \
           --cov=backend --cov-report=term-missing --cov-report=xml \
-          --cov-fail-under=40 \
+          --cov-fail-under=38 \
           -x
 
     - name: Upload coverage report

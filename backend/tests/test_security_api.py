@@ -68,17 +68,22 @@ def test_massive_payload_rejection():
 
 from datetime import UTC, datetime, timedelta
 
-from fastapi import Depends
+# Mount a temporary strict-auth endpoint for testing JWT enforcement
+from fastapi import Depends, FastAPI
 from jose import jwt
 
 from backend.data.auth import get_current_user
 
+auth_app = FastAPI()
 
-# Mount a temporary strict-auth endpoint for testing JWT enforcement
-@app.get("/v1/_test/protected")
+
+@auth_app.get("/v1/_test/protected")
 async def _test_protected_endpoint(user=Depends(get_current_user)):
     """Temporary endpoint that requires strict JWT auth (used only in tests)."""
     return {"user_id": user.external_user_id if user else None}
+
+
+auth_client = TestClient(auth_app)
 
 
 def _make_token(sub: str, secret: str = "test-jwt-secret-key-for-ci-only", expire_minutes: int = 30) -> str:
@@ -97,7 +102,7 @@ def test_jwt_unknown_user_rejected():
     Regression test for the auto-registration security hole.
     """
     token = _make_token("nonexistent-user-xyz-12345")
-    response = client.get(
+    response = auth_client.get(
         "/v1/_test/protected",
         headers={"Authorization": f"Bearer {token}"},
     )
@@ -107,7 +112,7 @@ def test_jwt_unknown_user_rejected():
 def test_jwt_expired_token_rejected():
     """An expired JWT must be rejected with 401."""
     token = _make_token("any-user", expire_minutes=-1)
-    response = client.get(
+    response = auth_client.get(
         "/v1/_test/protected",
         headers={"Authorization": f"Bearer {token}"},
     )
@@ -117,7 +122,7 @@ def test_jwt_expired_token_rejected():
 def test_jwt_wrong_secret_rejected():
     """A JWT signed with the wrong secret must be rejected with 401."""
     token = _make_token("any-user", secret="wrong-secret-key")
-    response = client.get(
+    response = auth_client.get(
         "/v1/_test/protected",
         headers={"Authorization": f"Bearer {token}"},
     )
@@ -128,7 +133,7 @@ def test_jwt_missing_sub_rejected():
     """A JWT with no sub claim must be rejected with 401."""
     payload = {"exp": datetime.now(UTC) + timedelta(minutes=30)}
     token = jwt.encode(payload, "test-jwt-secret-key-for-ci-only", algorithm="HS256")
-    response = client.get(
+    response = auth_client.get(
         "/v1/_test/protected",
         headers={"Authorization": f"Bearer {token}"},
     )
