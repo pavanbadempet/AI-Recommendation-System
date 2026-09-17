@@ -3,13 +3,13 @@
 <img src="docs/assets/hero-banner.svg" alt="AI Recommendation System & Unified Data Intelligence Platform - Distributed Lakehouse and Real-Time Recommender Platform" width="100%"/>
 
 # 🎬 AI Recommendation System
-### *Enterprise-Grade Distributed Lakehouse, PySpark Medallion Engine & Real-Time Deep Learning Recommendation Mesh*
+### *Enterprise Distributed Lakehouse, PySpark Medallion Engine & Real-Time Deep Learning Recommendation Mesh*
 
 <br/>
 
 **A production-grade recommendation intelligence platform and distributed Databricks Lakehouse serving sub-5ms personalized movie recommendations over 21 Million+ records.**
 
-Combines **PySpark Delta Lake (SCD-2 + Liquid Clustering)**, a **10-shard Neon Serverless `pgvector` HNSW cluster**, and a **6-model PyTorch neural ensemble** (SASRec, KAN, LightGCN, Neural ODE, Poincaré, Latent Diffusion) with an autonomous **Multi-Agent AI reasoning mesh** and a reactive **React 19 Cinema SPA**.
+Engineered for **FAANG / Tier-1 Data Platform Engineers, Machine Learning Systems Architects, and Technical Leads**. Bridges large-scale distributed batch/stream data engineering (**Databricks Serverless, Apache Spark 4.x, Delta Lake 4.x Medallion Architecture, SCD Type 2 dimension versioning, Auto Loader streaming, and data quality quarantine gates**) with real-time online AI serving (**10-Shard Neon PostgreSQL `pgvector` HNSW cluster, sub-5ms vector search, Redis caching, and an autonomous Multi-Agent AI reasoning mesh**).
 
 <br/>
 
@@ -20,7 +20,7 @@ Combines **PySpark Delta Lake (SCD-2 + Liquid Clustering)**, a **10-shard Neon S
   &nbsp;
   <a href="https://huggingface.co/spaces/pavanbadempet/movie-rec-api"><img src="https://img.shields.io/badge/🤗%20Hugging%20Face-Live%20Space-yellow?style=for-the-badge&logo=huggingface&logoColor=black" height="34" alt="Hugging Face Live Space" /></a>
   &nbsp;
-  <a href="https://github.com/pavanbadempet/Movie-Recommendation-System/stargazers"><img src="https://img.shields.io/badge/⭐%20Star%20on%20GitHub-Free%20&%20Open%20Source-blue?style=for-the-badge&logo=github" height="34" alt="Star on GitHub"/></a>
+  <a href="interview_prep/master_faang_de_interview_guide.md"><img src="https://img.shields.io/badge/🏆%20FAANG%20DE%20Interview%20Guide-1%2C200+%20Lines-orange?style=for-the-badge&logo=gitbook&logoColor=white" height="34" alt="FAANG DE Interview Guide"/></a>
 </p>
 
 <p align="center">
@@ -55,9 +55,19 @@ Combines **PySpark Delta Lake (SCD-2 + Liquid Clustering)**, a **10-shard Neon S
 
 ---
 
-## 📸 See It In Action (Production Previews)
+## 📌 The 90-Second Pitch (FAANG Interview Defense)
 
-*Authentic screenshots captured directly from the production deployment on Hugging Face Spaces:*
+> *"In this project, I engineered a high-throughput, hybrid Lakehouse and AI Vector Serving pipeline processing over **21 Million real-world records** (1M+ TMDB movies and 20M+ MovieLens user interaction ratings).*
+>
+> *The architecture uses a **Databricks Serverless Medallion Lakehouse with PySpark and Delta Lake** for distributed ETL, **SCD Type 2 dimension versioning**, and **Liquid Clustering**. We decouple long-term OLAP Lakehouse storage from low-latency OLTP vector serving by hash-partitioning and exporting Gold records across a **10-shard Neon Serverless PostgreSQL cluster using `pgvector` HNSW indexes (<5ms query latency)**.*
+>
+> *Heavy deep learning embeddings are generated via SentenceTransformers with zero-copy Apache Arrow serialization and Kaggle GPU clusters. 100% of pipeline orchestration is automated via Databricks Workflows DAGs, 17 GitHub Actions CI/CD workflows, and centralized Doppler secret management."*
+
+---
+
+## 📸 Production Previews (Captured from Live Hugging Face Space)
+
+*Authentic screenshots captured directly from the live deployment on Hugging Face Spaces:*
 
 ### 🎬 1. Modern Cinema Workstation (Personalized Discovery Feed)
 Real-time personalized movie carousels with dynamic ambient backdrop lighting, AI similarity badges, and instant trailer playback.
@@ -203,7 +213,7 @@ export async function getMovieRecommendations(movieId: number, count = 5) {
 
 ---
 
-## ⚡ Quickstart & Installation (Don't Assume Too Much)
+## ⚡ Quickstart & Installation (Zero Guesswork)
 
 Choose the setup that fits your workflow. Zero cloud credentials required for local execution.
 
@@ -266,7 +276,7 @@ No installation required on your machine. Click below to launch a fully configur
 
 ---
 
-## 🎯 Core Platform Specifications & Search Optimization
+## 🎯 Core Platform Specifications & Tech Stack
 
 | Category | Core Specs & Technologies (Search Optimization Keywords) |
 | :--- | :--- |
@@ -285,147 +295,39 @@ No installation required on your machine. Click below to launch a fully configur
 
 ---
 
-## ✨ Why Choose AI Recommendation System?
+## 🏆 FAANG Data Engineering Deep-Dive & System Design
 
-Most recommendation repositories on GitHub demonstrate model training inside isolated Jupyter notebooks using small toy datasets (e.g., MovieLens 100k). They ignore the hardest realities of modern software and data engineering: **how to ingest, cleanse, version, and serve massive catalogs under strict production latency and cost budgets.**
+### 1. System Design & DDIA Principles (*Designing Data-Intensive Applications*)
 
-**AI Recommendation System** was engineered from day one as a production-grade blueprint solving the full end-to-end lifecycle:
-1. **Real-Data Provenance at Scale**: Ingests and processes **21 Million+ real records** (1M+ TMDB movies and 20M+ MovieLens ratings) across a distributed Databricks Lakehouse.
-2. **True Medallion Architecture**: Implements **SCD Type 2** temporal history with Delta `MERGE INTO`, **Liquid Clustering** (`clusterBy("id")`), and **Auto Loader (`cloudFiles`)** streaming with persistent checkpoint offsets.
-3. **Decoupled Cost-Effective Serving**: Exports gold-tier vector embeddings to a **10-Shard Neon Serverless PostgreSQL cluster**, allowing the expensive Databricks compute clusters to shut down while online vector search runs on serverless `pgvector` HNSW graphs (<5ms latency).
-4. **Cutting-Edge Deep Learning**: Rather than relying on simple collaborative filtering, the system fuses **6 advanced neural models** (Transformers, Kolmogorov-Arnold B-Splines, Graph Convolution, Neural ODEs, Hyperbolic geometry, and Diffusion) debiased with **Doubly Robust IPS**.
-5. **Agentic AI Context**: Employs autonomous AI agents to retrieve candidates, re-rank items, and generate real-time natural language explanations for why each title was recommended.
+#### A. Reliability (Fault Tolerance & Data Integrity)
+- **ACID Transactions:** Delta Lake's `_delta_log` provides **Snapshot Isolation** and **Serializable Writes**, ensuring concurrent batch & streaming writes never corrupt table state.
+- **Idempotent Ingestion & MERGE:** The SCD Type 2 `MERGE INTO` operation is deterministic and idempotent. Re-running the ETL produces identical output without duplicating records.
+- **Fault-Tolerant Quality Gates:** Corrupted raw data is handled via `expr("try_cast(...)")`, preventing pipeline crashes while logging bad records into `apex.default.corrupted_data_quarantine`.
 
----
+#### B. Scalability (Volume & Throughput Growth)
+- **Shared-Nothing Distributed Execution:** PySpark partitions computation across independent worker nodes, scaling linearly from 10K to 100M+ records.
+- **Dynamic Liquid Clustering (`clusterBy("id")`):** Replaces static Hive-style partitioning to eliminate data skew and partition explosion without manual partition management.
+- **Decoupled Storage & Compute:** Storage resides in Unity Catalog Volumes/S3 while compute scales down to zero when idle, eliminating 24/7 cluster costs.
 
-## 🛠 Technology Stack Architecture
-
-The platform is designed with a strictly decoupled, high-performance architecture separating distributed batch/stream data processing, low-latency online serving, and interactive client surfaces.
-
-| Layer | Core Technologies & Frameworks | Key Purpose & Capabilities | Primary Source Reference |
-|:---|:---|:---|:---|
-| **Client Surface** | React 19 &bull; TypeScript 5.8 &bull; Vite 8 &bull; Tailwind CSS &bull; Bun 1.2 &bull; Lucide | Responsive cinema portal, real-time semantic search, interactive 3D graphs, dark-mode glassmorphic UI | [frontend/src/](frontend/src/) |
-| **Serving Gateway & BFF** | FastAPI 0.136+ &bull; Uvicorn ASGI &bull; orjson SIMD &bull; SlowAPI &bull; Starlette | Sub-millisecond JSON serialization, rate limiting, JWT authentication, Prometheus `/metrics` | [backend/main.py](backend/main.py) |
-| **High-Speed gRPC Server**| gRPC &bull; HTTP/2 Protocol &bull; Protobuf v3 (`recommendation.proto`) | High-throughput low-overhead inter-service communication and binary streaming (Port 50051) | [backend/proto/](backend/proto/) |
-| **Rust SIMD Engine** | Pure Rust 2024 &bull; Axum &bull; PyO3 &bull; Maturin &bull; `turbovec` | Ultra-fast vector similarity (<0.3ms), zero Python GIL latency, static binary serving | [backend/rust_core/](backend/rust_core/) |
-| **Distributed Lakehouse**| Databricks Serverless &bull; Apache Spark 4.x &bull; Delta Lake 4.x &bull; Unity Catalog | Medallion architecture (Bronze/Silver/Gold), SCD-2 temporal versioning, Liquid Clustering, Auto Loader | [databricks_notebooks/](databricks_notebooks/) |
-| **Vector Sharding Tier** | 10-Shard Neon Serverless PostgreSQL &bull; `pgvector` &bull; HNSW Graph | Hash-partitioned writes (`pmod`), sub-5ms cosine vector search, covering B-tree indexes | [databricks_notebooks/02_export_to_neon.py](databricks_notebooks/02_export_to_neon.py) |
-| **Deep Learning Ensemble**| PyTorch 2.5+ &bull; ONNX Runtime &bull; SentenceTransformers &bull; Hugging Face | 6-Model Neural Ensemble (SASRec, KAN, LightGCN, Neural ODE, Poincaré, Latent Diffusion) | [backend/models/](backend/models/) |
-| **Agentic AI Mesh** | Multi-Agent Orchestrator &bull; Pydantic &bull; LLM Rationale Generator | Autonomous candidate retrieval, multi-model ranking, and natural language explanation generation | [backend/agents/](backend/agents/) |
-| **Caching & Storage** | Redis Cache &bull; In-Memory LRU &bull; Local Parquet Store | TTL caching for hot recommendations, vector embeddings, and session sequence tracking | [backend/pipeline/](backend/pipeline/) |
-| **DevOps & MLOps** | Docker &bull; Docker Compose &bull; Kubernetes &bull; Helm &bull; Doppler Secrets &bull; GitHub Actions | Multi-stage distroless builds (<25MB), zero-secret sprawl, 17 CI/CD quality gate workflows | [Dockerfile](Dockerfile) |
+#### C. Maintainability (Operability, Simplicity, & Evolvability)
+- **Operability & Auditability:** Every record carries full data provenance (`_source_file`, `_ingested_at`), and Delta Time Travel enables point-in-time auditing and instant rollback.
+- **Evolvability & Unbundling:** Analytical processing (Delta Lake OLAP) is cleanly decoupled from real-time vector serving (Neon PostgreSQL Vector DB), allowing the UI and serving tier to evolve independently of the ETL core.
 
 ---
 
-## ⚡ Feature Highlights
+### 2. Enterprise Tradeoff & Edge Case Matrix
 
-<table>
-<tr>
-<td width="33%" valign="top">
-
-### 🌊 Distributed Medallion Lakehouse
-Processes **21M+ records** across Databricks Serverless PySpark. Implements Delta Lake 4.x **SCD Type 2** temporal history, **Liquid Clustering** (`clusterBy("id")`), and Auto Loader streaming.
-
-</td>
-<td width="33%" valign="top">
-
-### 🏛️ 10-Shard Neon Vector Serving
-Gold-layer vector embeddings are hash-partitioned across **10 Neon PostgreSQL serverless shards** with `pgvector` HNSW indexes, delivering **sub-5ms query latency**.
-
-</td>
-<td width="33%" valign="top">
-
-### 🧠 6-Model Deep Learning
-Ensemble of 6 SOTA PyTorch architectures: **SASRec** (Transformer), **KAN** (B-Splines), **LightGCN** (Graph Conv), **Neural ODE**, **Poincaré Hyperbolic**, and **Latent Diffusion**.
-
-</td>
-</tr>
-<tr>
-<td width="33%" valign="top">
-
-### 🤖 Autonomous Agentic AI
-Specialized autonomous multi-agents (`RetrievalAgent`, `RecommenderAgent`, `RankingAgent`, `ExplanationAgent`) coordinating candidate generation and natural language rationale.
-
-</td>
-<td width="33%" valign="top">
-
-### ⚡ Adaptive 3-Tier Hardware Serving
-Auto-detects host hardware at boot: **Tier 1** (CUDA GPU), **Tier 2** (Quantized INT8 ONNX CPU), or **Tier 3** (SIMD `turbovec` for memory-constrained containers <4.2ms).
-
-</td>
-<td width="33%" valign="top">
-
-### 🔐 Zero-Secret Sprawl & Privacy
-100% centralized secret injection via **Doppler**. Differential Privacy Laplace mechanism ($\epsilon=5.0$), JWT authentication, and automated data quarantine gates.
-
-</td>
-</tr>
-</table>
+| Architectural Pattern | Chosen Implementation | Why We Chose It (Pros) | Alternative Rejected | Why Rejected (Cons / Tradeoffs) | Edge Cases Handled |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Data Quality Gates** | `expr("try_cast(...)")` | Converts malformed strings to `NULL`, allowing valid rows to pass while routing bad rows to quarantine. | Strict `.cast("double")` | Throws `CAST_INVALID_INPUT` and crashes the entire pipeline if a single row has shifted text. | Multiline plot overviews containing quotes/newlines that shift columns into ratings. |
+| **AI Embeddings** | PySpark `@pandas_udf` + Arrow | Distributed Hugging Face inference across worker nodes using zero-copy Apache Arrow memory transfer. | Standard Python UDF / Loops | High pickling serialization overhead, single-node bottleneck, and Out-Of-Memory (`OOM`) crashes. | Worker memory pressure handled via Arrow memory pooling and batched encoding (`batch_size=32`). |
+| **State & CDC Tracking** | SCD Type 2 MERGE | Preserves full historical auditability (`is_current`, `effective_start_at`, `effective_end_at`). | SCD Type 1 (Overwrite) | Destroys historical data, preventing point-in-time ML model backtesting and audit compliance. | Out-of-order batch dumps, duplicate movie updates, and unchanged record skips via tag hashing. |
+| **Data Layout** | Liquid Clustering (`clusterBy`) | Dynamic, incremental data clustering as writes occur; 10x faster query pruning. | Legacy Z-Ordering (`ZORDER BY`) | Requires expensive full-table rewrites on every update; does not scale incrementally. | Skewed primary keys and high-concurrency writes without write amplification. |
+| **Serving Sync** | PySpark Native `to_json` | Pre-formats 768-D dense vectors in parallel across Spark workers before PostgreSQL export. | Python `apply(json.dumps)` | Single-threaded driver bottleneck that slows down large dataset exports. | Postgres string array format incompatibilities during vector bulk export. |
 
 ---
 
-## 📋 Prerequisites & System Requirements
-
-| Requirement | Minimum Specification | Recommended Specification | Notes |
-|:---|:---:|:---:|:---|
-| **Operating System** | Windows 10/11, macOS 12+, Ubuntu 22.04+ | Ubuntu 22.04 LTS / Windows 11 WSL2 | Tested cross-platform on x86_64 and ARM64 |
-| **Python** | Python 3.11 | Python 3.12.x | Managed via virtual environment (`venv`) |
-| **Bun / Node.js** | Bun 1.1+ / Node 18+ | Bun 1.2.0 (Native) | Fast package installs and React 19 compilation |
-| **RAM** | 4 GB | 16 GB+ | Tier 3 SIMD runs on <1GB RAM; Full PyTorch on 16GB |
-| **GPU** | Optional (CPU fallback active) | NVIDIA GPU (8GB+ VRAM, CUDA 12+) | Accelerates PyTorch neural ensemble forward passes |
-| **Database** | SQLite (Local dev) | Neon Serverless PostgreSQL / `pgvector` | Configured seamlessly via `DATABASE_URL` |
-
----
-
-## 🆚 Competitive Comparison: Why AI Recommendation System?
-
-| Feature / Architecture | AI Recommendation System | Standard Open-Source RecSys | Typical Enterprise SaaS RecSys | Legacy Matrix Factorization |
-|:---|:---:|:---:|:---:|:---:|
-| **Dataset Scale** | ✅ **21M+ Real Records** (TMDB + MovieLens) | ⚠️ Toy datasets (<100K rows) | ✅ Massive enterprise scale | ⚠️ Small static matrices |
-| **Databricks Medallion ETL**| ✅ **PySpark + Delta Lake SCD-2 + Liquid Clustering** | ❌ None (Pandas scripts only) | ⚠️ Proprietary data lock-in | ❌ None |
-| **Vector Sharding Tier** | ✅ **10-Shard Neon Serverless (`pgvector` HNSW)** | ❌ Single-file local FAISS | ⚠️ Expensive managed vector DB | ❌ None |
-| **Deep Learning Breadth** | ✅ **6 Models** (SASRec, KAN, LightGCN, ODE, Poincaré, Diffusion)| ⚠️ 1 basic model (e.g. NCF) | ⚠️ Black-box proprietary models | ❌ SVD / ALS only |
-| **Offline Causal Debiasing** | ✅ **Doubly Robust Inverse Propensity Scoring (DR-IPS)**| ❌ Uncorrected popularity bias | ⚠️ Basic heuristic clipping | ❌ No bias correction |
-| **Agentic AI Explanations** | ✅ **Autonomous Multi-Agent Semantic Reasoning** | ❌ None | ⚠️ Costly cloud LLM API calls | ❌ None |
-| **Sub-Millisecond Inference**| ✅ **Rust SIMD Core (`turbovec`) + PyO3 (<0.3ms)** | ❌ Slow Python loops | ⚠️ Variable cloud network lag | ⚠️ Moderate latency |
-| **Cost & Sovereign Control** | ✅ **100% Free & Open Source (Zero SaaS lock-in)** | ✅ Open source | ❌ Expensive monthly seat fees | ✅ Open source |
-
----
-
-## ⚡ Core Engineering Guarantees
-
-### 1. High-Throughput & Sub-10ms Serving SLA
-- **Adaptive Tier Detection**: The startup engine checks host RAM, SIMD extensions, and CUDA availability in milliseconds to bind the fastest available inference path.
-- **SIMD-Accelerated Vector Math**: In memory-constrained environments, the Rust `turbovec` engine computes cosine distances using AVX2/NEON vector instructions in $<0.3\text{ ms}$.
-- **Multi-Level Caching**: 60-second Redis feature cache and in-memory LRU session caches prevent redundant neural forward passes on duplicate requests.
-
-### 2. Distributed Data Quality & Integrity
-- **Dead-Letter Quarantine (`try_cast`)**: The PySpark Silver pipeline intercepts corrupted records and routes them to `corrupted_data_quarantine` without halting batch execution.
-- **SCD Type 2 Temporal Consistency**: Historical movie metadata attributes (genres, vote averages, runtime changes) are tracked over time via Delta Lake `MERGE INTO` with `is_current`, `valid_from`, and `valid_to` timestamps.
-- **Liquid Clustering**: Uses Delta Lake Liquid Clustering (`clusterBy("id")`) to prevent partition skew and enable 10x faster range queries compared to traditional Hive-style directory partitioning.
-
-### 3. Causal Bias Correction & Privacy
-- **Doubly Robust IPS**: Recommendation ranking incorporates inverse propensity weighting to prevent the feedback loop where popular movies monopolize top recommendations.
-- **Differential Privacy**: Gradient updates in the online learning coordinator are bounded by clipping thresholds and calibrated Laplace noise ($\epsilon=5.0$) to guarantee privacy budget compliance.
-
----
-
-## 📊 Performance Benchmarks & SLO Budgets
-
-Measured against live staging environments and validated via automated **k6 load test suites** (`load-tests/recommendation_slo.js`):
-
-| Endpoint / Component | Target Metric | SLO Latency Budget | Measured Performance | Verification Method |
-| :--- | :---: | :---: | :---: | :--- |
-| **`/health` (System Diagnostics)** | Latency p95 | `< 1,000 ms` | **`2.4 ms`** | Automated k6 smoke probe |
-| **`/v1/recommendations/id/{id}`** | Latency p95 | `< 100 ms` | **`18.4 ms`** | Multi-threaded k6 load test |
-| **`/v1/search/ai` (Vector Search)**| Latency p95 | `< 50 ms` | **`12.1 ms`** | 10-Shard Neon pgvector query |
-| **`/v1/events` (Click Ingestion)** | Latency p95 | `< 20 ms` | **`3.8 ms`** | Asynchronous background task |
-| **Rust SIMD Core Inference** | Latency p99 | `< 2.0 ms` | **`0.28 ms`** | Native Rust criterion benchmark |
-| **PySpark ETL Pipeline (21M rows)**| Batch Runtime | `< 20 minutes` | **`14.2 minutes`** | Databricks Serverless 8-worker cluster |
-
----
-
-## 🏗 Core Technical Architecture
+### 3. Core Technical Architecture
 
 ```mermaid
 flowchart TD
@@ -476,35 +378,46 @@ flowchart TD
 
 ---
 
-## 🌊 Databricks Lakehouse & PySpark Medallion Pipeline
+### 4. Databricks PySpark Medallion Lakehouse Notebooks
 
 The distributed data backbone is structured into 5 production-grade Databricks notebooks (`databricks_notebooks/`):
 
 | Notebook | Lakehouse Layer | Operational Responsibilities | Source Reference |
 | :--- | :--- | :--- | :--- |
-| **`00_kaggle_download.py`** | **Bronze (Raw)** | Authenticates via Doppler Kaggle API tokens; downloads 1M+ TMDB movies and 20M+ MovieLens ratings to Unity Catalog Volumes; performs fast ingestion (`inferSchema=false`) with `_source_file` and `_ingested_at` audit lineage. | [00_kaggle_download.py](databricks_notebooks/00_kaggle_download.py) |
+| **`00_kaggle_download.py`** | **Bronze (Raw)** | Authenticates via Doppler Kaggle API tokens; downloads 1M+ TMDB movies and 20M+ MovieLens ratings to Unity Catalog Volumes; performs fast single-pass ingestion (`inferSchema=false`) with `_source_file` and `_ingested_at` audit lineage. | [00_kaggle_download.py](databricks_notebooks/00_kaggle_download.py) |
 | **`01_pyspark_etl.py`** | **Silver / Gold** | Executes data quality gates (`try_cast`); performs multi-table relational joins & rating aggregations; builds star schema fact/dimension tables (`dim_movies`, `dim_genres`, `fact_genre_top_movies`); enforces **SCD Type 2** temporal history with Delta `MERGE INTO`; applies **Liquid Clustering** (`clusterBy("id")`). | [01_pyspark_etl.py](databricks_notebooks/01_pyspark_etl.py) |
 | **`01b_streaming_events.py`**| **Streaming Silver**| Real-time clickstream ingestion using Databricks **Auto Loader (`cloudFiles`)** with persistent checkpoint offsets for exactly-once processing guarantees. | [01b_streaming_events.py](databricks_notebooks/01b_streaming_events.py) |
 | **`01c_gpu_embeddings.py`** | **Gold AI Layer** | Generates 768-D semantic dense vectors using SentenceTransformers (`all-mpnet-base-v2`) via PySpark `@pandas_udf` with Apache Arrow zero-copy memory transfer. | [01c_gpu_embeddings.py](databricks_notebooks/01c_gpu_embeddings.py) |
 | **`02_export_to_neon.py`** | **Serving Export** | Serializes vectors via PySpark native `to_json()`; hash-partitions records across a 10-shard Neon PostgreSQL cluster; builds clustered primary keys, covering indexes, and deferred `pgvector` HNSW indexes. | [02_export_to_neon.py](databricks_notebooks/02_export_to_neon.py) |
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│                       DELTA LAKE MEDALLION PIPELINE ARCHITECTURE                        │
-├─────────────────────────┬─────────────────────────────┬─────────────────────────────────┤
-│    BRONZE LAYER         │        SILVER LAYER         │           GOLD LAYER            │
-│  (Raw Ingestion)        │  (Cleaned & Enriched)       │    (Aggregated Features)        │
-├─────────────────────────┼─────────────────────────────┼─────────────────────────────────┤
-│ • Ingest raw JSON/CSV   │ • try_cast() Quality Gates  │ • Star Schema Fact & Dimensions │
-│ • 1M+ TMDB Movies       │ • SCD Type 2 MERGE History  │ • 768-D Vector Embeddings       │
-│ • 20M+ MovieLens Feeds  │ • MovieLens Relational Join │ • Liquid Clustering by ID       │
-│ • Lineage Metadata      │ • Auto Loader Stream Offset │ • 10-Shard Neon PostgreSQL Sync │
-└─────────────────────────┴─────────────────────────────┴─────────────────────────────────┘
+#### Real PySpark Transformations & Joins
+```python
+# 1. Multi-Table Relational Join: Joins 20M MovieLens ratings with MovieLens Links on 'movieId'
+ratings_with_tmdb = ratings_raw.join(links_raw, "movieId", "inner")
+
+# 2. Aggregates average rating and review counts per tmdbId
+user_ratings_agg = ratings_with_tmdb.groupBy("tmdbId").agg(
+    avg(col("rating").cast("double")).alias("movielens_avg_rating"),
+    count("userId").alias("movielens_user_review_count")
+).withColumnRenamed("tmdbId", "movie_id")
+
+# 3. Enriches TMDB metadata via Left Outer Join
+dim_movies_enriched = dim_movies.join(user_ratings_agg, "movie_id", "left")
+
+# 4. Fault-Tolerant Data Quality Gate with Dead-Letter Quarantine
+corrupted_df = incoming_df.filter(
+    col("id").isNull() |
+    (expr("try_cast(id as long)").isNull()) |
+    (expr("try_cast(vote_average as double)").isNull()) |
+    (expr("try_cast(vote_average as double)") < 0.0) |
+    (expr("try_cast(vote_average as double)") > 10.0)
+)
+corrupted_df.write.format("delta").mode("append").saveAsTable("apex.default.corrupted_data_quarantine")
 ```
 
 ---
 
-## 🏛️ 10-Shard Neon Vector Serving Tier
+### 5. 10-Shard Neon Serverless Vector Serving Tier
 
 To eliminate the cost of keeping large Databricks clusters running 24/7, the Gold layer exports pre-computed vector embeddings to a **10-Shard Neon PostgreSQL cluster**:
 
@@ -516,7 +429,7 @@ else:
     df_shard = df_spark
 ```
 
-### High-Performance Post-Sync Indexing DDL
+#### High-Performance Post-Sync Indexing DDL
 ```sql
 -- 1. Clustered Primary Key
 ALTER TABLE movies ADD PRIMARY KEY (id);
@@ -535,9 +448,9 @@ WITH (m = 16, ef_construction = 64);
 
 ---
 
-## 🤖 Autonomous Agentic Multi-Agent AI Suite
+### 6. Autonomous Agentic AI Suite
 
-The system incorporates an **Agentic Multi-Agent Orchestration Architecture** (`backend/agents/multi_agent_orchestrator.py`) that coordinates autonomous AI sub-agents to serve recommendations with natural language context and causal reasoning.
+The system incorporates an **Agentic Multi-Agent Orchestration Architecture** (`backend/agents/multi_agent_orchestrator.py`) that coordinates autonomous AI sub-agents to serve recommendations with natural language context and causal reasoning:
 
 ```mermaid
 sequenceDiagram
@@ -567,9 +480,7 @@ sequenceDiagram
 
 ---
 
-## 🧠 6-Model PyTorch Deep Learning Ensemble
-
-The core machine learning ranking engine combines **6 distinct neural paradigms** into a unified scoring mesh:
+### 7. 6-Model PyTorch Deep Learning Ensemble & Model Registry
 
 ```
                             ┌────────────────────────────────────────┐
@@ -594,21 +505,6 @@ The core machine learning ranking engine combines **6 distinct neural paradigms*
                         └─────────────┬─────────────┘
 ```
 
-| Model Architecture | Implementation Module | Core Mathematical / Architectural Strength |
-| :--- | :--- | :--- |
-| **SASRec** | `backend/models/sasrec.py` | Self-Attention Transformer capturing sequential user click history and intra-session momentum. |
-| **KAN Ranker** | `backend/models/kan_ranker.py` | Kolmogorov-Arnold Network using learnable univariate B-Splines on network edges instead of fixed linear weights. |
-| **LightGCN** | `backend/models/lightgcn.py` | Graph Convolutional Network capturing multi-hop collaborative filtering signals across the bipartite user-item graph. |
-| **Neural ODE** | `backend/models/neural_ode_recommender.py` | Continuous-time fluid dynamics modeling temporal user preference drift over irregular time intervals. |
-| **Poincaré Hyperbolic** | `backend/models/hyperbolic_recommender.py` | Riemannian geometry embedding complex hierarchical taxonomy and genre tree structures with minimal distortion. |
-| **Latent Diffusion** | `backend/models/diffusion_recommender.py` | Continuous generative diffusion model refining candidate vector scoring under observation noise. |
-
----
-
-## 🔬 Model Card Registry
-
-For comprehensive dataset sources, training hyperparameters, and limitations, see [`docs/MODEL_CARDS.md`](docs/MODEL_CARDS.md).
-
 | Model | Task | Paradigm | HR@10 | NDCG@10 | DR-Optimized Blend Weight | Parameter Count |
 | :--- | :--- | :--- | :---: | :---: | :---: | :---: |
 | **APEX Ensemble** | Top-$K$ Ranking | **Multi-Model Weighted Fusion** | **0.785** | **0.542** | — | **1.85M** |
@@ -623,9 +519,9 @@ For comprehensive dataset sources, training hyperparameters, and limitations, se
 
 ---
 
-## 🧮 Advanced Mathematical & Algorithmic Foundations
+### 8. Advanced Mathematical & Algorithmic Foundations
 
-### 1. Kolmogorov-Arnold Network (KAN) B-Splines
+#### A. Kolmogorov-Arnold Network (KAN) B-Splines
 Instead of standard Multi-Layer Perceptrons (MLPs) with fixed node activation functions $\sigma(w^T x + b)$, KAN replaces fixed weights with learnable univariate splines on network edges based on the Kolmogorov-Arnold representation theorem:
 
 $$
@@ -640,7 +536,7 @@ $$
 
 This allows the ranker to learn arbitrary non-linear feature interactions with drastically fewer parameters and zero catastrophic forgetting during online updates.
 
-### 2. Neural ODE Continuous Temporal Drift
+#### B. Neural ODE Continuous Temporal Drift
 User preference trajectories evolve continuously over time. Rather than bucketing interactions into discrete time windows, the temporal state $h(t)$ is modeled as a continuous dynamical system:
 
 $$
@@ -649,7 +545,7 @@ $$
 
 Solved using adaptive Runge-Kutta 4th-order numerical integration (`torchdiffeq`), allowing the system to extrapolate preference drift across arbitrary time gaps $\Delta t = t_1 - t_0$.
 
-### 3. Poincaré Ball Hyperbolic Metric
+#### C. Poincaré Ball Hyperbolic Metric
 Hierarchical relationships (e.g., Cinema $\rightarrow$ Sci-Fi $\rightarrow$ Cyberpunk) cannot be embedded in Euclidean space without exponential dimensional distortion. In the Poincaré ball model $\mathbb{D}^n = \{ x \in \mathbb{R}^n : \|x\| < 1 \}$, the Riemannian distance between user $u$ and item $v$ is computed as:
 
 $$
@@ -658,7 +554,7 @@ $$
 
 The metric tree capacity grows exponentially with radius, matching the natural exponential branching of genre taxonomy trees.
 
-### 4. Doubly Robust Inverse Propensity Scoring (DR-IPS)
+#### D. Doubly Robust Inverse Propensity Scoring (DR-IPS)
 To eliminate presentation and popularity bias from logged clickstreams, the offline evaluation metric estimates the counterfactual policy value $\hat{V}_{\text{DR}}$:
 
 $$
@@ -667,7 +563,7 @@ $$
 
 Where $P(O_{u, i} = 1)$ is the observation propensity score estimated via Laplace-smoothed logistic regression, and $\hat{r}(u, i)$ is the baseline imputation model.
 
-### 5. Differential Privacy Laplace Mechanism
+#### E. Differential Privacy Laplace Mechanism
 To guarantee privacy for user interaction logs during online federated learning, noise is injected into aggregated gradient updates $g$:
 
 $$
@@ -678,7 +574,7 @@ With privacy budget $\epsilon = 5.0$ and clipping threshold $C = 1.0$, satisfyin
 
 ---
 
-## ⚡ Adaptive 3-Tier Hardware Serving Architecture
+### 9. Adaptive 3-Tier Hardware Serving Architecture
 
 The startup tier detector (`backend/serving/serving_tier.py`) profiles available hardware at boot and binds the highest-performance serving tier available:
 
@@ -690,7 +586,7 @@ The startup tier detector (`backend/serving/serving_tier.py`) profiles available
 
 ---
 
-## 📐 Architecture Decision Records (ADR) Summary
+### 10. Architecture Decision Records (ADR) Summary
 
 Key engineering decisions are documented in detail in [`docs/ARCHITECTURE_DECISIONS.md`](docs/ARCHITECTURE_DECISIONS.md):
 
@@ -706,6 +602,112 @@ Key engineering decisions are documented in detail in [`docs/ARCHITECTURE_DECISI
 | **ADR-008** | **Online Learning Loop** | User interactions must update model parameters without requiring full multi-hour batch retraining. | Dedicated daemon thread processes clicks and ratings with bounded queues. |
 | **ADR-009** | **Differential Privacy** | User viewing histories contain sensitive behavioral information requiring privacy controls. | Bounded gradient clipping with Laplace noise satisfies privacy regulations. |
 | **ADR-010** | **Uncertainty Gating** | Recommender must detect out-of-distribution users and fall back to safe popularity priors. | Prevents wild hallucinated recommendations on cold-start accounts. |
+
+---
+
+## 🗄 Database Layer Schema & Star Schema
+
+The Gold Layer and PostgreSQL serving tier are organized into an optimized **Star Schema Dimensional Model**:
+
+```mermaid
+erDiagram
+    fact_ratings {
+        bigint rating_id PK
+        bigint user_id FK
+        bigint movie_id FK
+        float rating
+        timestamp interaction_time
+    }
+    dim_movies {
+        bigint movie_id PK
+        string title
+        string overview
+        float vote_average
+        int vote_count
+        date release_date
+        vector embedding_768d
+        boolean is_current
+        timestamp valid_from
+        timestamp valid_to
+    }
+    dim_genres {
+        int genre_id PK
+        string genre_name
+    }
+    fact_movie_genres {
+        bigint movie_id FK
+        int genre_id FK
+    }
+    fact_events {
+        bigint event_id PK
+        bigint user_id
+        bigint movie_id
+        string event_type
+        float weight
+        timestamp created_at
+    }
+
+    dim_movies ||--o{ fact_ratings : "receives"
+    dim_movies ||--o{ fact_movie_genres : "categorized_by"
+    dim_genres ||--o{ fact_movie_genres : "contains"
+    dim_movies ||--o{ fact_events : "logged_in"
+```
+
+---
+
+## 💡 Top FAANG System Design Interview Questions & Exact Answers
+
+### Q1: *"How would you scale this pipeline from 21 Million records to 21 Billion records?"*
+> **Answer (Compute $\rightarrow$ Storage $\rightarrow$ Ingestion $\rightarrow$ Serving):**
+> 1. **Compute & Partitioning:**
+>    - At 21B rows, file ingestion cannot rely on directory globbing. Migrate raw ingestion from Volume files to a distributed event streaming backbone like **Apache Kafka** or **AWS Kinesis** with 64+ partitions.
+>    - Tune PySpark shuffle partitions: increase `spark.sql.shuffle.partitions` from 200 to 2,000–5,000 based on the 128MB partition rule of thumb.
+> 2. **Delta Lake Optimization:**
+>    - Switch from micro-batch `availableNow=True` to continuous Spark Structured Streaming with **watermarking** (e.g. `withWatermark("timestamp", "2 hours")`) to drop duplicate late-arriving events from state stores.
+>    - Implement **Delta Lake Partition Pruning** by `date(ingested_at)` combined with **Liquid Clustering** on high-cardinality join keys (`user_id`, `movie_id`).
+> 3. **Serving Tier:**
+>    - 10 PostgreSQL shards would become a bottleneck at 21B vectors. Migrate online vector serving to a distributed vector search cluster like **Milvus**, **Qdrant**, or **Pinecone** with **Product Quantization (PQ)** to compress vectors by 90% and store index graphs across Kubernetes worker nodes.
+
+---
+
+### Q2: *"Why did you use Delta Lake SCD Type 2 instead of just overwriting the Gold table (SCD Type 1)?"*
+> **Answer:**
+> *"In production Machine Learning and recommendation systems, feature store integrity is critical. If a movie's genres, description, or rating stats change over time and we overwrite the record (SCD Type 1), we create **data leakage** and prevent historical backtesting. When evaluating how a recommendation model performed on historical user interactions from 6 months ago, the model must see the exact movie metadata that existed at that point in time. SCD Type 2 provides temporal auditability through `is_current`, `effective_start_at`, and `effective_end_at`, allowing point-in-time ML training and compliance auditing."*
+
+---
+
+### Q3: *"Explain the difference between Liquid Clustering and Z-Ordering in Delta Lake. Why choose Liquid Clustering?"*
+> **Answer:**
+> *"Z-Ordering maps multi-dimensional data into a one-dimensional space along a Space-Filling Z-Curve to achieve data skipping. However, Z-Ordering is a static clustering technique that requires a full table rewrite every time `OPTIMIZE ... ZORDER BY` is called. For tables receiving frequent streaming appends or CDC updates, Z-Ordering causes severe write-amplification.*
+>
+> *Liquid Clustering (`clusterBy`) replaces fixed partition hierarchies and Z-Ordering with dynamic, incremental clustering. As new micro-batches arrive, Spark clusters only the newly written data without rewriting historical partitions. It allows cluster keys to be redefined without rebuilding the table and speeds up query pruning by up to 10x for concurrent workloads."*
+
+---
+
+### Q4: *"What happens if a worker node crashes during PySpark ETL or during the Neon Database export? How is idempotency guaranteed?"*
+> **Answer:**
+> *"Two mechanisms guarantee end-to-end fault tolerance and idempotence:*
+> 1. **Delta Lake ACID Log (`_delta_log`):** PySpark writes data files as temporary parquet files. A commit is only recorded if the entire batch completes. If an executor dies, Spark's DAG scheduler retries the failed task. If the entire job fails, no commit is written to `_delta_log`, and future readers simply ignore the uncommitted parquet files.
+> 2. **Idempotent Upserts:** The Gold layer ETL uses deterministic `MERGE INTO` logic. Re-running the pipeline on the same source batch produces the exact same table state without creating duplicate active records.
+> 3. **Serving Layer Export:** The Neon PostgreSQL sync writes in deterministic shard batches using explicit database transactions. If a shard sync fails, the transaction rolls back cleanly."*
+
+---
+
+### Q5: *"Why did you choose HNSW over IVF for your pgvector index?"*
+> **Answer:**
+> *"IVF (Inverted File Index) clusters vectors into Voronoi cells using K-Means and searches only the nearest centroids. While IVF has a small memory footprint and fast build time, its recall drops significantly if query vectors lie near cluster boundaries, and it requires periodic retraining as the dataset distribution shifts.*
+>
+> *HNSW (Hierarchical Navigable Small World) constructs a multi-layer geometric graph structure. Top layers allow fast logarithmic skipping across vector space ($O(\log N)$), while bottom layers navigate fine-grained local neighborhoods. HNSW offers superior recall (>98%), sub-5ms query latency, and does not require periodic centroid retraining, making it the ideal choice for high-precision real-time recommendation retrieval."*
+
+---
+
+### Q6: *"How did you prevent out-of-memory (OOM) errors when serializing 768-D dense vectors for database export?"*
+> **Answer:**
+> *"In PySpark, running standard Python UDFs like `df.apply(lambda row: json.dumps(row.embedding))` causes severe JVM-to-Python pickling overhead, bottlenecks on the single driver node, and triggers driver OOM crashes.*
+>
+> *We solved this with two techniques:*
+> 1. **PySpark Native `to_json()`:** We serialized the `ArrayType(FloatType)` column into JSON strings using Spark's native C++ Catalyst engine (`to_json(col("embedding"))`), parallelizing serialization across all worker executors with zero Python inter-process overhead.
+> 2. **Batch JDBC Streaming:** We wrote to PostgreSQL in chunked micro-batches (`batchsize=5000`) rather than a single massive transaction, keeping memory usage constant regardless of dataset size."*
 
 ---
 
@@ -868,56 +870,6 @@ message RecommendedMovie {
   double score = 3;
   repeated string genres = 4;
 }
-```
-
----
-
-## 🗄 Database Layer Schema & Star Schema
-
-The Gold Layer and PostgreSQL serving tier are organized into an optimized **Star Schema Dimensional Model**:
-
-```mermaid
-erDiagram
-    fact_ratings {
-        bigint rating_id PK
-        bigint user_id FK
-        bigint movie_id FK
-        float rating
-        timestamp interaction_time
-    }
-    dim_movies {
-        bigint movie_id PK
-        string title
-        string overview
-        float vote_average
-        int vote_count
-        date release_date
-        vector embedding_768d
-        boolean is_current
-        timestamp valid_from
-        timestamp valid_to
-    }
-    dim_genres {
-        int genre_id PK
-        string genre_name
-    }
-    fact_movie_genres {
-        bigint movie_id FK
-        int genre_id FK
-    }
-    fact_events {
-        bigint event_id PK
-        bigint user_id
-        bigint movie_id
-        string event_type
-        float weight
-        timestamp created_at
-    }
-
-    dim_movies ||--o{ fact_ratings : "receives"
-    dim_movies ||--o{ fact_movie_genres : "categorized_by"
-    dim_genres ||--o{ fact_movie_genres : "contains"
-    dim_movies ||--o{ fact_events : "logged_in"
 ```
 
 ---
