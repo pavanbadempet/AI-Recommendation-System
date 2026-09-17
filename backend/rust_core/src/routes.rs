@@ -48,6 +48,7 @@ pub struct RecQueryParams {
     pub limit: Option<usize>,
     #[allow(dead_code)]
     pub explain: Option<String>,
+    pub pretty: Option<String>,
 }
 
 #[derive(Deserialize, Debug, Default)]
@@ -59,6 +60,7 @@ pub struct PostRecRequest {
     pub n: Option<usize>,
     pub top_k: Option<usize>,
     pub limit: Option<usize>,
+    pub pretty: Option<bool>,
 }
 
 #[derive(Serialize, Clone)]
@@ -442,20 +444,24 @@ pub async fn get_recommendations_by_id_handler(
     let mut headers = HeaderMap::new();
     headers.insert(header::CACHE_CONTROL, HeaderValue::from_static("public, max-age=3600"));
 
-    (
-        StatusCode::OK,
-        headers,
-        Json(RecommendationResponse {
-            status: "success",
-            request_id,
-            query_id: movie_id,
-            query_movie: query_movie_meta,
-            results: recommendations.clone(),
-            recommendations,
-            latency_ms,
-        }),
-    )
-        .into_response()
+    let resp_data = RecommendationResponse {
+        status: "success",
+        request_id,
+        query_id: movie_id,
+        query_movie: query_movie_meta,
+        results: recommendations.clone(),
+        recommendations,
+        latency_ms,
+    };
+
+    let is_pretty = params.pretty.as_deref().map(|s| s == "1" || s.eq_ignore_ascii_case("true")).unwrap_or(false);
+    if is_pretty {
+        headers.insert(header::CONTENT_TYPE, HeaderValue::from_static("application/json; charset=utf-8"));
+        let pretty_body = serde_json::to_string_pretty(&resp_data).unwrap_or_else(|_| "{}".to_string());
+        (StatusCode::OK, headers, pretty_body).into_response()
+    } else {
+        (StatusCode::OK, headers, Json(resp_data)).into_response()
+    }
 }
 
 /// POST /v1/recommendations
@@ -529,19 +535,24 @@ pub async fn post_recommendations_handler(
     let query_id = payload.movie_id.or(payload.id).or(payload.user_id).unwrap_or(550);
     let query_movie = state.catalog.get_by_id(query_id).cloned();
 
-    (
-        StatusCode::OK,
-        Json(RecommendationResponse {
-            status: "success",
-            request_id: format!("req_post_{}", query_id),
-            query_id,
-            query_movie,
-            results: recommendations.clone(),
-            recommendations,
-            latency_ms,
-        }),
-    )
-        .into_response()
+    let resp_data = RecommendationResponse {
+        status: "success",
+        request_id: format!("req_post_{}", query_id),
+        query_id,
+        query_movie,
+        results: recommendations.clone(),
+        recommendations,
+        latency_ms,
+    };
+
+    if payload.pretty == Some(true) {
+        let mut headers = HeaderMap::new();
+        headers.insert(header::CONTENT_TYPE, HeaderValue::from_static("application/json; charset=utf-8"));
+        let pretty_body = serde_json::to_string_pretty(&resp_data).unwrap_or_else(|_| "{}".to_string());
+        (StatusCode::OK, headers, pretty_body).into_response()
+    } else {
+        (StatusCode::OK, Json(resp_data)).into_response()
+    }
 }
 
 /// GET /v1/search
