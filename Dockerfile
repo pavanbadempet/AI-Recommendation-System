@@ -34,6 +34,7 @@ FROM rust:1.80-alpine AS rust_builder
 WORKDIR /build
 
 # Install musl development headers and CA certificates
+# hadolint ignore=DL3018
 RUN apk add --no-cache musl-dev ca-certificates
 
 # Copy Rust backend source code and workspace manifests
