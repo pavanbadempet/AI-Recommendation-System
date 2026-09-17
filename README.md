@@ -1,13 +1,3 @@
----
-title: Movie Rec Api
-emoji: 🎬
-colorFrom: indigo
-colorTo: purple
-sdk: docker
-app_port: 7860
-pinned: false
----
-
 <div align="center">
 
 <img src="docs/assets/hero-banner.svg" alt="AI Recommendation System & Unified Data Intelligence Platform" width="100%"/>
