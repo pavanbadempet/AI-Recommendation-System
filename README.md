@@ -14,6 +14,8 @@ Engineered as an authentic production-grade blueprint for large-scale distribute
 <br/>
 
 <p align="center">
+  <a href="README_DATA_ENGINEERING.md"><img src="https://img.shields.io/badge/🌊%20Data%20Engineering-Lakehouse%20Blueprint-006699?style=for-the-badge&logo=apachespark&logoColor=white" height="34" alt="Data Engineering Blueprint"/></a>
+  &nbsp;
   <a href="https://pavanbadempet.github.io/AI-Recommendation-System/"><img src="https://img.shields.io/badge/🌐%20Live%20Cinema%20Portal-GitHub%20Pages-22c55e?style=for-the-badge&logo=googlechrome&logoColor=white" height="34" alt="Live Cinema Portal"/></a>
   &nbsp;
   <a href="https://pavanbadempet-movie-rec-api.hf.space/docs"><img src="https://img.shields.io/badge/📖%20Interactive%20Swagger%20API-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" height="34" alt="Interactive API Docs"/></a>
@@ -993,6 +995,7 @@ The repository contains extensive documentation covering system design, mathemat
 * [MODERN_STACK_ARCHITECTURE.md](docs/MODERN_STACK_ARCHITECTURE.md) &mdash; Modern stack decomposition and latency optimization.
 
 ### 2. Data Engineering & Lakehouse
+* [README_DATA_ENGINEERING.md](README_DATA_ENGINEERING.md) &mdash; **Canonical Data Engineering & Lakehouse Blueprint** (PySpark 4.x, Delta Lake Medallion, SCD-2, Liquid Clustering, 10-Shard Neon pgvector sync).
 * [DELTA_LAKE_IMPLEMENTATION.md](docs/DELTA_LAKE_IMPLEMENTATION.md) &mdash; SCD Type 2 MERGE, Liquid Clustering, and Auto Loader.
 * [DATA_CONTRACTS.md](docs/DATA_CONTRACTS.md) &mdash; Schema contracts, Pandera expectations, and quarantine logic.
 * [SPARK_42_FEATURES.md](docs/SPARK_42_FEATURES.md) &mdash; PySpark 4.x features, Arrow vectorization, and Catalyst optimization.
