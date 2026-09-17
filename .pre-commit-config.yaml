@@ -4,7 +4,7 @@
 #
 # Hook order mirrors CI gate order so local failures match CI failures exactly.
 
-exclude: ^(notebooks/|databricks_notebooks/|frontend/|backend/static/|manage\.py|k8s/)
+exclude: ^(notebooks/|databricks_notebooks/|frontend/|backend/static/|book/|docs/book/|manage\.py|k8s/)
 
 repos:
   # ---------------------------------------------------------------------------

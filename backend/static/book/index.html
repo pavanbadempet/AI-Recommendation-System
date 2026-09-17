@@ -6,7 +6,7 @@
   <title>The Distributed Data Engineering Handbook — Pavan Badempet</title>
   <meta name="description" content="A comprehensive, mobile-first digital book covering Medallion Lakehouse, PySpark distributed execution, Delta Lake SCD-2, and high-concurrency systems design.">
   <meta name="theme-color" content="#fbf0db">
-  
+
   <!-- PWA Manifest & iOS Meta -->
   <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -26,7 +26,7 @@
       --font-code: 'JetBrains Mono', monospace;
       --base-font-size: 17px;
       --line-height: 1.75;
-      
+
       /* Theme: Sepia (Default Kindle / Paperback) */
       --bg: #fbf0db;
       --bg-surface: #f4e6c9;
@@ -839,7 +839,7 @@
       text = text.replace(/((?:\|[^\n]+\|\n?)+)/g, function(match) {
         const lines = match.trim().split('\n');
         if (lines.length < 2) return match;
-        
+
         let html = '<div class="table-wrapper"><table><thead><tr>';
         const headers = lines[0].split('|').filter(c => c.trim() !== '');
         headers.forEach(h => {
@@ -979,7 +979,7 @@
       const theme = themes[currentThemeIdx];
       document.documentElement.setAttribute('data-theme', theme);
       document.getElementById('theme-btn').innerText = themeIcons[theme];
-      
+
       const themeColors = {'sepia': '#fbf0db', 'dark': '#090a0f', 'light': '#ffffff'};
       document.querySelector('meta[name="theme-color"]').setAttribute('content', themeColors[theme]);
     }
