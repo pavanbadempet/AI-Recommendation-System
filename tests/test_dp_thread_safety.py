@@ -20,13 +20,19 @@ import pytest
 import torch
 
 from backend.models.ensemble_engine import ApexEnsembleEngine
-import backend.models.neural_weight_optimizer
 from backend.privacy.privacy_preserving_ml import (
     add_gaussian_noise,
     privatize_user_embedding,
 )
 
-backend.models.neural_weight_optimizer.get_contextual_weights = lambda *args, **kwargs: None
+
+@pytest.fixture(autouse=True)
+def _patch_contextual_weights(monkeypatch):
+    """Scoped patch to prevent leaking None into subsequent test suites."""
+    monkeypatch.setattr(
+        "backend.models.neural_weight_optimizer.get_contextual_weights",
+        lambda *args, **kwargs: None,
+    )
 
 
 # ---------------------------------------------------------------------------
