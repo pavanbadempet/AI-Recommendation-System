@@ -2342,6 +2342,13 @@ const HomePage = React.memo(function HomePage({
     });
   }, [movies]);
 
+  const actionMovies = React.useMemo(() => {
+    return movies.filter((m) => {
+      const g = typeof m.genres === "string" ? m.genres : Array.isArray(m.genres) ? m.genres.join(" ") : "";
+      return /action|adventure/i.test(g) && !/animation/i.test(g);
+    });
+  }, [movies]);
+
   return (
     <main className="home-shell full-width-layout">
       {hero ? (
@@ -2403,6 +2410,15 @@ const HomePage = React.memo(function HomePage({
           <div className="mood-deck-container" role="region" aria-label="Browse by Mood">
             <div className="mood-deck-header">
               <span className="mood-deck-title">Browse by Mood</span>
+              {activeMood !== "all" && (
+                <button
+                  type="button"
+                  className="mood-reset-btn"
+                  onClick={() => setActiveMood("all")}
+                >
+                  Clear filter (Show All)
+                </button>
+              )}
             </div>
             <div className="mood-pills-row" role="tablist" aria-label="Movie moods and categories">
               {MOOD_FILTERS.map((m) => (
@@ -2431,87 +2447,272 @@ const HomePage = React.memo(function HomePage({
 
           {/* Curated Rails */}
           <div className="category-rows">
-            {/* All-Time Masterpieces */}
-            <CinematicRow
-              title="All-Time Masterpieces"
-              subtitle="Highest-rated films celebrated by audiences and critics worldwide"
-              movies={vaultMovies}
-              variant="vault"
-              onOpenMovie={onOpenMovie}
-              onHoverMovie={onHoverMovie}
-            />
-
-            {/* Epic Widescreen Spectacles */}
-            <CinematicRow
-              title="Epic Widescreen Spectacles"
-              subtitle="Visually expansive masterpieces made for the big screen"
-              movies={anamorphicMovies}
-              variant="anamorphic"
-              onOpenMovie={onOpenMovie}
-              onHoverMovie={onHoverMovie}
-            />
-
-            {/* Personalized Recommendations (if available) */}
-            {forYouMovies.length > 0 && (
-              <CinematicRow
-                title="Recommended For You"
-                subtitle="Personalized picks based on your watch history and taste"
-                movies={forYouMovies}
-                variant="standard"
-                onOpenMovie={onOpenMovie}
-                onHoverMovie={onHoverMovie}
-              />
+            {activeMood === "action" && (
+              <>
+                <CinematicRow
+                  title="Featured Action & Thrillers"
+                  subtitle={`Showing ${actionMovies.length} high-octane blockbusters and adrenaline-fueled sagas`}
+                  movies={actionMovies}
+                  variant="vault"
+                  onOpenMovie={onOpenMovie}
+                  onHoverMovie={onHoverMovie}
+                />
+                <CinematicRow
+                  title="Action Spectacles in Widescreen"
+                  subtitle="Monumental action sequences captured for expansive widescreen presentation"
+                  movies={actionMovies.filter((m) =>
+                    ["The Dark Knight", "The Matrix", "Gladiator", "Avengers: Endgame", "Jurassic Park", "Dune: Part Two"].some((t) =>
+                      m.title.toLowerCase().includes(t.toLowerCase())
+                    )
+                  )}
+                  variant="anamorphic"
+                  onOpenMovie={onOpenMovie}
+                  onHoverMovie={onHoverMovie}
+                />
+                <CinematicRow
+                  title="Mind-Bending Action Thrillers"
+                  subtitle="High concepts, psychological stakes, and intense pacing"
+                  movies={movies.filter((m) =>
+                    ["Inception", "The Matrix", "The Dark Knight", "Fight Club"].some((t) =>
+                      m.title.toLowerCase().includes(t.toLowerCase())
+                    )
+                  )}
+                  variant="standard"
+                  onOpenMovie={onOpenMovie}
+                  onHoverMovie={onHoverMovie}
+                />
+              </>
             )}
 
-            {/* Mind-Bending Sci-Fi */}
-            <CinematicRow
-              title="Mind-Bending Sci-Fi"
-              subtitle="Time loops, space exploration, and futuristic worlds"
-              movies={scifiMovies}
-              variant="standard"
-              onOpenMovie={onOpenMovie}
-              onHoverMovie={onHoverMovie}
-            />
+            {activeMood === "scifi" && (
+              <>
+                <CinematicRow
+                  title="Featured Sci-Fi & Mind-Benders"
+                  subtitle={`Showing ${scifiMovies.length} speculative masterworks, space voyages, and future visions`}
+                  movies={scifiMovies}
+                  variant="vault"
+                  onOpenMovie={onOpenMovie}
+                  onHoverMovie={onHoverMovie}
+                />
+                <CinematicRow
+                  title="Cosmic Voyages in Widescreen"
+                  subtitle="Expansive interstellar and planetary visual masterworks"
+                  movies={scifiMovies.filter((m) =>
+                    ["Interstellar", "Dune: Part Two", "The Matrix", "Avatar", "Jurassic Park"].some((t) =>
+                      m.title.toLowerCase().includes(t.toLowerCase())
+                    )
+                  )}
+                  variant="anamorphic"
+                  onOpenMovie={onOpenMovie}
+                  onHoverMovie={onHoverMovie}
+                />
+                <CinematicRow
+                  title="Time Loops & Simulated Realities"
+                  subtitle="Mind-bending realities and alternate timelines"
+                  movies={scifiMovies.filter((m) =>
+                    ["Inception", "The Matrix", "Back to the Future", "Blade Runner 2049"].some((t) =>
+                      m.title.toLowerCase().includes(t.toLowerCase())
+                    )
+                  )}
+                  variant="standard"
+                  onOpenMovie={onOpenMovie}
+                  onHoverMovie={onHoverMovie}
+                />
+              </>
+            )}
 
-            {/* Crime & Thriller Classics */}
-            <CinematicRow
-              title="Crime & Thriller Classics"
-              subtitle="Gripping suspense, iconic mob dramas, and investigations"
-              movies={crimeMovies}
-              variant="standard"
-              onOpenMovie={onOpenMovie}
-              onHoverMovie={onHoverMovie}
-            />
+            {activeMood === "crime" && (
+              <>
+                <CinematicRow
+                  title="Featured Crime & Mystery"
+                  subtitle={`Showing ${crimeMovies.length} legendary mob sagas, noir investigations, and psychological thrillers`}
+                  movies={crimeMovies}
+                  variant="vault"
+                  onOpenMovie={onOpenMovie}
+                  onHoverMovie={onHoverMovie}
+                />
+                <CinematicRow
+                  title="Epic Crime Sagas in Widescreen"
+                  subtitle="Monumental underworld masterpieces and sprawling crime chronicles"
+                  movies={crimeMovies.filter((m) =>
+                    ["The Godfather", "The Dark Knight", "GoodFellas", "Pulp Fiction"].some((t) =>
+                      m.title.toLowerCase().includes(t.toLowerCase())
+                    )
+                  )}
+                  variant="anamorphic"
+                  onOpenMovie={onOpenMovie}
+                  onHoverMovie={onHoverMovie}
+                />
+                <CinematicRow
+                  title="Dark Psychology & Investigations"
+                  subtitle="Twisted puzzles, forensic mind games, and serial investigations"
+                  movies={crimeMovies.filter((m) =>
+                    ["Seven", "The Silence of the Lambs", "Fight Club", "Parasite"].some((t) =>
+                      m.title.toLowerCase().includes(t.toLowerCase())
+                    )
+                  )}
+                  variant="standard"
+                  onOpenMovie={onOpenMovie}
+                  onHoverMovie={onHoverMovie}
+                />
+              </>
+            )}
 
-            {/* Award-Winning Dramas & Epics */}
-            <CinematicRow
-              title="Award-Winning Dramas & Epics"
-              subtitle="Unforgettable stories of human courage, redemption, and history"
-              movies={epicsMovies}
-              variant="standard"
-              onOpenMovie={onOpenMovie}
-              onHoverMovie={onHoverMovie}
-            />
+            {activeMood === "animation" && (
+              <>
+                <CinematicRow
+                  title="Featured Animation & Family"
+                  subtitle={`Showing ${animationMovies.length} boundary-pushing visual styles, anime masterworks, and heartfelt stories`}
+                  movies={animationMovies}
+                  variant="vault"
+                  onOpenMovie={onOpenMovie}
+                  onHoverMovie={onHoverMovie}
+                />
+                <CinematicRow
+                  title="Stylized Universes in Widescreen"
+                  subtitle="Vibrant animation spectacles and fantasy landscapes"
+                  movies={animationMovies}
+                  variant="anamorphic"
+                  onOpenMovie={onOpenMovie}
+                  onHoverMovie={onHoverMovie}
+                />
+                <CinematicRow
+                  title="Family & Fantasy Adventures"
+                  subtitle="Heartwarming adventures and imaginative family classics"
+                  movies={movies.filter((m) =>
+                    ["Spirited Away", "Coco", "Barbie", "The Lord of the Rings: The Return of the King", "Jurassic Park"].some((t) =>
+                      m.title.toLowerCase().includes(t.toLowerCase())
+                    )
+                  )}
+                  variant="standard"
+                  onOpenMovie={onOpenMovie}
+                  onHoverMovie={onHoverMovie}
+                />
+              </>
+            )}
 
-            {/* Animation & Family Favorites */}
-            <CinematicRow
-              title="Animation & Family Favorites"
-              subtitle="Boundary-pushing animated worlds and family favorites"
-              movies={animationMovies}
-              variant="standard"
-              onOpenMovie={onOpenMovie}
-              onHoverMovie={onHoverMovie}
-            />
+            {activeMood === "drama" && (
+              <>
+                <CinematicRow
+                  title="Featured Dramas & Epics"
+                  subtitle={`Showing ${epicsMovies.length} monumental human stories, emotional depth, and award-winning legacies`}
+                  movies={epicsMovies}
+                  variant="vault"
+                  onOpenMovie={onOpenMovie}
+                  onHoverMovie={onHoverMovie}
+                />
+                <CinematicRow
+                  title="Historical & Monumental Sagas in Widescreen"
+                  subtitle="Expansive cinematic journeys of courage, redemption, and history"
+                  movies={epicsMovies.filter((m) =>
+                    ["Gladiator", "The Lord of the Rings: The Return of the King", "Titanic", "Oppenheimer", "Forrest Gump"].some((t) =>
+                      m.title.toLowerCase().includes(t.toLowerCase())
+                    )
+                  )}
+                  variant="anamorphic"
+                  onOpenMovie={onOpenMovie}
+                  onHoverMovie={onHoverMovie}
+                />
+                <CinematicRow
+                  title="Intimate Human Dramas"
+                  subtitle="Unforgettable character studies of perseverance and conviction"
+                  movies={epicsMovies.filter((m) =>
+                    ["The Shawshank Redemption", "Schindler's List", "12 Angry Men", "Whiplash"].some((t) =>
+                      m.title.toLowerCase().includes(t.toLowerCase())
+                    )
+                  )}
+                  variant="standard"
+                  onOpenMovie={onOpenMovie}
+                  onHoverMovie={onHoverMovie}
+                />
+              </>
+            )}
 
-            {/* Recently Viewed / History */}
-            {recentMovies.length > 0 && (
-              <CinematicRow
-                title="Continue Watching & Recently Explored"
-                movies={recentMovies}
-                variant="standard"
-                onOpenMovie={onOpenMovie}
-                onHoverMovie={onHoverMovie}
-              />
+            {activeMood === "all" && (
+              <>
+                {/* All-Time Masterpieces */}
+                <CinematicRow
+                  title="All-Time Masterpieces"
+                  subtitle="Highest-rated films celebrated by audiences and critics worldwide"
+                  movies={vaultMovies}
+                  variant="vault"
+                  onOpenMovie={onOpenMovie}
+                  onHoverMovie={onHoverMovie}
+                />
+
+                {/* Epic Widescreen Spectacles */}
+                <CinematicRow
+                  title="Epic Widescreen Spectacles"
+                  subtitle="Visually expansive masterpieces made for the big screen"
+                  movies={anamorphicMovies}
+                  variant="anamorphic"
+                  onOpenMovie={onOpenMovie}
+                  onHoverMovie={onHoverMovie}
+                />
+
+                {/* Personalized Recommendations (if available) */}
+                {forYouMovies.length > 0 && (
+                  <CinematicRow
+                    title="Recommended For You"
+                    subtitle="Personalized picks based on your watch history and taste"
+                    movies={forYouMovies}
+                    variant="standard"
+                    onOpenMovie={onOpenMovie}
+                    onHoverMovie={onHoverMovie}
+                  />
+                )}
+
+                {/* Mind-Bending Sci-Fi */}
+                <CinematicRow
+                  title="Mind-Bending Sci-Fi"
+                  subtitle="Time loops, space exploration, and futuristic worlds"
+                  movies={scifiMovies}
+                  variant="standard"
+                  onOpenMovie={onOpenMovie}
+                  onHoverMovie={onHoverMovie}
+                />
+
+                {/* Crime & Thriller Classics */}
+                <CinematicRow
+                  title="Crime & Thriller Classics"
+                  subtitle="Gripping suspense, iconic mob dramas, and investigations"
+                  movies={crimeMovies}
+                  variant="standard"
+                  onOpenMovie={onOpenMovie}
+                  onHoverMovie={onHoverMovie}
+                />
+
+                {/* Award-Winning Dramas & Epics */}
+                <CinematicRow
+                  title="Award-Winning Dramas & Epics"
+                  subtitle="Unforgettable stories of human courage, redemption, and history"
+                  movies={epicsMovies}
+                  variant="standard"
+                  onOpenMovie={onOpenMovie}
+                  onHoverMovie={onHoverMovie}
+                />
+
+                {/* Animation & Family Favorites */}
+                <CinematicRow
+                  title="Animation & Family Favorites"
+                  subtitle="Boundary-pushing animated worlds and family favorites"
+                  movies={animationMovies}
+                  variant="standard"
+                  onOpenMovie={onOpenMovie}
+                  onHoverMovie={onHoverMovie}
+                />
+
+                {/* Recently Viewed / History */}
+                {recentMovies.length > 0 && (
+                  <CinematicRow
+                    title="Continue Watching & Recently Explored"
+                    movies={recentMovies}
+                    variant="standard"
+                    onOpenMovie={onOpenMovie}
+                    onHoverMovie={onHoverMovie}
+                  />
+                )}
+              </>
             )}
           </div>
         </div>

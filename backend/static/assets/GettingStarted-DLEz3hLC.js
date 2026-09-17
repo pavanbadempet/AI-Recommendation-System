@@ -1,4 +1,4 @@
-import{r as e}from"./rolldown-runtime-BHe-jwch.js";import{D as t,I as n,c as r,et as i,ft as a,nt as o,ot as s}from"./lucide-Ds0wxuC6.js";import{t as c}from"./react-DtFG_gvj.js";import{l,n as u,t as d}from"./index-EKKAVFsL.js";var f=e(a(),1),p=c(),m=d[0]??`https://your-apex-api.onrender.com`;function h(e,t){let n=t||`YOUR_KEY`,r=n.length>12?`${n.slice(0,10)}...`:n;return e===`curl`?`curl "${m}/v1/recommendations/id/550?n=5&explain=true" \\
+import{r as e}from"./rolldown-runtime-BHe-jwch.js";import{D as t,I as n,c as r,et as i,ft as a,nt as o,ot as s}from"./lucide-Ds0wxuC6.js";import{t as c}from"./react-DtFG_gvj.js";import{l,n as u,t as d}from"./index-CwKXZqZ3.js";var f=e(a(),1),p=c(),m=d[0]??`https://your-apex-api.onrender.com`;function h(e,t){let n=t||`YOUR_KEY`,r=n.length>12?`${n.slice(0,10)}...`:n;return e===`curl`?`curl "${m}/v1/recommendations/id/550?n=5&explain=true" \\
   -H "X-Nova-API-Key: ${r}"`:e===`python`?`import httpx
 
 BASE = "${m}"
