@@ -8,6 +8,48 @@ use std::io::BufReader;
 use std::path::Path;
 use std::sync::Arc;
 
+fn deserialize_genres<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    struct GenresVisitor;
+
+    impl<'de> serde::de::Visitor<'de> for GenresVisitor {
+        type Value = Vec<String>;
+
+        fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            formatter.write_str("a string or a sequence of strings")
+        }
+
+        fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+        where
+            E: serde::de::Error,
+        {
+            Ok(value
+                .split(',')
+                .map(|s| s.trim().to_string())
+                .filter(|s| !s.is_empty())
+                .collect())
+        }
+
+        fn visit_seq<S>(self, mut seq: S) -> Result<Self::Value, S::Error>
+        where
+            S: serde::de::SeqAccess<'de>,
+        {
+            let mut vec = Vec::new();
+            while let Some(elem) = seq.next_element::<String>()? {
+                let trimmed = elem.trim().to_string();
+                if !trimmed.is_empty() {
+                    vec.push(trimmed);
+                }
+            }
+            Ok(vec)
+        }
+    }
+
+    deserializer.deserialize_any(GenresVisitor)
+}
+
 /// Full metadata representation for a movie item.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MovieMetadata {
@@ -15,7 +57,7 @@ pub struct MovieMetadata {
     pub title: String,
     #[serde(default)]
     pub overview: Option<String>,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "deserialize_genres")]
     pub genres: Vec<String>,
     #[serde(default)]
     pub vote_average: f64,

@@ -62,13 +62,36 @@ jobs:
           print(f'Checking if movies_catalog.json exists in {model_repo}...')
           try:
               files = api.list_repo_files(model_repo)
+              need_upload = False
               if 'movies_catalog.json' not in files:
+                  need_upload = True
+              else:
+                  # Verify genres format in existing catalog
+                  try:
+                      test_url = f'https://huggingface.co/{model_repo}/resolve/main/movies_catalog.json'
+                      req = urllib.request.urlopen(test_url)
+                      # Read first 1000 bytes
+                      sample = req.read(1000).decode('utf-8', errors='ignore')
+                      if '"genres":"' in sample:
+                          print('Existing catalog has string genres, re-generating with list genres...')
+                          need_upload = True
+                  except Exception:
+                      pass
+
+              if need_upload:
                   print('Downloading movies_transformed.parquet to extract movies_catalog.json...')
                   parquet_url = f'https://huggingface.co/{model_repo}/resolve/main/movies_transformed.parquet'
                   urllib.request.urlretrieve(parquet_url, 'movies_temp.parquet')
                   t = pq.read_table('movies_temp.parquet', columns=['id', 'title', 'overview', 'genres', 'vote_average', 'vote_count', 'popularity', 'release_date', 'poster_path'])
+                  pyd = t.to_pylist()
+                  for row in pyd:
+                      g = row.get('genres')
+                      if isinstance(g, str):
+                          row['genres'] = [x.strip() for x in g.split(',') if x.strip()]
+                      elif not isinstance(g, list):
+                          row['genres'] = []
                   with open('movies_catalog.json', 'w', encoding='utf-8') as f:
-                      json.dump(t.to_pylist(), f, separators=(',', ':'))
+                      json.dump(pyd, f, separators=(',', ':'))
                   print('Uploading movies_catalog.json (36MB) to model hub...')
                   api.upload_file(
                       path_or_fileobj='movies_catalog.json',
@@ -82,7 +105,7 @@ jobs:
                       os.remove('movies_catalog.json')
                   print('movies_catalog.json published successfully to Model Hub!')
               else:
-                  print('movies_catalog.json already exists in Model Hub.')
+                  print('movies_catalog.json is already up to date in Model Hub.')
           except Exception as e:
               print('Warning while ensuring catalog in hub:', e)
           "
