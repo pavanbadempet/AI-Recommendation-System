@@ -47,6 +47,46 @@ jobs:
               print('README.md already contains HF frontmatter, skipping injection')
           "
 
+      - name: Ensure Movie Catalog exists on Hugging Face Model Hub
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          pip install pyarrow huggingface_hub
+          python -c "
+          import os, urllib.request, json
+          from huggingface_hub import HfApi
+          import pyarrow.parquet as pq
+
+          api = HfApi(token=os.environ['HF_TOKEN'])
+          model_repo = 'pavanbadempet/movie-recs-models'
+          print(f'Checking if movies_catalog.json exists in {model_repo}...')
+          try:
+              files = api.list_repo_files(model_repo)
+              if 'movies_catalog.json' not in files:
+                  print('Downloading movies_transformed.parquet to extract movies_catalog.json...')
+                  parquet_url = f'https://huggingface.co/{model_repo}/resolve/main/movies_transformed.parquet'
+                  urllib.request.urlretrieve(parquet_url, 'movies_temp.parquet')
+                  t = pq.read_table('movies_temp.parquet', columns=['id', 'title', 'overview', 'genres', 'vote_average', 'vote_count', 'popularity', 'release_date', 'poster_path'])
+                  with open('movies_catalog.json', 'w', encoding='utf-8') as f:
+                      json.dump(t.to_pylist(), f, separators=(',', ':'))
+                  print('Uploading movies_catalog.json (36MB) to model hub...')
+                  api.upload_file(
+                      path_or_fileobj='movies_catalog.json',
+                      path_in_repo='movies_catalog.json',
+                      repo_id=model_repo,
+                      repo_type='model'
+                  )
+                  if os.path.exists('movies_temp.parquet'):
+                      os.remove('movies_temp.parquet')
+                  if os.path.exists('movies_catalog.json'):
+                      os.remove('movies_catalog.json')
+                  print('movies_catalog.json published successfully to Model Hub!')
+              else:
+                  print('movies_catalog.json already exists in Model Hub.')
+          except Exception as e:
+              print('Warning while ensuring catalog in hub:', e)
+          "
+
       - name: Deploy to Hugging Face Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}

@@ -47,6 +47,20 @@ RUN rustup target add x86_64-unknown-linux-musl && \
     strip target/x86_64-unknown-linux-musl/release/apex_server
 
 # ------------------------------------------------------------------------------
+# Stage 2.5: Model & Catalog Asset Fetcher (75k SBERT vectors & catalog)
+# ------------------------------------------------------------------------------
+FROM alpine:3.20 AS model_fetcher
+
+WORKDIR /models
+
+# Install curl and CA certificates to download precomputed model artifacts
+# hadolint ignore=DL3018
+RUN apk add --no-cache curl ca-certificates && \
+    curl -fSL -o movie_ids.npy https://huggingface.co/pavanbadempet/movie-recs-models/resolve/main/movie_ids.npy && \
+    curl -fSL -o sbert_embeddings.npy https://huggingface.co/pavanbadempet/movie-recs-models/resolve/main/sbert_embeddings.npy && \
+    (curl -fSL -o movies_catalog.json https://huggingface.co/pavanbadempet/movie-recs-models/resolve/main/movies_catalog.json || touch movies_catalog.json)
+
+# ------------------------------------------------------------------------------
 # Stage 3: Ultra-lean Distroless Static Runtime
 # ------------------------------------------------------------------------------
 FROM gcr.io/distroless/static-debian12:nonroot AS runtime
@@ -62,8 +76,8 @@ COPY --from=rust_builder /build/backend/rust_core/target/x86_64-unknown-linux-mu
 # Copy pre-compiled React SPA assets
 COPY --from=frontend_builder /frontend/dist /app/dist
 
-# Copy pre-computed vector embeddings and movie metadata catalog
-COPY models/ /app/models/
+# Copy pre-computed vector embeddings and movie metadata catalog (75,253 movies)
+COPY --from=model_fetcher /models /app/models
 
 # Configure non-root execution (compatible with HF Spaces UID 1000 & distroless nonroot UID 65532)
 USER 65532:65532
