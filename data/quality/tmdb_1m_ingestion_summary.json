@@ -1,0 +1,14 @@
+{
+  "dataset_name": "tmdb_million_movies",
+  "export_date": "09_18_2026",
+  "total_movies_ingested": 1245843,
+  "enriched_movies_count": 75207,
+  "enrichment_ratio": 0.0604,
+  "bronze_parquet_mb": 32.04,
+  "silver_parquet_mb": 49.53,
+  "total_pipeline_time_seconds": 12.35,
+  "throughput_rows_per_second": 100891.2,
+  "bronze_path": "C:\\Users\\pavan\\OneDrive\\Documents\\GitHub\\Movie-Recommendation-System\\data\\datalake\\bronze\\movies_raw_09_18_2026.parquet",
+  "silver_path": "C:\\Users\\pavan\\OneDrive\\Documents\\GitHub\\Movie-Recommendation-System\\data\\datalake\\silver\\dim_movies_1m.parquet",
+  "timestamp_utc": "2026-09-18T17:54:46.146138+00:00"
+}

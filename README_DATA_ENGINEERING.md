@@ -110,8 +110,13 @@ Every architectural choice follows Martin Kleppmann’s foundational principles 
 
 ## 3. Dataset Scale, Ingestion & The Bronze Layer
 
-* **Corpus Scale:** 21 Million+ interaction ratings (MovieLens 20M/32M benchmarks) and 1,000,000+ TMDB movie metadata entities containing titles, genres, overviews, budgets, box office revenues, and crew attributions.
-* **Storage Layer:** Databricks Unity Catalog Volume `/Volumes/apex/raw/incoming_movies/`.
+* **Corpus Scale:** **26,245,000+ total records** — combining **25,000,095 MovieLens-25M user interaction ratings** with **1,245,843 TMDB movie metadata entities** containing titles, genres, overviews, adult flags, popularity scores, and release metadata.
+* **Storage Layer:** Databricks Unity Catalog Volume `/Volumes/apex/raw/incoming_movies/` & Delta Lake Silver `apex.silver.dim_movies_1m`.
+* **Automated 1.25M+ Ingestion Pipeline (`scripts/ingest_tmdb_million.py`):**
+  * Downloads and streams the daily TMDB export (`movie_ids_MM_DD_YYYY.json.gz`, 1.24M+ records) directly into the Medallion Lakehouse.
+  * Performs zero-copy streaming decompression via PyArrow, achieving ingestion throughput of **>100,000 rows/second** (1,245,843 movies ingested and written to Bronze/Silver Parquet in 12.35 seconds).
+  * Enriches the 1.24M catalog with curated semantic overviews, vote averages, and genre metadata from `movies_transformed.parquet`.
+  * Generates real-data provenance audit trail in [`data/quality/tmdb_1m_ingestion_summary.json`](data/quality/tmdb_1m_ingestion_summary.json).
 * **The Auto Loader (`cloudFiles`) Ingestion Engine:**
   * In enterprise production, raw files arrive incrementally (e.g. daily catalog drops or hourly bulk dumps).
   * Standard `spark.read.csv("/path/*")` requires recursive directory listings over object storage (S3/ADLS/GCS), which slows down quadratically ($O(N)$ HTTP `LIST` calls) as directory file counts grow.
