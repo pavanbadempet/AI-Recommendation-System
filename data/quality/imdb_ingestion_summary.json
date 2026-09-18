@@ -1,0 +1,10 @@
+{
+  "dataset_name": "imdb_media_catalog",
+  "movies_only_filter": true,
+  "total_records_ingested": 10000,
+  "silver_parquet_mb": 0.39,
+  "total_time_seconds": 1.07,
+  "throughput_rows_per_second": 9383.3,
+  "output_path": "C:\\Users\\pavan\\OneDrive\\Documents\\GitHub\\Movie-Recommendation-System\\data\\datalake\\silver\\imdb_movies_curated.parquet",
+  "timestamp_utc": "2026-09-18T18:04:01.152530+00:00"
+}
