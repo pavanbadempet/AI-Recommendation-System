@@ -1,0 +1,42 @@
+{
+  "pipeline_name": "apex_enterprise_big_data_lakehouse",
+  "scale": "1m",
+  "execution_timestamp_utc": "2026-09-18T18:34:04.782482+00:00",
+  "total_records_processed": 1495843,
+  "overall_runtime_seconds": 18.68,
+  "overall_throughput_rows_per_sec": 80078.1,
+  "stages": {
+    "bronze_raw_ingestion": {
+      "movies_bronze_count": 1245843,
+      "ratings_bronze_count": 250000,
+      "elapsed_seconds": 12.73
+    },
+    "silver_curation_contracts": {
+      "silver_clean_movies": 1245843,
+      "quarantine_movies": 0,
+      "silver_clean_ratings": 250000,
+      "elapsed_seconds": 0.34
+    },
+    "gold_dimensional_scd2": {
+      "gold_dim_movies_scd2_count": 1245843,
+      "gold_dim_users_count": 1000,
+      "gold_fact_interactions_count": 250000,
+      "elapsed_seconds": 5.52
+    }
+  },
+  "lakehouse_tables": {
+    "bronze": [
+      "data/datalake/bronze/movies_raw_*.parquet",
+      "data/datalake/bronze/ratings_raw.parquet"
+    ],
+    "silver": [
+      "data/datalake/silver/dim_movies_1m.parquet",
+      "data/datalake/silver/ratings_curated.parquet"
+    ],
+    "gold": [
+      "data/datalake/gold/dim_movies_scd2.parquet",
+      "data/datalake/gold/dim_users.parquet",
+      "data/datalake/gold/fact_interactions.parquet"
+    ]
+  }
+}
