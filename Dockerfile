@@ -58,7 +58,7 @@ WORKDIR /models
 RUN apk add --no-cache curl ca-certificates && \
     curl -fSL -o movie_ids.npy https://huggingface.co/pavanbadempet/movie-recs-models/resolve/main/movie_ids.npy && \
     curl -fSL -o sbert_embeddings.npy https://huggingface.co/pavanbadempet/movie-recs-models/resolve/main/sbert_embeddings.npy && \
-    (curl -fSL -o movies_catalog.json https://huggingface.co/pavanbadempet/movie-recs-models/resolve/main/movies_catalog.json || touch movies_catalog.json)
+    curl -fSL -o movies_catalog.json https://huggingface.co/pavanbadempet/movie-recs-models/resolve/main/movies_catalog.json
 
 # ------------------------------------------------------------------------------
 # Stage 3: Ultra-lean Distroless Static Runtime
