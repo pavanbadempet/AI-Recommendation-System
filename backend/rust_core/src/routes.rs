@@ -339,6 +339,102 @@ pub async fn health_handler(State(state): State<Arc<AppState>>) -> Json<HealthRe
     })
 }
 
+/// Two-stage precision hybrid reranker combining:
+/// 1. SBERT semantic vector similarity (cosine score)
+/// 2. Genre Jaccard overlap affinity
+/// 3. Bayesian quality prior (Wilson shrinkage toward global mean 6.5 based on vote count)
+/// 4. Logarithmic popularity prior
+/// 5. Derivative title penalty (demotes promotional clips repeating query title)
+pub fn compute_hybrid_reranked_recommendations(
+    state: &AppState,
+    query_vector: &[f32],
+    query_row_opt: Option<usize>,
+    query_meta_opt: Option<&MovieMetadata>,
+    limit: usize,
+) -> Vec<CandidateMovie> {
+    let pool_size = (limit * 4).max(40).min(state.vector_store.num_movies);
+    let candidates = state
+        .vector_store
+        .top_k_cosine_similarity(query_vector, query_row_opt, pool_size);
+
+    let query_title_lower = query_meta_opt.map(|m| m.title.to_lowercase());
+    let query_genres = query_meta_opt.map(|m| &m.genres);
+
+    let mut scored_items: Vec<(CandidateMovie, f32)> = Vec::with_capacity(candidates.len());
+
+    for (row_idx, sim_score) in candidates {
+        if let Some(m) = state.catalog.get_by_row(row_idx) {
+            let sim = sim_score.clamp(0.0, 1.0);
+
+            // 1. Genre Jaccard Overlap
+            let jaccard = if let Some(q_genres) = query_genres {
+                if !q_genres.is_empty() && !m.genres.is_empty() {
+                    let mut intersection = 0usize;
+                    for g in &m.genres {
+                        if q_genres.iter().any(|qg| qg.eq_ignore_ascii_case(g)) {
+                            intersection += 1;
+                        }
+                    }
+                    let union = q_genres.len() + m.genres.len() - intersection;
+                    if union > 0 {
+                        intersection as f32 / union as f32
+                    } else {
+                        0.0
+                    }
+                } else {
+                    0.0
+                }
+            } else {
+                0.0
+            };
+
+            // 2. Bayesian Quality Prior (Wilson shrinkage)
+            let vc = m.vote_count as f32;
+            let va = m.vote_average as f32;
+            let bayes_quality = ((vc * va + 30.0 * 6.5) / (vc + 30.0) / 10.0).clamp(0.0, 1.0);
+
+            // 3. Logarithmic Popularity Dampener
+            let pop = (m.popularity as f32).max(0.0);
+            let log_pop = (pop.ln_1p() / (300.0f32).ln_1p()).min(1.0);
+
+            // 4. Derivative Title Penalty (Demote behind-the-scenes clips that repeat the query title)
+            let mut penalty = 0.0f32;
+            if let Some(ref q_title) = query_title_lower {
+                let cand_title_lower = m.title.to_lowercase();
+                if cand_title_lower.contains(q_title) && cand_title_lower != *q_title {
+                    penalty = -0.18;
+                }
+            }
+
+            // Composite Hybrid Score (State-of-the-Art Precision)
+            let hybrid_score = (0.50 * sim + 0.25 * jaccard + 0.15 * bayes_quality + 0.10 * log_pop + penalty)
+                .clamp(0.0, 1.0);
+
+            let rounded_score = (hybrid_score * 10000.0).round() / 10000.0;
+            let rounded_sim = (sim * 10000.0).round() / 10000.0;
+
+            scored_items.push((
+                CandidateMovie {
+                    id: m.id,
+                    title: m.title.clone(),
+                    score: rounded_score,
+                    similarity_score: rounded_sim,
+                    genres: m.genres.clone(),
+                    poster_path: m.poster_path.clone(),
+                    overview: m.overview.clone(),
+                    trailer_key: m.trailer_key.clone(),
+                    vote_average: m.vote_average,
+                },
+                hybrid_score,
+            ));
+        }
+    }
+
+    scored_items.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+    scored_items.truncate(limit);
+    scored_items.into_iter().map(|(item, _)| item).collect()
+}
+
 /// GET /v1/recommendations/id/:id and GET /recommend/id/:id
 pub async fn get_recommendations_by_id_handler(
     State(state): State<Arc<AppState>>,
@@ -416,27 +512,13 @@ pub async fn get_recommendations_by_id_handler(
     let query_movie_meta = state.catalog.get_by_row(query_row).cloned();
     let query_vector = state.vector_store.get_vector(query_row);
 
-    let top_scored = state
-        .vector_store
-        .top_k_cosine_similarity(query_vector, Some(query_row), limit);
-
-    let mut recommendations = Vec::with_capacity(top_scored.len());
-    for (row_idx, score) in top_scored {
-        if let Some(m) = state.catalog.get_by_row(row_idx) {
-            let rounded_score = (score * 10000.0).round() / 10000.0;
-            recommendations.push(CandidateMovie {
-                id: m.id,
-                title: m.title.clone(),
-                score: rounded_score,
-                similarity_score: rounded_score,
-                genres: m.genres.clone(),
-                poster_path: m.poster_path.clone(),
-                overview: m.overview.clone(),
-                trailer_key: m.trailer_key.clone(),
-                vote_average: m.vote_average,
-            });
-        }
-    }
+    let recommendations = compute_hybrid_reranked_recommendations(
+        &state,
+        query_vector,
+        Some(query_row),
+        query_movie_meta.as_ref(),
+        limit,
+    );
 
     let latency_ms = (t0.elapsed().as_secs_f64() * 1000.0 * 100.0).round() / 100.0;
     let request_id = format!("req_{}_{}", movie_id, SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis());
@@ -488,10 +570,8 @@ pub async fn post_recommendations_handler(
             .into_response();
     }
 
-    let top_scored = if let Some(ref vec) = payload.vector {
-        state
-            .vector_store
-            .top_k_cosine_similarity(vec, None, limit)
+    let recommendations = if let Some(ref vec) = payload.vector {
+        compute_hybrid_reranked_recommendations(&state, vec, None, None, limit)
     } else {
         let raw_id = payload
             .movie_id
@@ -508,28 +588,9 @@ pub async fn post_recommendations_handler(
             });
 
         let query_vector = state.vector_store.get_vector(row_idx);
-        state
-            .vector_store
-            .top_k_cosine_similarity(query_vector, Some(row_idx), limit)
+        let query_meta = state.catalog.get_by_row(row_idx);
+        compute_hybrid_reranked_recommendations(&state, query_vector, Some(row_idx), query_meta, limit)
     };
-
-    let mut recommendations = Vec::with_capacity(top_scored.len());
-    for (row_idx, score) in top_scored {
-        if let Some(m) = state.catalog.get_by_row(row_idx) {
-            let rounded_score = (score * 10000.0).round() / 10000.0;
-            recommendations.push(CandidateMovie {
-                id: m.id,
-                title: m.title.clone(),
-                score: rounded_score,
-                similarity_score: rounded_score,
-                genres: m.genres.clone(),
-                poster_path: m.poster_path.clone(),
-                overview: m.overview.clone(),
-                trailer_key: m.trailer_key.clone(),
-                vote_average: m.vote_average,
-            });
-        }
-    }
 
     let latency_ms = (t0.elapsed().as_secs_f64() * 1000.0 * 100.0).round() / 100.0;
     let query_id = payload.movie_id.or(payload.id).or(payload.user_id).unwrap_or(550);
@@ -1312,5 +1373,30 @@ mod tests {
         assert_eq!(res.0.status, "active");
         assert!(res.0.total_ratings > 0);
         assert!(res.0.avg_rating > 4.0);
+    }
+
+    #[test]
+    fn test_compute_hybrid_reranked_recommendations() {
+        let state = AppState::init().expect("state init");
+        let query_row = 0;
+        let query_vector = state.vector_store.get_vector(query_row);
+        let query_meta = state.catalog.get_by_row(query_row);
+
+        let recs = compute_hybrid_reranked_recommendations(
+            &state,
+            query_vector,
+            Some(query_row),
+            query_meta,
+            5,
+        );
+
+        assert_eq!(recs.len(), 5);
+        for i in 0..recs.len() {
+            assert!(!recs[i].title.is_empty());
+            assert!(recs[i].score > 0.0);
+            if i > 0 {
+                assert!(recs[i - 1].score >= recs[i].score);
+            }
+        }
     }
 }
