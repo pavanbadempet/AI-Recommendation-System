@@ -110,7 +110,7 @@ class DataLineageTracker:
                 "namespace": "apex.medallion.pipeline",
                 "name": job_name,
             },
-            "producer": "https://github.com/pavanbadempet/AI-Recommendation-System",
+            "producer": "https://gitlab.com/pavan9b/AI-Recommendation-System",
             "inputs": [node.to_dict() for node in self.nodes.values() if node.layer in ("bronze", "silver")],
             "outputs": [node.to_dict() for node in self.nodes.values() if node.layer == "gold"],
         }

@@ -17,7 +17,7 @@ git clone https://github.com/YOUR_USERNAME/Movie-Recommendation-System.git
 cd Movie-Recommendation-System
 
 # Add upstream remote
-git remote add upstream https://github.com/pavanbadempet/Movie-Recommendation-System.git
+git remote add upstream https://gitlab.com/pavan9b/Movie-Recommendation-System.git
 ```
 
 ### Step 2: Create Virtual Environment (1 minute)

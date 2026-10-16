@@ -2,7 +2,7 @@
 
 use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
-use std::collections::VecDeque;
+use std::collections::{HashMap, VecDeque};
 use std::sync::Arc;
 use std::time::Instant;
 
@@ -25,6 +25,9 @@ pub struct AppState {
     pub vector_store: Arc<VectorStore>,
     pub catalog: Arc<MovieCatalog>,
     pub events_buffer: RwLock<VecDeque<EventRecord>>,
+    pub tmdb_api_key: Option<String>,
+    pub tmdb_trailer_cache: RwLock<HashMap<i64, Option<String>>>,
+    pub http_client: reqwest::Client,
     #[allow(dead_code)]
     pub start_time: Instant,
 }
@@ -92,10 +95,27 @@ impl AppState {
 
         let events_buffer = RwLock::new(VecDeque::with_capacity(1000));
 
+        let tmdb_api_key = std::env::var("TMDB_API_KEY")
+            .ok()
+            .or_else(|| std::env::var("TMDB_KEY").ok())
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty())
+            .or_else(|| Some("44726ef95f4d79cb7001a4947fca7f53".to_string()));
+
+        let http_client = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_secs(8))
+            .build()
+            .unwrap_or_else(|_| reqwest::Client::new());
+
+        let tmdb_trailer_cache = RwLock::new(HashMap::new());
+
         Ok(Arc::new(AppState {
             vector_store,
             catalog,
             events_buffer,
+            tmdb_api_key,
+            tmdb_trailer_cache,
+            http_client,
             start_time,
         }))
     }

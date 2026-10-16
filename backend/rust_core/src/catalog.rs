@@ -107,9 +107,57 @@ pub struct MovieCatalog {
     pub title_entries: Vec<MovieTitleEntry>,
 }
 
+/// Well-known YouTube trailer video IDs for popular showcase movies.
+pub fn get_known_trailer(movie_id: i64) -> Option<&'static str> {
+    match movie_id {
+        1318447 => Some("kgv8jf_8dm0"), // Apex
+        1226863 => Some("SA9ohTuGl4Q"), // The Super Mario Galaxy Movie
+        1198994 => Some("R4wiXj9NmEE"), // Send Help
+        693134 => Some("Way9Dexny3w"),  // Dune: Part Two
+        157336 => Some("zSWdZVtXT7E"),  // Interstellar
+        27205 => Some("YoHD9XEInc0"),   // Inception
+        155 => Some("EXeTwQWrcwY"),     // The Dark Knight
+        872585 => Some("uYPbbksJxIg"),  // Oppenheimer
+        238 => Some("sY1S34973zA"),     // The Godfather
+        680 => Some("s7EdQ4FqbhY"),     // Pulp Fiction
+        603 => Some("vKQi3bBA1y8"),     // The Matrix
+        496243 => Some("5xH0RZE7t4E"),  // Parasite
+        278 => Some("PLl99DlL6b4"),     // The Shawshank Redemption
+        324857 => Some("tg52up16eq0"),  // Spider-Man: Into the Spider-Verse
+        129 => Some("ByXuk9QqQkk"),     // Spirited Away
+        98 => Some("owK1qxDselE"),      // Gladiator
+        19995 => Some("5PSNL1qE6VY"),   // Avatar
+        597 => Some("2e-eXJ6HgkQ"),     // Titanic
+        550 => Some("qtRKdVHc-cE"),     // Fight Club
+        244786 => Some("7d_jQycdQGo"),  // Whiplash
+        335984 => Some("gCcx85zbxz4"),  // Blade Runner 2049
+        769 => Some("2ilzidi_J8Q"),     // GoodFellas
+        807 => Some("znmZoVkCjpI"),     // Seven
+        13 => Some("bLvqoHBptjg"),      // Forrest Gump
+        329 => Some("lc0UehYemQA"),     // Jurassic Park
+        105 => Some("qvsgGtivCgs"),     // Back to the Future
+        354912 => Some("Rvr68u6k5sI"),  // Coco
+        348 => Some("LjLamj-b0I8"),     // Alien
+        274 => Some("W6Mm8Sbe__o"),     // The Silence of the Lambs
+        299534 => Some("TcMBFSGVi1c"),  // Avengers: Endgame
+        346698 => Some("pBk4NYhWNMM"),  // Barbie
+        120 => Some("V75dMMW-qqc"),     // LOTR Fellowship
+        122 => Some("r5X-hFf6Bwo"),     // LOTR Return of the King
+        _ => None,
+    }
+}
+
 impl MovieCatalog {
     /// Build catalog from in-memory movie metadata vector.
-    pub fn from_movies(movies: Vec<MovieMetadata>) -> Arc<Self> {
+    pub fn from_movies(mut movies: Vec<MovieMetadata>) -> Arc<Self> {
+        for m in &mut movies {
+            if m.trailer_key.is_none() {
+                if let Some(known) = get_known_trailer(m.id) {
+                    m.trailer_key = Some(known.to_string());
+                }
+            }
+        }
+
         let mut id_to_index = HashMap::with_capacity(movies.len());
         let mut title_entries = Vec::with_capacity(movies.len());
 
@@ -453,5 +501,33 @@ mod tests {
         let cat = create_test_catalog();
         let results = cat.search("   ", 5);
         assert!(results.is_empty());
+    }
+
+    #[test]
+    fn test_known_trailer_enrichment() {
+        let movies = vec![
+            MovieMetadata {
+                id: 1318447, // Apex
+                title: "Apex".to_string(),
+                overview: Some("Apex hunter".to_string()),
+                genres: vec!["Action".to_string()],
+                vote_average: 6.5,
+                vote_count: 500.0,
+                popularity: 500.0,
+                release_date: Some("2026-04-24".to_string()),
+                poster_path: Some("/apex.jpg".to_string()),
+                trailer_key: None,
+            },
+        ];
+        let catalog = MovieCatalog::from_movies(movies);
+        let movie = catalog.get_by_id(1318447).expect("must find apex");
+        assert_eq!(movie.trailer_key.as_deref(), Some("kgv8jf_8dm0"));
+    }
+
+    #[test]
+    fn test_get_known_trailer() {
+        assert_eq!(get_known_trailer(1318447), Some("kgv8jf_8dm0"));
+        assert_eq!(get_known_trailer(693134), Some("Way9Dexny3w"));
+        assert_eq!(get_known_trailer(9999999), None);
     }
 }

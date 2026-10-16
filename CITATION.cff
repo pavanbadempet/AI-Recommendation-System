@@ -5,7 +5,7 @@ authors:
   - family-names: "Badempet"
     given-names: "Pavan"
     orcid: "https://orcid.org/0000-0000-0000-0000"
-repository-code: "https://github.com/pavanbadempet/AI-Recommendation-System"
+repository-code: "https://gitlab.com/pavan9b/AI-Recommendation-System"
 url: "https://pavanbadempet.github.io/AI-Recommendation-System/"
 abstract: "An enterprise-grade, real-time recommendation platform powered by a 6-Model PyTorch Deep Learning Ensemble (SASRec, KAN, LightGCN, Neural ODE, Poincaré Hyperbolic, Latent Diffusion), PySpark 4.2 Delta Lake Declarative Pipelines, and an Agentic Multi-Agent AI Architecture."
 keywords:

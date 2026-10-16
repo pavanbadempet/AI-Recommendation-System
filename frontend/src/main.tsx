@@ -54,6 +54,7 @@ import {
   getShowcaseMovies,
   semanticBenchmark,
   checkVideoCacheStatus,
+  fetchTmdbTrailer,
 } from "./api";
 import type {
   ArtifactHealth,
@@ -105,38 +106,8 @@ const SHOWCASE_STORAGE_KEY = "nova_cached_showcase_movies_v1";
 const LATEST_STORAGE_KEY = "nova_cached_latest_movies_v1";
 const TITLE_CATALOG_LIMIT = 5000;
 
-export const KNOWN_TRAILERS: Record<number, string> = {
-  329: "lc0UehYemQA", // Jurassic Park
-  27205: "YoHD9XEInc0", // Inception
-  157336: "zSWdZVtXT7E", // Interstellar
-  155: "EXeTwQWrcwY", // The Dark Knight
-  550: "qtRKdVHc-cE", // Fight Club
-  680: "s7EdQ4FqbhY", // Pulp Fiction
-  603: "vKQi3bBA1y8", // The Matrix
-  238: "sY1S34973zA", // The Godfather
-  120: "V75dMMW-qqc", // LOTR Fellowship
-  122: "r5X-hFf6Bwo", // LOTR Return of the King
-  129: "ByXuk9QqQkk", // Spirited Away
-  98: "owK1qxDselE", // Gladiator
-  19995: "5PSNL1qE6VY", // Avatar
-  597: "2e-eXJ6HgkQ", // Titanic
-  693134: "Way9Dexny3w", // Dune 2
-  872585: "uYPbbksJxIg", // Oppenheimer
-  496243: "5xH0RZE7t4E", // Parasite
-  244786: "7d_jQycdQGo", // Whiplash
-  324857: "tg52up16eq0", // Spider-Man Spider-Verse
-  335984: "gCcx85zbxz4", // Blade Runner 2049
-  278: "PLl99DlL6b4", // Shawshank Redemption
-  769: "2ilzidi_J8Q", // GoodFellas
-  807: "znmZoVkCjpI", // Seven
-  13: "bLvqoHBptjg", // Forrest Gump
-  105: "qvsgGtivCgs", // Back to the Future
-  354912: "Rvr68u6k5sI", // Coco
-  348: "LjLamj-b0I8", // Alien
-  274: "W6Mm8Sbe__o", // Silence of the Lambs
-  299534: "TcMBFSGVi1c", // Avengers Endgame
-  346698: "pBk4NYhWNMM", // Barbie
-};
+import { KNOWN_TRAILERS } from "./trailers";
+export { KNOWN_TRAILERS };
 
 type AppPage = "home" | "search" | "vector-space" | "data-platform" | "profile" | "dashboard" | "knowledge-graph" | "evaluation" | "admin" | "landing" | "signup" | "pricing" | "getting-started" | "status";
 type SearchMode = "title" | "semantic";
@@ -365,6 +336,20 @@ function saveRecentMovies(movies: Movie[]) {
 }
 
 const SEED_SHOWCASE_MOVIES: Movie[] = [
+  {
+    id: 1318447,
+    title: "Apex",
+    overview: "A grieving woman pushing her limits on a solo adventure in the Australian wild is ensnared in a twisted game with a cunning killer who thinks she's prey.",
+    genres: "Action, Thriller",
+    vote_average: 6.5,
+    vote_count: 522,
+    popularity: 571.8,
+    release_date: "2026-04-24",
+    poster_path: "/eTp7gSPkSF3Aw79mNx1NkBP1PZT.jpg",
+    trailer_key: "kgv8jf_8dm0",
+    director: "Jeremy Rush",
+    runtime: 105,
+  },
   {
     id: 693134,
     title: "Dune: Part Two",
@@ -792,7 +777,12 @@ function loadCachedShowcaseMovies(): Movie[] {
     const raw = safeGetLocalStorage(SHOWCASE_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as Movie[];
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed.slice(0, 30);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.slice(0, 30).map((m) => ({
+          ...m,
+          trailer_key: m.trailer_key || KNOWN_TRAILERS[m.id] || null,
+        }));
+      }
     }
   } catch {
     /* ignore */
@@ -815,7 +805,12 @@ function loadCachedLatestMovies(): Movie[] {
     const raw = safeGetLocalStorage(LATEST_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as Movie[];
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed.slice(0, 30);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.slice(0, 30).map((m) => ({
+          ...m,
+          trailer_key: m.trailer_key || KNOWN_TRAILERS[m.id] || null,
+        }));
+      }
     }
   } catch {
     /* ignore */
@@ -1375,10 +1370,14 @@ function TrailerFrame({
   movie,
   initialTrailerKey,
   interactive = false,
+  onTrailerResolved,
+  onNoTrailer,
 }: {
   movie: Movie;
   initialTrailerKey?: string | null;
   interactive?: boolean;
+  onTrailerResolved?: (key: string) => void;
+  onNoTrailer?: () => void;
 }) {
   const [playing, setPlaying] = React.useState(true);
   const [isMuted, setIsMuted] = React.useState(!interactive);
@@ -1415,16 +1414,38 @@ function TrailerFrame({
     };
   }, []);
 
+  const onTrailerResolvedRef = React.useRef(onTrailerResolved);
+  onTrailerResolvedRef.current = onTrailerResolved;
+  const onNoTrailerRef = React.useRef(onNoTrailer);
+  onNoTrailerRef.current = onNoTrailer;
+
   React.useEffect(() => {
     const key = initialTrailerKey || movie.trailer_key || KNOWN_TRAILERS[movie.id] || null;
     setTrailerKey(key);
-    if (!key) {
-      getMovieEnriched(movie.id)
-        .then((res) => {
-          if (res.data.trailer_key) setTrailerKey(res.data.trailer_key);
-        })
-        .catch(() => {});
+    if (key) {
+      onTrailerResolvedRef.current?.(key);
+      return;
     }
+
+    let isMounted = true;
+    fetchTmdbTrailer(movie.id)
+      .then((resolvedKey) => {
+        if (!isMounted) return;
+        if (resolvedKey) {
+          setTrailerKey(resolvedKey);
+          onTrailerResolvedRef.current?.(resolvedKey);
+        } else {
+          onNoTrailerRef.current?.();
+        }
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        onNoTrailerRef.current?.();
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, [movie.id, movie.trailer_key, initialTrailerKey]);
 
   // Check if trailer is cached when trailerKey changes
@@ -1437,6 +1458,8 @@ function TrailerFrame({
       .then((res) => {
         if (res.data.cached) {
           setIsCached(true);
+        } else {
+          setIsCached(false);
         }
       })
       .catch(() => {
@@ -1544,10 +1567,12 @@ function TrailerFrame({
           /* Mobile: YouTube iframe embed scaled to hide player chrome */
           <div style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", background: "#000", pointerEvents: "none" }}>
             <iframe
+              key={`billboard-mobile-yt-${trailerKey}`}
               src={`https://www.youtube-nocookie.com/embed/${trailerKey}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&playsinline=1&iv_load_policy=3&disablekb=1&fs=0&loop=1&playlist=${trailerKey}`}
               title={`${movie.title} Trailer`}
               frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
               style={{
                 position: "absolute",
                 top: "-12%",
@@ -1567,10 +1592,12 @@ function TrailerFrame({
           (!isCached || videoError) ? (
             <div style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", background: "#000", pointerEvents: "none" }}>
               <iframe
+                key={`billboard-yt-${trailerKey}`}
                 src={`https://www.youtube-nocookie.com/embed/${trailerKey}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&playsinline=1&iv_load_policy=3&disablekb=1&fs=0&loop=1&playlist=${trailerKey}`}
                 title={`${movie.title} Trailer`}
                 frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
                 style={{
                   position: "absolute",
                   top: "-12%",
@@ -1770,7 +1797,12 @@ export const MovieDialog = React.memo(function MovieDialog({
         </button>
 
         <div className="dialog-media">
-          <TrailerFrame movie={movie} initialTrailerKey={currentTrailerKey} interactive={true} />
+          <TrailerFrame
+            movie={movie}
+            initialTrailerKey={currentTrailerKey}
+            interactive={true}
+            onTrailerResolved={setCurrentTrailerKey}
+          />
         </div>
 
         <div className="dialog-content">
@@ -2239,6 +2271,7 @@ const HomePage = React.memo(function HomePage({
   onToggleMode: _onToggleMode,
   onNavigate: _onNavigate,
   onHoverMovie,
+  onTrailerResolved,
 }: {
   movies: Movie[];
   heroIndex: number;
@@ -2255,9 +2288,28 @@ const HomePage = React.memo(function HomePage({
   onToggleMode: (mode: "foryou" | "latest" | "trending") => void;
   onNavigate?: (page: AppPage) => void;
   onHoverMovie?: (movieId?: number) => void;
+  onTrailerResolved?: (movieId: number, trailerKey: string) => void;
 }) {
   const hero = movies[heroIndex] || movies[0] || null;
   const isLoading = loading && movies.length === 0;
+
+  const handleNoTrailer = React.useCallback(() => {
+    const playableIndex = movies.findIndex((m, idx) => {
+      return idx !== heroIndex && Boolean(m.trailer_key || KNOWN_TRAILERS[m.id]);
+    });
+    if (playableIndex >= 0) {
+      onHeroIndex(playableIndex);
+    }
+  }, [movies, heroIndex, onHeroIndex]);
+
+  const handleTrailerResolved = React.useCallback((key: string) => {
+    if (hero) {
+      if (!hero.trailer_key) {
+        hero.trailer_key = key;
+      }
+      onTrailerResolved?.(hero.id, key);
+    }
+  }, [hero, onTrailerResolved]);
 
   const [activeMood, setActiveMood] = React.useState<MoodId>("all");
 
@@ -2367,7 +2419,11 @@ const HomePage = React.memo(function HomePage({
           {/* Widescreen Hero Billboard */}
           <section className="billboard-container">
             <div className="billboard-video">
-              <TrailerFrame movie={hero} />
+              <TrailerFrame
+                movie={hero}
+                onNoTrailer={handleNoTrailer}
+                onTrailerResolved={handleTrailerResolved}
+              />
             </div>
             <div className="billboard-info">
               <div className="bb-tagline-badge">FEATURED PRESENTATION</div>
@@ -2829,7 +2885,11 @@ function App() {
   const [dialogMovie, setDialogMovie] = React.useState<Movie | null>(null);
   const [titleSelectOpen, setTitleSelectOpen] = React.useState(false);
   const [homeMovies, setHomeMovies] = React.useState<Movie[]>(() => loadCachedShowcaseMovies());
-  const [homeHeroIndex, setHomeHeroIndex] = React.useState(0);
+  const [homeHeroIndex, setHomeHeroIndex] = React.useState(() => {
+    const cached = loadCachedShowcaseMovies();
+    const idx = cached.findIndex((m) => Boolean(m.trailer_key || KNOWN_TRAILERS[m.id]));
+    return idx >= 0 ? idx : 0;
+  });
   const [homeLoading, setHomeLoading] = React.useState(false);
   const [homeError, setHomeError] = React.useState("");
   const [forYouMovies, setForYouMovies] = React.useState<Movie[]>([]);
@@ -2925,6 +2985,19 @@ function App() {
     saveRecentMovies(next);
   }
 
+  const handleTrailerResolvedInApp = React.useCallback((movieId: number, trailerKey: string) => {
+    setHomeMovies((prev) => {
+      const idx = prev.findIndex((m) => m.id === movieId);
+      if (idx >= 0 && !prev[idx].trailer_key) {
+        const next = [...prev];
+        next[idx] = { ...next[idx], trailer_key: trailerKey };
+        saveCachedShowcaseMovies(next);
+        return next;
+      }
+      return prev;
+    });
+  }, []);
+
   function emitBehaviorEvent(payload: EventPayload) {
     const eventPayload: EventPayload = {
       ...payload,
@@ -2955,11 +3028,15 @@ function App() {
     try {
       const showcaseResponse = await getShowcaseMovies(30);
       if (showcaseResponse.data && showcaseResponse.data.length > 0) {
-        const movies = dedupeMovies(showcaseResponse.data).slice(0, 30);
+        const movies = dedupeMovies(showcaseResponse.data).slice(0, 30).map((m) => ({
+          ...m,
+          trailer_key: m.trailer_key || KNOWN_TRAILERS[m.id] || null,
+        }));
         setBackend(showcaseResponse.baseUrl);
         setHomeMovies(movies);
         saveCachedShowcaseMovies(movies);
-        setHomeHeroIndex(0);
+        const playableIdx = movies.findIndex((m) => Boolean(m.trailer_key || KNOWN_TRAILERS[m.id]));
+        setHomeHeroIndex(playableIdx >= 0 ? playableIdx : 0);
         setCatalogState("ready");
         setHomeLoading(false);
 
@@ -2968,7 +3045,10 @@ function App() {
         const seedId = seeds[Math.floor(Math.random() * seeds.length)];
         getRecommendations(seedId, 10, 8000)
           .then((recResponse) => {
-            const recMovies = dedupeMovies(recResponse.data.recommendations || []).slice(0, 10);
+            const recMovies = dedupeMovies(recResponse.data.recommendations || []).slice(0, 10).map((m) => ({
+              ...m,
+              trailer_key: m.trailer_key || KNOWN_TRAILERS[m.id] || null,
+            }));
             if (recMovies.length > 0) {
               setForYouMovies(recMovies);
             }
@@ -2984,11 +3064,15 @@ function App() {
     try {
       const searchResponse = await searchMovies("Batman");
       if (searchResponse.data && searchResponse.data.length > 0) {
-        const movies = dedupeMovies(searchResponse.data).slice(0, 30);
+        const movies = dedupeMovies(searchResponse.data).slice(0, 30).map((m) => ({
+          ...m,
+          trailer_key: m.trailer_key || KNOWN_TRAILERS[m.id] || null,
+        }));
         setBackend(searchResponse.baseUrl);
         setHomeMovies(movies);
         saveCachedShowcaseMovies(movies);
-        setHomeHeroIndex(0);
+        const playableIdx = movies.findIndex((m) => Boolean(m.trailer_key || KNOWN_TRAILERS[m.id]));
+        setHomeHeroIndex(playableIdx >= 0 ? playableIdx : 0);
         setCatalogState("ready");
       } else if (homeMovies.length === 0) {
         setHomeError("No movies found in catalog.");
@@ -3008,11 +3092,15 @@ function App() {
       if (userId && userId !== "Guest") {
         try {
           const response = await getUserRecommendations(userId, 8);
-          const movies = dedupeMovies(response.data || []).slice(0, 8);
+          const movies = dedupeMovies(response.data || []).slice(0, 8).map((m) => ({
+            ...m,
+            trailer_key: m.trailer_key || KNOWN_TRAILERS[m.id] || null,
+          }));
           if (movies.length > 0) {
             setForYouMovies(movies);
             setBackend(response.baseUrl);
-            setHomeHeroIndex(0);
+            const playableIdx = movies.findIndex((m) => Boolean(m.trailer_key || KNOWN_TRAILERS[m.id]));
+            setHomeHeroIndex(playableIdx >= 0 ? playableIdx : 0);
             return;
           }
         } catch {
@@ -3022,10 +3110,14 @@ function App() {
       const recent = loadRecentMovies();
       if (recent.length > 0 && recent[0].id) {
         const response = await getRecommendations(recent[0].id, 8, 4000);
-        const movies = dedupeMovies(response.data.recommendations || []).slice(0, 8);
+        const movies = dedupeMovies(response.data.recommendations || []).slice(0, 8).map((m) => ({
+          ...m,
+          trailer_key: m.trailer_key || KNOWN_TRAILERS[m.id] || null,
+        }));
         if (movies.length > 0) {
           setForYouMovies(movies);
-          setHomeHeroIndex(0);
+          const playableIdx = movies.findIndex((m) => Boolean(m.trailer_key || KNOWN_TRAILERS[m.id]));
+          setHomeHeroIndex(playableIdx >= 0 ? playableIdx : 0);
           return;
         }
       }
@@ -3046,10 +3138,14 @@ function App() {
       const response = await apiGet<Movie[]>("/movies/latest", { limit: 8 }, 6000);
       const movies = response.data || [];
       if (movies.length > 0) {
-        const deduped = dedupeMovies(movies).slice(0, 8);
+        const deduped = dedupeMovies(movies).slice(0, 8).map((m) => ({
+          ...m,
+          trailer_key: m.trailer_key || KNOWN_TRAILERS[m.id] || null,
+        }));
         setLatestMovies(deduped);
         saveCachedLatestMovies(deduped);
-        setHomeHeroIndex(0);
+        const playableIdx = deduped.findIndex((m) => Boolean(m.trailer_key || KNOWN_TRAILERS[m.id]));
+        setHomeHeroIndex(playableIdx >= 0 ? playableIdx : 0);
       }
       setCatalogState("ready");
     } catch { /* silent fallback */ }
@@ -3516,6 +3612,7 @@ function App() {
               homeMode={homeMode}
               onToggleMode={setHomeMode}
               onHoverMovie={_prefetchMovieIntent}
+              onTrailerResolved={handleTrailerResolvedInApp}
             />
           )}
 
@@ -4110,6 +4207,7 @@ function App() {
               onToggleMode={setHomeMode}
               onNavigate={(p) => setPage(p as AppPage)}
               onHoverMovie={_prefetchMovieIntent}
+              onTrailerResolved={handleTrailerResolvedInApp}
             />
           )}
 

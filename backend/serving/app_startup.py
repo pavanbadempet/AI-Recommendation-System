@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 # Helpers
 # ---------------------------------------------------------------------------
 
-GITHUB_REPO = "https://github.com/pavanbadempet/Movie-Recommendation-System"
+GITHUB_REPO = "https://gitlab.com/pavan9b/Movie-Recommendation-System"
 
 
 def configure_cpu_threading(num_threads: int = 1) -> None:

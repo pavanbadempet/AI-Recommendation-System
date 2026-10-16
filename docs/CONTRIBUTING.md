@@ -3,7 +3,7 @@
 ## Getting Started
 
 1. Fork the repository
-2. Clone: `git clone https://github.com/pavanbadempet/Movie-Recommendation-System.git`
+2. Clone: `git clone https://gitlab.com/pavan9b/Movie-Recommendation-System.git`
 3. Create branch: `git checkout -b feature/your-feature`
 4. Set up environment (see [INSTALLATION.md](INSTALLATION.md))
 
@@ -68,4 +68,4 @@ By contributing, you agree work is under MIT License.
 
 ---
 
-Questions? Visit [Discussions](https://github.com/pavanbadempet/Movie-Recommendation-System/discussions)!
+Questions? Visit [Discussions](https://gitlab.com/pavan9b/Movie-Recommendation-System/discussions)!

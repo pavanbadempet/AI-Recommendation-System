@@ -68,10 +68,10 @@ def main():
     with open("README.md", encoding="utf-8") as f:
         content = f.read()
 
-    if not content.startswith("---"):
-        frontmatter = "---\\ntitle: Movie Recommendation System\\nemoji: 🎬\\ncolorFrom: blue\\ncolorTo: indigo\\nsdk: docker\\npinned: false\\n---\\n\\n"
+    if not content.startswith("---\n"):
+        frontmatter = "---\ntitle: Movie Recommendation System\nemoji: 🎬\ncolorFrom: blue\ncolorTo: indigo\nsdk: docker\npinned: false\n---\n\n"
         with open("README.md", "w", encoding="utf-8") as f:
-            f.write(frontmatter + content)
+            f.write(frontmatter + content.lstrip("- \t\r\n\\ntitle:"))
 
     print("Uploading folder with comprehensive ignore patterns...")
     commit_info = api.upload_folder(

@@ -12,6 +12,7 @@ import type {
   SemanticBenchmark,
 } from "./types";
 import { safeGetLocalStorage } from "./storage";
+import { KNOWN_TRAILERS } from "./trailers";
 
 function normalizeBackend(url: string | undefined): string | undefined {
   const value = url?.trim().replace(/\/+$/, "");
@@ -357,6 +358,15 @@ export async function getMovieEnriched(movieId: number): Promise<BackendResult<M
   try {
     const result = await apiGet<Movie>(`/movie/${movieId}/enriched`, {}, 10000);
     if (result.data.trailer_key) return result;
+    // If backend returned movie without trailer_key, resolve trailer separately
+    const trailerKey = await fetchTmdbTrailer(movieId);
+    if (trailerKey) {
+      return {
+        ...result,
+        data: { ...result.data, trailer_key: trailerKey },
+      };
+    }
+    return result;
   } catch { /* endpoint not deployed yet, continue */ }
 
   // 2. Fetch base movie + TMDB trailer in parallel
@@ -370,22 +380,60 @@ export async function getMovieEnriched(movieId: number): Promise<BackendResult<M
   return baseResult;
 }
 
-async function fetchTmdbTrailer(movieId: number): Promise<string | null> {
-  // Try fetching trailer from TMDB videos endpoint via the backend proxy
+export async function fetchTmdbTrailer(movieId: number): Promise<string | null> {
+  // 1. Try fetching trailer from TMDB videos endpoint via the backend proxy
   try {
     const result = await apiGet<{ trailer_key?: string | null }>(`/movie/${movieId}/trailer`, {}, 8000);
     if (result.data.trailer_key) return result.data.trailer_key;
-  } catch { /* no trailer proxy endpoint, try enriched recs */ }
+  } catch { /* no trailer proxy endpoint, try direct client TMDB fallback */ }
 
-  // Fall back: use enriched recommendations to extract trailer from first rec
+  // 2. Try direct client fetch to TMDB API if backend proxy returned null or is unavailable
+  try {
+    const rawKey =
+      (import.meta.env.VITE_TMDB_API_KEY as string | undefined) ||
+      (import.meta.env.TMDB_API_KEY as string | undefined) ||
+      "44726ef95f4d79cb7001a4947fca7f53";
+    const tmdbKey = rawKey ? rawKey.replace(/^Bearer\s+/i, "").trim() : "";
+
+    if (tmdbKey) {
+      const headers: Record<string, string> = { Accept: "application/json" };
+      let url = `https://api.themoviedb.org/3/movie/${movieId}/videos?language=en-US`;
+      if (tmdbKey.startsWith("ey")) {
+        headers["Authorization"] = `Bearer ${tmdbKey}`;
+      } else {
+        url += `&api_key=${tmdbKey}`;
+      }
+      const tmdbTimeout = timeoutSignal(6000);
+      try {
+        const tmdbResp = await fetch(url, { headers, signal: tmdbTimeout.signal });
+        if (tmdbResp.ok) {
+          const json = await tmdbResp.json();
+          const results: Array<{ site?: string; type?: string; key?: string }> = json.results || [];
+          const trailer = results.find((v) => v.site === "YouTube" && v.type === "Trailer" && Boolean(v.key));
+          if (trailer?.key) return trailer.key;
+          const anyYt = results.find((v) => v.site === "YouTube" && Boolean(v.key));
+          if (anyYt?.key) return anyYt.key;
+        }
+      } finally {
+        tmdbTimeout.cancel();
+      }
+    }
+  } catch {
+    /* direct TMDB client fetch failed or network offline */
+  }
+
+  // 3. Fall back to known hardcoded trailers dictionary
+  if (KNOWN_TRAILERS[movieId]) {
+    return KNOWN_TRAILERS[movieId];
+  }
+
+  // 4. Fall back: use enriched recommendations to extract trailer from query_movie
   try {
     const recResult = await apiGetFirstSuccess<RecommendationResponse>(
       `/v1/recommendations/id/${movieId}/enriched`, { n: 1 }, 15000,
     );
-    // The recommendations (not query_movie) have trailer_key from TMDB enrichment
-    // We can't get OUR movie's trailer from recs, but query_movie might have it
     const qm = recResult.data.query_movie;
-    if ((qm as Record<string, unknown>).trailer_key) {
+    if ((qm as Record<string, unknown> | undefined)?.trailer_key) {
       return (qm as Record<string, unknown>).trailer_key as string;
     }
   } catch { /* no enriched recs available */ }

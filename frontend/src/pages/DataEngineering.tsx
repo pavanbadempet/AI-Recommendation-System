@@ -153,7 +153,7 @@ CREATE TABLE IF NOT EXISTS apex.gold.movie_embeddings (
 
         <div style={{ display: "flex", gap: "10px" }}>
           <a
-            href="https://github.com/pavanbadempet/AI-Recommendation-System"
+            href="https://gitlab.com/pavan9b/AI-Recommendation-System"
             target="_blank"
             rel="noreferrer"
             style={{

@@ -3,7 +3,7 @@
 
 **Authors:** Pavan Badempet
 **Date:** May 2026
-**Repository:** github.com/pavanbadempet/Movie-Recommendation-System
+**Repository:** gitlab.com/pavan9b/Movie-Recommendation-System
 
 ---
 
@@ -301,7 +301,7 @@ Every result in this paper can be reproduced with:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/pavanbadempet/Movie-Recommendation-System.git
+git clone https://gitlab.com/pavan9b/Movie-Recommendation-System.git
 cd Movie-Recommendation-System
 
 # 2. Install dependencies

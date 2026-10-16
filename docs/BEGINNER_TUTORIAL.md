@@ -24,7 +24,7 @@ A recommendation system suggests items to users based on their preferences. For 
 ### Step 1: Clone and Install
 
 ```bash
-git clone https://github.com/pavanbadempet/Movie-Recommendation-System.git
+git clone https://gitlab.com/pavan9b/Movie-Recommendation-System.git
 cd Movie-Recommendation-System
 
 # Create virtual environment

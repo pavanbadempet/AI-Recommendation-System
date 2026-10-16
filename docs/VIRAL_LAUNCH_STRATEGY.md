@@ -37,7 +37,7 @@ Key features:
 
 Live Cinema Portal: https://pavanbadempet.github.io/AI-Recommendation-System/
 Interactive Swagger API Docs: https://pavanbadempet-movie-rec-api.hf.space/docs
-GitHub Repo: https://github.com/pavanbadempet/AI-Recommendation-System
+GitHub Repo: https://gitlab.com/pavan9b/AI-Recommendation-System
 
 Would love feedback on the KAN B-Spline calibration and PySpark 4.2 SDP pipeline specs!
 ```
@@ -61,7 +61,7 @@ Key Architecture Highlights:
 • **Agentic Multi-Agent Layer**: Specialized AI agents (RetrievalAgent, RecommenderAgent, RankingAgent, ExplanationAgent).
 • **React 19 + Bun 1.2 Frontend**: 2-phase progressive rendering (<200ms visual load time).
 
-GitHub Repository: https://github.com/pavanbadempet/AI-Recommendation-System
+GitHub Repository: https://gitlab.com/pavan9b/AI-Recommendation-System
 Live Demo: https://pavanbadempet.github.io/AI-Recommendation-System/
 
 Check it out and star the repo if you find it useful for your own recommendation or data platform work! Feedback welcome!
@@ -85,7 +85,7 @@ APEX solves this by combining:
 
 🌐 Live Cinema Portal: https://pavanbadempet.github.io/AI-Recommendation-System/
 📡 Production API & Swagger Docs: https://pavanbadempet-movie-rec-api.hf.space/docs
-⭐ GitHub Repository: https://github.com/pavanbadempet/AI-Recommendation-System
+⭐ GitHub Repository: https://gitlab.com/pavan9b/AI-Recommendation-System
 
 If you're interested in AI/ML engineering, PySpark, or high-performance recommender systems, star the repository and join the project!
 
@@ -102,7 +102,7 @@ If you're interested in AI/ML engineering, PySpark, or high-performance recommen
 
 Powered by PySpark 4.2 Delta Lake, a 6-Model PyTorch Ensemble (SASRec + KAN + LightGCN), and Agentic Multi-Agent AI.
 
-⭐ Repo: https://github.com/pavanbadempet/AI-Recommendation-System
+⭐ Repo: https://gitlab.com/pavan9b/AI-Recommendation-System
 🧵 Details below 👇
 ```
 
@@ -138,7 +138,7 @@ Autonomous sub-agents (RetrievalAgent, RecommenderAgent, RankingAgent, Explanati
 5/ 🌐 Live Portal & Open Source
 Try the live Cinema Portal: https://pavanbadempet.github.io/AI-Recommendation-System/
 
-Star ⭐ the GitHub repo: https://github.com/pavanbadempet/AI-Recommendation-System
+Star ⭐ the GitHub repo: https://gitlab.com/pavan9b/AI-Recommendation-System
 ```
 
 ---

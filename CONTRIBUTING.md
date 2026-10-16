@@ -23,8 +23,8 @@ This document covers everything you need to get from zero to a working developme
 ## 🌱 Finding Good First Issues
 
 If you are a newcomer to open source or APEX:
-- Check out issues tagged with [`good first issue`](https://github.com/pavanbadempet/Movie-Recommendation-System/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) for well-scoped starter tasks (1-3 hours).
-- Check issues tagged with [`help wanted`](https://github.com/pavanbadempet/Movie-Recommendation-System/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) for intermediate opportunities.
+- Check out issues tagged with [`good first issue`](https://gitlab.com/pavan9b/Movie-Recommendation-System/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) for well-scoped starter tasks (1-3 hours).
+- Check issues tagged with [`help wanted`](https://gitlab.com/pavan9b/Movie-Recommendation-System/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) for intermediate opportunities.
 - Comment on the issue asking to be assigned before starting work to avoid duplicate effort.
 
 ---
@@ -50,7 +50,7 @@ If you are a newcomer to open source or APEX:
 
 ```bash
 # 1. Clone and create a virtual environment
-git clone https://github.com/pavanbadempet/Movie-Recommendation-System.git
+git clone https://gitlab.com/pavan9b/Movie-Recommendation-System.git
 cd Movie-Recommendation-System
 python -m venv venv
 venv\Scripts\activate      # Windows

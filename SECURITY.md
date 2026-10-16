@@ -23,7 +23,7 @@ If you discover a potential security vulnerability in APEX, **please do not repo
 ### Preferred Reporting Method
 
 1. **GitHub Private Vulnerability Advisory**:
-   Submit your report privately through [GitHub Security Advisories](https://github.com/pavanbadempet/Movie-Recommendation-System/security/advisories/new).
+   Submit your report privately through [GitHub Security Advisories](https://gitlab.com/pavan9b/Movie-Recommendation-System/security/advisories/new).
 2. **Email Disclosure**:
    Alternatively, email the maintainer directly at `pavanbadempet@gmail.com` with the subject line `[SECURITY VULNERABILITY] APEX - <Short Summary>`.
 

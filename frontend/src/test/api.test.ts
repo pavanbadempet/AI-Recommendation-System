@@ -319,3 +319,81 @@ describe("apiPost", () => {
     expect(JSON.parse(calledInit.body as string)).toEqual(body);
   });
 });
+
+// ─── fetchTmdbTrailer & KNOWN_TRAILERS ───────────────────────────────────────
+
+describe("fetchTmdbTrailer", () => {
+  beforeEach(() => {
+    vi.stubGlobal("window", {
+      ...globalThis.window,
+      localStorage: { getItem: () => null },
+      setTimeout: globalThis.setTimeout,
+      clearTimeout: globalThis.clearTimeout,
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it("returns trailer key from backend proxy when available", async () => {
+    const mockFetch = vi.fn().mockImplementation((url: string) => {
+      if (url.includes("/movie/123/trailer")) {
+        return Promise.resolve(makeResponse({ trailer_key: "abc123xyz" }, 200, true));
+      }
+      return Promise.resolve(makeResponse({}, 404, false));
+    });
+    vi.stubGlobal("fetch", mockFetch);
+
+    const { fetchTmdbTrailer } = await import("../api");
+    const key = await fetchTmdbTrailer(123);
+    expect(key).toBe("abc123xyz");
+  });
+
+  it("falls back to known trailer dictionary when backend and direct TMDB return null or fail", async () => {
+    const mockFetch = vi.fn().mockImplementation(() => {
+      return Promise.resolve(makeResponse({ trailer_key: null }, 200, true));
+    });
+    vi.stubGlobal("fetch", mockFetch);
+
+    const { fetchTmdbTrailer } = await import("../api");
+    // Apex ID 1318447 has known trailer "kgv8jf_8dm0"
+    const key = await fetchTmdbTrailer(1318447);
+    expect(key).toBe("kgv8jf_8dm0");
+  });
+
+  it("falls back to direct TMDB API if backend returns null", async () => {
+    const mockFetch = vi.fn().mockImplementation((url: string) => {
+      if (url.includes("/movie/9999999/trailer")) {
+        return Promise.resolve(makeResponse({ trailer_key: null }, 200, true));
+      }
+      if (url.includes("api.themoviedb.org")) {
+        return Promise.resolve(
+          makeResponse({
+            results: [
+              { site: "YouTube", type: "Trailer", key: "direct_tmdb_key" },
+            ],
+          }, 200, true)
+        );
+      }
+      return Promise.resolve(makeResponse({}, 404, false));
+    });
+    vi.stubGlobal("fetch", mockFetch);
+
+    const { fetchTmdbTrailer } = await import("../api");
+    const key = await fetchTmdbTrailer(9999999);
+    expect(key).toBe("direct_tmdb_key");
+  });
+
+  it("resolves Super Mario Galaxy Movie trailer key from known dictionary", async () => {
+    const mockFetch = vi.fn().mockImplementation(() => {
+      return Promise.resolve(makeResponse({ trailer_key: null }, 200, true));
+    });
+    vi.stubGlobal("fetch", mockFetch);
+
+    const { fetchTmdbTrailer } = await import("../api");
+    const key = await fetchTmdbTrailer(1226863);
+    expect(key).toBe("SA9ohTuGl4Q");
+  });
+});

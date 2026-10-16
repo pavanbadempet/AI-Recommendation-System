@@ -16,7 +16,7 @@ def force_git_reset_and_pull():
     print(f"Delete Repo Status: {del_res.status_code} - {del_res.text}")
 
     create_payload = {
-        "url": "https://github.com/pavanbadempet/AI-Recommendation-System.git",
+        "url": "https://gitlab.com/pavan9b/AI-Recommendation-System.git",
         "provider": "gitHub",
         "path": "/Users/pavan9b@gmail.com/Movie-Recommendation-System",
     }

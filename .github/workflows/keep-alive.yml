@@ -10,8 +10,9 @@ name: Keep Services Alive
 # which runs on a longer schedule with full browser tooling.
 
 on:
-  schedule:
-    - cron: '*/5 * * * *'
+  # Automated cron disabled to comply with runner acceptable-use policies
+  # schedule:
+  #   - cron: '*/5 * * * *'
   workflow_dispatch:
 
 jobs:

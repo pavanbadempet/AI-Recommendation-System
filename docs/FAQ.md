@@ -57,4 +57,4 @@ A: Depends on your data quality. APEX includes benchmarking tools to measure per
 
 ---
 
-**More questions?** Visit [Discussions](https://github.com/pavanbadempet/Movie-Recommendation-System/discussions)!
+**More questions?** Visit [Discussions](https://gitlab.com/pavan9b/Movie-Recommendation-System/discussions)!

@@ -64,3 +64,38 @@ def test_rate_limiter_active():
     # FastAPI wraps middleware dynamically, so we inspect the repr or inner classes
     middleware_reprs = [repr(m) for m in app.user_middleware]
     assert any("RedisRateLimiter" in m for m in middleware_reprs) or any("Middleware" in m for m in middleware_reprs)
+
+
+def test_movie_trailer_endpoint():
+    """Verify the /movie/{id}/trailer endpoint resolves known trailers."""
+    response = client.get("/movie/1318447/trailer")
+    assert response.status_code == 200
+    data = response.json()
+    assert "trailer_key" in data
+    assert data["trailer_key"] == "kgv8jf_8dm0"
+
+
+def test_movie_trailer_endpoint_dune():
+    """Verify Dune 2 trailer resolves."""
+    response = client.get("/movie/693134/trailer")
+    assert response.status_code == 200
+    assert response.json()["trailer_key"] == "Way9Dexny3w"
+
+
+def test_fetch_trailer_function():
+    """Directly test fetch_trailer async function."""
+    import asyncio
+    from backend.api.recommendation_routes import fetch_trailer
+    key = asyncio.run(fetch_trailer(1318447))
+    assert key == "kgv8jf_8dm0"
+    mario_key = asyncio.run(fetch_trailer(1226863))
+    assert mario_key == "SA9ohTuGl4Q"
+    send_help_key = asyncio.run(fetch_trailer(1198994))
+    assert send_help_key == "R4wiXj9NmEE"
+
+
+def test_movie_trailer_endpoint_super_mario():
+    """Verify Super Mario Galaxy Movie trailer resolves."""
+    response = client.get("/movie/1226863/trailer")
+    assert response.status_code == 200
+    assert response.json()["trailer_key"] == "SA9ohTuGl4Q"

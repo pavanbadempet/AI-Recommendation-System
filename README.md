@@ -1,4 +1,14 @@
+---
+title: Movie Recommendation System
+emoji: 🎬
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
+---
+
 <div align="center">
+
 
 <img src="docs/assets/hero-banner.svg" alt="AI Recommendation System & Unified Data Intelligence Platform - Distributed Lakehouse and Real-Time Recommender Platform" width="100%"/>
 
@@ -28,8 +38,8 @@ Engineered as an authentic production-grade blueprint for large-scale distribute
 </p>
 
 <p align="center">
-  <a href="https://github.com/pavanbadempet/AI-Recommendation-System/actions/workflows/ci.yml"><img src="https://github.com/pavanbadempet/AI-Recommendation-System/actions/workflows/ci.yml/badge.svg" alt="CI/CD Build Status" /></a>
-  <a href="https://github.com/pavanbadempet/AI-Recommendation-System/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22"><img src="https://img.shields.io/github/issues/pavanbadempet/Movie-Recommendation-System/good%20first%20issue?style=flat-square&color=7057ff&label=Good%20First%20Issues" alt="Good First Issues" /></a>
+  <a href="https://gitlab.com/pavan9b/AI-Recommendation-System/actions/workflows/ci.yml"><img src="https://gitlab.com/pavan9b/AI-Recommendation-System/actions/workflows/ci.yml/badge.svg" alt="CI/CD Build Status" /></a>
+  <a href="https://gitlab.com/pavan9b/AI-Recommendation-System/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22"><img src="https://img.shields.io/github/issues/pavanbadempet/Movie-Recommendation-System/good%20first%20issue?style=flat-square&color=7057ff&label=Good%20First%20Issues" alt="Good First Issues" /></a>
   <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-Welcome-10b981?style=flat-square" alt="PRs Welcome" /></a>
   <a href="SECURITY.md"><img src="https://img.shields.io/badge/Security-Policy-red?style=flat-square&logo=shield" alt="Security Policy" /></a>
   <a href="https://huggingface.co/pavanbadempet/movie-recs-models"><img src="https://img.shields.io/badge/🤗%20Model%20Hub-Weights-orange?style=flat-square&logo=huggingface" alt="Hugging Face Model Hub" /></a>
@@ -234,7 +244,7 @@ Requirements: [Docker Desktop](https://www.docker.com/products/docker-desktop/) 
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/pavanbadempet/AI-Recommendation-System.git
+git clone https://gitlab.com/pavan9b/AI-Recommendation-System.git
 cd AI-Recommendation-System
 
 # 2. Start the unified container stack (Backend + UI + SQLite pre-warmed cache)
@@ -252,7 +262,7 @@ Requirements: Python 3.11+ and Node.js 18+ (or [Bun](https://bun.sh)).
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/pavanbadempet/AI-Recommendation-System.git
+git clone https://gitlab.com/pavan9b/AI-Recommendation-System.git
 cd AI-Recommendation-System
 
 # 2. Create and activate a virtual environment
@@ -1180,7 +1190,7 @@ In `databricks_notebooks/02_export_to_neon.py`, gold embeddings are hash-partiti
 <details>
 <summary><strong>Q: Is this project open source? Can I contribute?</strong></summary>
 
-**Yes!** The project is licensed under the **GNU AGPLv3**. Issues labeled [`good first issue`](https://github.com/pavanbadempet/Movie-Recommendation-System/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) are open for community contributions. Check out [`CONTRIBUTING.md`](CONTRIBUTING.md) for guidelines!
+**Yes!** The project is licensed under the **GNU AGPLv3**. Issues labeled [`good first issue`](https://gitlab.com/pavan9b/Movie-Recommendation-System/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) are open for community contributions. Check out [`CONTRIBUTING.md`](CONTRIBUTING.md) for guidelines!
 </details>
 
 ---

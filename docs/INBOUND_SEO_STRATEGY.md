@@ -64,13 +64,13 @@ Core focus areas:
 • AI & Vector Serving: 10-Shard Neon Serverless PostgreSQL with pgvector HNSW indexes (<5ms latency), SentenceTransformers, and multi-agent AI systems.
 • Scale: Engineered end-to-end pipelines processing 21M+ records (1M+ TMDB Movies & 20M+ MovieLens ratings).
 
-Featured Project: AI Recommendation System — https://github.com/pavanbadempet/AI-Recommendation-System
+Featured Project: AI Recommendation System — https://gitlab.com/pavan9b/AI-Recommendation-System
 ```
 
 ### 3. "Featured" Section on LinkedIn:
 Add a link to:
 1. **Live Portal**: `https://pavanbadempet.github.io/AI-Recommendation-System/`
-2. **GitHub Repo**: `https://github.com/pavanbadempet/AI-Recommendation-System`
+2. **GitHub Repo**: `https://gitlab.com/pavan9b/AI-Recommendation-System`
 
 ---
 

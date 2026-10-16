@@ -108,8 +108,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/v1/events", post(routes::post_events_handler))
         .route("/v1/events/features", get(routes::get_events_features_handler))
         .route("/v1/events/features/:user_id", get(routes::get_events_features_handler))
-        // Video Cache Status
+        // Video Cache Status & Streaming
         .route("/v1/videos/cache-status/:youtube_id", get(routes::get_video_cache_status_handler))
+        .route("/videos/cache-status/:youtube_id", get(routes::get_video_cache_status_handler))
+        .route("/v1/videos/stream/:youtube_id", get(routes::get_video_stream_handler))
+        .route("/videos/stream/:youtube_id", get(routes::get_video_stream_handler))
         // Authentication
         .route("/v1/auth/token", post(routes::post_auth_token_handler))
         .route("/api/v1/auth/token", post(routes::post_auth_token_handler))

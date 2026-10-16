@@ -818,7 +818,19 @@ pub async fn get_movie_showcase_handler(
 
     let showcase_len = state.catalog.showcase_movies.len();
     let end = limit.min(showcase_len);
-    let slice = state.catalog.showcase_movies[..end].to_vec();
+    let mut slice = state.catalog.showcase_movies[..end].to_vec();
+    {
+        let cache = state.tmdb_trailer_cache.read();
+        for m in &mut slice {
+            if m.trailer_key.is_none() {
+                if let Some(Some(ref key)) = cache.get(&m.id) {
+                    m.trailer_key = Some(key.clone());
+                } else if let Some(known) = crate::catalog::get_known_trailer(m.id) {
+                    m.trailer_key = Some(known.to_string());
+                }
+            }
+        }
+    }
 
     (StatusCode::OK, Json(slice)).into_response()
 }
@@ -847,14 +859,116 @@ pub struct TrailerResponse {
     pub trailer_key: Option<String>,
 }
 
+/// Helper to resolve movie trailer key: catalog -> known list -> cache -> TMDB API
+pub async fn resolve_movie_trailer(
+    state: &AppState,
+    movie_id: i64,
+) -> Option<String> {
+    // 1. Check in-memory catalog
+    if let Some(m) = state.catalog.get_by_id(movie_id) {
+        if let Some(ref k) = m.trailer_key {
+            if !k.trim().is_empty() {
+                return Some(k.clone());
+            }
+        }
+    }
+
+    // 2. Check known static dictionary
+    if let Some(known) = crate::catalog::get_known_trailer(movie_id) {
+        state.tmdb_trailer_cache.write().insert(movie_id, Some(known.to_string()));
+        return Some(known.to_string());
+    }
+
+    // 3. Check in-memory trailer cache
+    {
+        let cache = state.tmdb_trailer_cache.read();
+        if let Some(entry) = cache.get(&movie_id) {
+            return entry.clone();
+        }
+    }
+
+    // 4. Fetch from TMDB API
+    let key_opt = if let Some(ref api_key) = state.tmdb_api_key {
+        let url = format!("https://api.themoviedb.org/3/movie/{}/videos?language=en-US", movie_id);
+        let mut req = state.http_client
+            .get(&url)
+            .header("Accept", "application/json")
+            .header("User-Agent", "MovieRecApp/1.0");
+
+        let token = api_key.strip_prefix("Bearer ").unwrap_or(api_key.as_str()).trim();
+        if token.starts_with("ey") {
+            req = req.header("Authorization", format!("Bearer {}", token));
+        } else {
+            req = req.query(&[("api_key", token)]);
+        }
+
+        match req.send().await {
+            Ok(resp) if resp.status().is_success() => {
+                #[derive(Deserialize)]
+                struct VideoItem {
+                    key: Option<String>,
+                    site: Option<String>,
+                    #[serde(rename = "type")]
+                    vtype: Option<String>,
+                }
+                #[derive(Deserialize)]
+                struct VideosResponse {
+                    results: Option<Vec<VideoItem>>,
+                }
+
+                if let Ok(data) = resp.json::<VideosResponse>().await {
+                    let mut found = None;
+                    if let Some(results) = data.results {
+                        // Priority 1: YouTube Trailer
+                        for v in &results {
+                            if v.site.as_deref() == Some("YouTube") && v.vtype.as_deref() == Some("Trailer") {
+                                if let Some(ref k) = v.key {
+                                    if !k.trim().is_empty() {
+                                        found = Some(k.trim().to_string());
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        // Priority 2: Any YouTube video
+                        if found.is_none() {
+                            for v in &results {
+                                if v.site.as_deref() == Some("YouTube") {
+                                    if let Some(ref k) = v.key {
+                                        if !k.trim().is_empty() {
+                                            found = Some(k.trim().to_string());
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    found
+                } else {
+                    None
+                }
+            }
+            _ => None,
+        }
+    } else {
+        None
+    };
+
+    state.tmdb_trailer_cache.write().insert(movie_id, key_opt.clone());
+    key_opt
+}
+
 /// GET /movie/:id/trailer
 pub async fn get_movie_trailer_handler(
     State(state): State<Arc<AppState>>,
     AxumPath(movie_id): AxumPath<i64>,
 ) -> Response {
-    match state.catalog.get_by_id(movie_id) {
-        Some(m) => (StatusCode::OK, Json(TrailerResponse { trailer_key: m.trailer_key.clone() })).into_response(),
-        None => (
+    let trailer_key = resolve_movie_trailer(&state, movie_id).await;
+    if trailer_key.is_some() || state.catalog.get_by_id(movie_id).is_some() {
+        (StatusCode::OK, Json(TrailerResponse { trailer_key })).into_response()
+    } else {
+        (
             StatusCode::NOT_FOUND,
             Json(ErrorResponse {
                 error: "Movie not found",
@@ -862,7 +976,7 @@ pub async fn get_movie_trailer_handler(
                 detail: format!("Movie ID {} not found", movie_id),
             }),
         )
-            .into_response(),
+            .into_response()
     }
 }
 
@@ -872,16 +986,40 @@ pub async fn get_movie_enriched_handler(
     AxumPath(movie_id): AxumPath<i64>,
 ) -> Response {
     match state.catalog.get_by_id(movie_id) {
-        Some(m) => (StatusCode::OK, Json(m.clone())).into_response(),
-        None => (
-            StatusCode::NOT_FOUND,
-            Json(ErrorResponse {
-                error: "Movie not found",
-                status: "not_found",
-                detail: format!("Movie ID {} not found", movie_id),
-            }),
-        )
-            .into_response(),
+        Some(m) => {
+            let mut movie = m.clone();
+            if movie.trailer_key.is_none() {
+                movie.trailer_key = resolve_movie_trailer(&state, movie_id).await;
+            }
+            (StatusCode::OK, Json(movie)).into_response()
+        }
+        None => {
+            if let Some(trailer_key) = resolve_movie_trailer(&state, movie_id).await {
+                let synthetic = MovieMetadata {
+                    id: movie_id,
+                    title: format!("Movie {}", movie_id),
+                    overview: None,
+                    genres: vec![],
+                    vote_average: 0.0,
+                    vote_count: 0.0,
+                    popularity: 0.0,
+                    release_date: None,
+                    poster_path: None,
+                    trailer_key: Some(trailer_key),
+                };
+                (StatusCode::OK, Json(synthetic)).into_response()
+            } else {
+                (
+                    StatusCode::NOT_FOUND,
+                    Json(ErrorResponse {
+                        error: "Movie not found",
+                        status: "not_found",
+                        detail: format!("Movie ID {} not found", movie_id),
+                    }),
+                )
+                    .into_response()
+            }
+        }
     }
 }
 
@@ -1204,10 +1342,53 @@ pub async fn get_platform_slo_handler(
 pub async fn get_video_cache_status_handler(
     AxumPath(youtube_id): AxumPath<String>,
 ) -> Json<VideoCacheStatusResponse> {
+    let video_path = format!("data/video_cache/{}.mp4", youtube_id);
+    let cached = std::path::Path::new(&video_path)
+        .metadata()
+        .map(|m| m.is_file() && m.len() > 0)
+        .unwrap_or(false);
+
     Json(VideoCacheStatusResponse {
         youtube_id,
-        cached: true,
+        cached,
     })
+}
+
+/// GET /v1/videos/stream/:youtube_id
+pub async fn get_video_stream_handler(
+    AxumPath(youtube_id): AxumPath<String>,
+) -> Response {
+    let video_path = format!("data/video_cache/{}.mp4", youtube_id);
+    let path = std::path::Path::new(&video_path);
+    if path.is_file() {
+        match tokio::fs::read(path).await {
+            Ok(bytes) => (
+                StatusCode::OK,
+                [(axum::http::header::CONTENT_TYPE, "video/mp4")],
+                bytes,
+            )
+                .into_response(),
+            Err(_) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ErrorResponse {
+                    error: "Failed to read video file",
+                    status: "error",
+                    detail: "Could not read cached video file".to_string(),
+                }),
+            )
+                .into_response(),
+        }
+    } else {
+        (
+            StatusCode::NOT_FOUND,
+            Json(ErrorResponse {
+                error: "Video not found",
+                status: "not_found",
+                detail: format!("Video {} not found in cache", youtube_id),
+            }),
+        )
+            .into_response()
+    }
 }
 
 fn parse_auth_payload(headers: &HeaderMap, body: &[u8]) -> AuthRequest {
@@ -1398,5 +1579,52 @@ mod tests {
                 assert!(recs[i - 1].score >= recs[i].score);
             }
         }
+    }
+
+    #[tokio::test]
+    async fn test_resolve_movie_trailer_known() {
+        let state = AppState::init().expect("state init");
+        let trailer = resolve_movie_trailer(&state, 1318447).await;
+        assert_eq!(trailer.as_deref(), Some("kgv8jf_8dm0"));
+    }
+
+    #[tokio::test]
+    async fn test_get_movie_trailer_handler_known() {
+        let state = AppState::init().expect("state init");
+        let res = get_movie_trailer_handler(State(state), AxumPath(1318447)).await;
+        assert_eq!(res.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn test_get_movie_enriched_handler_known() {
+        let state = AppState::init().expect("state init");
+        let res = get_movie_enriched_handler(State(state), AxumPath(1318447)).await;
+        assert_eq!(res.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn test_get_movie_showcase_handler_enriched() {
+        let state = AppState::init().expect("state init");
+        let res = get_movie_showcase_handler(State(state), Query(CatalogQueryParams { limit: Some(5), ..Default::default() })).await;
+        assert_eq!(res.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn test_get_video_cache_status_not_cached() {
+        let res = get_video_cache_status_handler(AxumPath("nonexistent_id_xyz".to_string())).await;
+        assert_eq!(res.0.cached, false);
+    }
+
+    #[tokio::test]
+    async fn test_get_video_stream_handler_not_found() {
+        let res = get_video_stream_handler(AxumPath("nonexistent_id_xyz".to_string())).await;
+        assert_eq!(res.status(), StatusCode::NOT_FOUND);
+    }
+
+    #[tokio::test]
+    async fn test_resolve_movie_trailer_super_mario() {
+        let state = AppState::init().expect("state init");
+        let trailer = resolve_movie_trailer(&state, 1226863).await;
+        assert_eq!(trailer.as_deref(), Some("SA9ohTuGl4Q"));
     }
 }

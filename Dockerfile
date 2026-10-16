@@ -27,15 +27,15 @@ ENV VITE_BASE_PATH=/
 RUN bun run build
 
 # ------------------------------------------------------------------------------
-# Stage 2: Rust Static Server Builder (Rust 1.80 / Alpine + musl)
+# Stage 2: Rust Static Server Builder (Rust / Alpine + musl)
 # ------------------------------------------------------------------------------
-FROM rust:1.80-alpine AS rust_builder
+FROM rust:alpine AS rust_builder
 
 WORKDIR /build
 
 # Install musl development headers and CA certificates
 # hadolint ignore=DL3018
-RUN apk add --no-cache musl-dev ca-certificates
+RUN apk add --no-cache musl-dev ca-certificates build-base
 
 # Copy Rust backend source code and workspace manifests
 COPY backend/rust_core ./backend/rust_core

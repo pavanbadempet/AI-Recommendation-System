@@ -77,4 +77,4 @@ export SPARK_EXECUTOR_MEMORY=4g
 
 ---
 
-See [FAQ.md](FAQ.md) or [Discussions](https://github.com/pavanbadempet/Movie-Recommendation-System/discussions)!
+See [FAQ.md](FAQ.md) or [Discussions](https://gitlab.com/pavan9b/Movie-Recommendation-System/discussions)!

@@ -4,7 +4,7 @@
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/pavanbadempet/Movie-Recommendation-System.git
+git clone https://gitlab.com/pavan9b/Movie-Recommendation-System.git
 cd Movie-Recommendation-System
 ```
 

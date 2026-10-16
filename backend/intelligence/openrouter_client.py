@@ -79,7 +79,7 @@ def chat_completion(
     """
     headers = {
         "Authorization": f"Bearer {api_key}",
-        "HTTP-Referer": "https://github.com/pavanbadempet/Movie-Recommendation-System",
+        "HTTP-Referer": "https://gitlab.com/pavan9b/Movie-Recommendation-System",
         "X-Title": "APEX Recommendation Intelligence",
     }
 

@@ -5,7 +5,7 @@ import requests
 DATABRICKS_HOST = "https://dbc-0d2f31ec-d157.cloud.databricks.com"
 DATABRICKS_TOKEN = os.environ.get("DATABRICKS_TOKEN", "")
 HEADERS = {"Authorization": f"Bearer {DATABRICKS_TOKEN}", "Content-Type": "application/json"}
-GIT_URL = "https://github.com/pavanbadempet/AI-Recommendation-System"
+GIT_URL = "https://gitlab.com/pavan9b/AI-Recommendation-System"
 
 
 def setup_github_integration():
