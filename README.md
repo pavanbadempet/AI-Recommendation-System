@@ -9,6 +9,10 @@ pinned: false
 
 <div align="center">
 
+<img src="docs/assets/hero-banner.svg" alt="AI Recommendation System & Unified Data Intelligence Platform - Distributed Lakehouse and Real-Time Recommender Platform" width="100%"/>
+
+# 🎬 AI Recommendation & Streaming Lakehouse
+### *Distributed Databricks PySpark Delta Lakehouse, 10-Shard Neon Serverless pgvector HNSW & Real-Time Deep Learning Platform (21M+ Records)*
 
 <img src="docs/assets/hero-banner.svg" alt="AI Recommendation System & Unified Data Intelligence Platform - Distributed Lakehouse and Real-Time Recommender Platform" width="100%"/>
 
