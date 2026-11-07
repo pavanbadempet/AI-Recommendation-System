@@ -52,7 +52,8 @@ Engineered as an enterprise production-grade blueprint for large-scale distribut
 <p align="center">
   <img src="https://img.shields.io/badge/Databricks-Serverless%20Unity%20Catalog-FF3621?style=flat-square&logo=databricks&logoColor=white" alt="Databricks" />
   <img src="https://img.shields.io/badge/Delta_Lake_4.x-Medallion%20SCD2-003366?style=flat-square&logo=deltalake&logoColor=white" alt="Delta Lake" />
-  <img src="https://img.shields.io/badge/PySpark_4.x-Distributed%20ETL-E25A1C?style=flat-square&logo=apachespark&logoColor=white" alt="PySpark" />
+  <img src="https://img.shields.io/badge/PySpark_4.3-Apache%20Spark%204.3.0-E25A1C?style=flat-square&logo=apachespark&logoColor=white" alt="PySpark" />
+  <img src="https://img.shields.io/badge/Parquet_2.0-Format%20v2%20PyArrow-00599C?style=flat-square&logo=apacheparquet&logoColor=white" alt="Parquet 2.0" />
   <img src="https://img.shields.io/badge/Neon_Serverless-10--Shard%20Cluster-00E599?style=flat-square&logo=neon&logoColor=black" alt="Neon Serverless" />
   <img src="https://img.shields.io/badge/pgvector-HNSW%20Sub--5ms-4169E1?style=flat-square&logo=postgresql&logoColor=white" alt="pgvector HNSW" />
   <img src="https://img.shields.io/badge/PyTorch_2.5+-6--Model%20Ensemble-EE4C2C?style=flat-square&logo=pytorch&logoColor=white" alt="PyTorch" />
@@ -305,7 +306,8 @@ The platform is standardized on the latest 2026 enterprise open-source and cloud
 
 | Infrastructure Layer | Latest Version (2026) | Framework & Protocol | Architectural Role & Modern Capability |
 | :--- | :---: | :--- | :--- |
-| **Distributed Compute** | PySpark 4.0+ | Apache Spark 4.x / Databricks DBR 16.x | Native Apache Arrow vectorization, Catalyst SIMD codegen, Adaptive Query Execution (AQE). |
+| **Distributed Compute** | PySpark 4.3+ | Apache Spark 4.3.0 / Databricks DBR 17.x | Native Apache Arrow vectorization, Catalyst SIMD codegen, Adaptive Query Execution (AQE), Spark Declarative Pipelines. |
+| **Storage & Serialization** | Parquet 2.0 | Apache Parquet Format v2 / PyArrow 23.x | Nanosecond timestamp precision (INT64), column-level Bloom filters, dictionary-encoded nested structs. |
 | **Lakehouse Storage** | Delta Lake 4.0+ | Delta 4.x ACID Transaction Log | Dynamic **Liquid Clustering** (clusterBy), SCD Type 2 temporal versioning, Auto Loader streaming. |
 | **Vector Database** | PostgreSQL 17 | pgvector 0.8+ | 10-shard hash-partitioned HNSW graph indexing (
 ector_cosine_ops), covering indexes, sub-5ms lookups. |

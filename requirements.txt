@@ -5,9 +5,9 @@
 # Core data processing & Apache Spark 4.x
 pandas==2.2.3
 numpy==2.4.4
-pyarrow==23.0.1  # Parquet support — compatible with NumPy 2.x
+pyarrow>=23.0.1  # Apache Parquet 2.0 (Format v2) & zero-copy Arrow memory transfer
 polars==1.41.2   # Fast Rust-backed DataFrame library for optimized ingestion
-pyspark>=4.0.0   # Apache Spark 4.x distributed compute engine
+pyspark>=4.3.0   # Apache Spark 4.3.0 (October 2026 release) distributed compute engine
 delta-spark>=4.0.0 # Delta Lake 4.x ACID storage engine
 
 # Machine learning & NLP
