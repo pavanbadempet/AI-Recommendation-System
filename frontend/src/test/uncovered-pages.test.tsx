@@ -107,7 +107,7 @@ describe("LandingPage", () => {
 
   it("defaults to mobile tab and shows phone preview", () => {
     render(<LandingPage onNavigate={onNavigate} />);
-    expect(screen.getByLabelText("Interactive mobile app preview")).toBeInTheDocument();
+    expect(screen.getByLabelText("Interactive cinema streaming preview")).toBeInTheDocument();
     expect(screen.getAllByText("APEX").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Se7en (1995)")).toBeInTheDocument();
   });
@@ -179,9 +179,9 @@ describe("LandingPage", () => {
     fireEvent.click(screen.getByText("💻 Developer API"));
     expect(screen.getByLabelText("API example code")).toBeInTheDocument();
 
-    // Go back to mobile
-    fireEvent.click(screen.getByText("📱 Mobile App UI"));
-    expect(screen.getByLabelText("Interactive mobile app preview")).toBeInTheDocument();
+    // Go back to cinema preview
+    fireEvent.click(screen.getByText("🎬 Cinema Interface"));
+    expect(screen.getByLabelText("Interactive cinema streaming preview")).toBeInTheDocument();
   });
 });
 

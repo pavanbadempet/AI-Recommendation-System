@@ -1697,12 +1697,14 @@ export const MovieDialog = React.memo(function MovieDialog({
   feedback,
   onFeedback,
   onRating,
+  onWatchlistToggle,
 }: {
   movie: Movie;
   onClose: () => void;
   feedback?: "positive" | "negative";
   onFeedback?: (movie: Movie, value: "positive" | "negative") => void;
   onRating?: (movie: Movie, stars: number) => void;
+  onWatchlistToggle?: (movie: Movie, added: boolean) => void;
 }) {
   const director = directorLabel(movie);
   const cast = movie.cast || "";
@@ -1949,11 +1951,13 @@ export const MovieDialog = React.memo(function MovieDialog({
                           safeSetLocalStorage(WATCHLIST_STORAGE_KEY, JSON.stringify(list));
                           setInWatchlist(false);
                           showToast("Removed from Watchlist");
+                          onWatchlistToggle?.(movie, false);
                         } else {
                           list = [movie, ...list.filter((m: { id?: number }) => m.id !== movie.id)];
                           safeSetLocalStorage(WATCHLIST_STORAGE_KEY, JSON.stringify(list));
                           setInWatchlist(true);
                           showToast("Saved to Watchlist!");
+                          onWatchlistToggle?.(movie, true);
                         }
                       } catch {
                         setInWatchlist(!inWatchlist);
@@ -2272,6 +2276,7 @@ const HomePage = React.memo(function HomePage({
   onNavigate: _onNavigate,
   onHoverMovie,
   onTrailerResolved,
+  onToggleWatchlist,
 }: {
   movies: Movie[];
   heroIndex: number;
@@ -2289,6 +2294,7 @@ const HomePage = React.memo(function HomePage({
   onNavigate?: (page: AppPage) => void;
   onHoverMovie?: (movieId?: number) => void;
   onTrailerResolved?: (movieId: number, trailerKey: string) => void;
+  onToggleWatchlist?: (movie: Movie, added: boolean) => void;
 }) {
   const hero = movies[heroIndex] || movies[0] || null;
   const isLoading = loading && movies.length === 0;
@@ -2336,15 +2342,17 @@ const HomePage = React.memo(function HomePage({
       if (list.some((m: { id?: number }) => m.id === hero.id)) {
         updated = list.filter((m: { id?: number }) => m.id !== hero.id);
         setIsHeroInWatchlist(false);
+        onToggleWatchlist?.(hero, false);
       } else {
         updated = [hero, ...list];
         setIsHeroInWatchlist(true);
+        onToggleWatchlist?.(hero, true);
       }
       safeSetLocalStorage("nova_watchlist_v2", JSON.stringify(updated));
     } catch {
       /* ignore */
     }
-  }, [hero]);
+  }, [hero, onToggleWatchlist]);
 
   const heroOverview = hero?.overview
     ? hero.overview.length > 200
@@ -2899,7 +2907,6 @@ function App() {
   const [homeMode, setHomeMode] = React.useState<"foryou" | "latest" | "trending">(() => loadRecentMovies().length > 0 ? "foryou" : "trending");
   const [sessionId] = React.useState(() => getSessionId());
   const [isMobileViewport, setIsMobileViewport] = React.useState(() => typeof window !== "undefined" ? window.innerWidth <= 768 : false);
-  const [isMobileSimulated, setIsMobileSimulated] = React.useState(false);
   const [showMoreDrawer, setShowMoreDrawer] = React.useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [deferredPrompt, setDeferredPrompt] = React.useState<any>(null);
@@ -2921,7 +2928,7 @@ function App() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const isMobileMode = isMobileViewport || isMobileSimulated;
+  const isMobileMode = isMobileViewport;
   const titleSelectRef = React.useRef<HTMLDivElement>(null);
   const bootstrapped = React.useRef(false);
   const loadedPlatform = React.useRef(false);
@@ -3210,6 +3217,7 @@ function App() {
         similarity_score: movie.similarity_score,
       },
     });
+    void loadForYouShowcase(username || undefined);
   }
 
   function recordRating(movie: Movie, stars: number) {
@@ -3230,6 +3238,22 @@ function App() {
         similarity_score: movie.similarity_score,
       },
     });
+    void loadForYouShowcase(username || undefined);
+  }
+
+  function handleWatchlistToggle(movie: Movie, added: boolean) {
+    emitBehaviorEvent({
+      event_type: added ? "watchlist_add" : "watchlist_remove",
+      movie_id: movie.id,
+      request_id: lastRecommendationRequestId,
+      metadata: {
+        title: movie.title,
+        action: added ? "watchlist_add" : "watchlist_remove",
+        results_kind: resultsKind,
+        similarity_score: movie.similarity_score,
+      },
+    });
+    void loadForYouShowcase(username || undefined);
   }
 
   async function bootstrap(silent = false) {
@@ -3570,6 +3594,8 @@ function App() {
   }
 
   // ── App Shell Pages (Browse, Search, Dashboard, KG, Eval, Profile, Admin) ─
+  const isEngineeringShowcase = ["data-platform", "dashboard", "evaluation", "knowledge-graph", "vector-space"].includes(page);
+
   if (isAppPage && isMobileMode) {
     const mobileContent = (
       <div className="iphone-screen">
@@ -3594,6 +3620,52 @@ function App() {
           </div>
         </header>
 
+        {isEngineeringShowcase && (
+          <nav className="showcase-subnav-strip" aria-label="Engineering Showcase Sub-navigation">
+            <span className="showcase-subnav-label">Engineering Suite</span>
+            <button
+              className={`showcase-subnav-tab ${page === "data-platform" ? "active" : ""}`}
+              type="button"
+              onClick={() => navigateTo("data-platform")}
+            >
+              <Database size={14} />
+              <span>Architecture & Delta Lake</span>
+            </button>
+            <button
+              className={`showcase-subnav-tab ${page === "dashboard" ? "active" : ""}`}
+              type="button"
+              onClick={() => navigateTo("dashboard")}
+            >
+              <Activity size={14} />
+              <span>System Telemetry</span>
+            </button>
+            <button
+              className={`showcase-subnav-tab ${page === "evaluation" ? "active" : ""}`}
+              type="button"
+              onClick={() => navigateTo("evaluation")}
+            >
+              <BarChart3 size={14} />
+              <span>Model Evaluation</span>
+            </button>
+            <button
+              className={`showcase-subnav-tab ${page === "knowledge-graph" ? "active" : ""}`}
+              type="button"
+              onClick={() => navigateTo("knowledge-graph")}
+            >
+              <Network size={14} />
+              <span>Knowledge Graph</span>
+            </button>
+            <button
+              className={`showcase-subnav-tab ${page === "vector-space" ? "active" : ""}`}
+              type="button"
+              onClick={() => navigateTo("vector-space")}
+            >
+              <Sparkles size={14} />
+              <span>3D Galaxy</span>
+            </button>
+          </nav>
+        )}
+
         {/* Content Area */}
         <div className="mobile-shell-content">
           {page === "home" && (
@@ -3613,6 +3685,7 @@ function App() {
               onToggleMode={setHomeMode}
               onHoverMovie={_prefetchMovieIntent}
               onTrailerResolved={handleTrailerResolvedInApp}
+              onToggleWatchlist={handleWatchlistToggle}
             />
           )}
 
@@ -3830,7 +3903,7 @@ function App() {
             onClick={() => { openHome(); setShowMoreDrawer(false); }}
           >
             <Film size={20} />
-            <span>Explore</span>
+            <span>Discover</span>
           </button>
           <button
             className={`mobile-nav-tab ${page === "search" ? "active" : ""}`}
@@ -3841,28 +3914,28 @@ function App() {
             <span>Search</span>
           </button>
           <button
-            className={`mobile-nav-tab ${page === "data-platform" ? "active" : ""}`}
+            className={`mobile-nav-tab ${page === "profile" ? "active" : ""}`}
+            type="button"
+            onClick={() => { navigateTo("profile"); setShowMoreDrawer(false); }}
+          >
+            <Bookmark size={20} />
+            <span>Watchlist</span>
+          </button>
+          <button
+            className={`mobile-nav-tab ${["data-platform", "dashboard", "evaluation", "knowledge-graph", "vector-space"].includes(page) ? "active" : ""}`}
             type="button"
             onClick={() => { navigateTo("data-platform"); setShowMoreDrawer(false); }}
           >
             <Database size={20} />
-            <span>Platform</span>
+            <span>MLOps</span>
           </button>
           <button
-            className={`mobile-nav-tab ${page === "knowledge-graph" ? "active" : ""}`}
+            className={`mobile-nav-tab ${showMoreDrawer || page === "admin" ? "active" : ""}`}
             type="button"
-            onClick={() => { navigateTo("knowledge-graph"); setShowMoreDrawer(false); }}
-          >
-            <Network size={20} />
-            <span>Graph</span>
-          </button>
-          <button
-            className={`mobile-nav-tab ${["profile", "dashboard", "admin", "evaluation", "vector-space"].includes(page) ? "active" : ""}`}
-            type="button"
-            onClick={() => { navigateTo("profile"); setShowMoreDrawer(false); }}
+            onClick={() => setShowMoreDrawer(true)}
           >
             <User size={20} />
-            <span>Watchlist</span>
+            <span>Account</span>
           </button>
         </nav>
 
@@ -3931,18 +4004,6 @@ function App() {
                   <span>Download / Install App</span>
                 </button>
 
-                {isMobileSimulated && !isMobileViewport && (
-                  <button
-                    className="sheet-link-btn"
-                    type="button"
-                    onClick={() => { setIsMobileSimulated(false); setShowMoreDrawer(false); }}
-                    style={{ border: "1px dashed rgba(167, 139, 250, 0.4)", color: "#a78bfa" }}
-                  >
-                    <Play size={18} />
-                    <span>Exit Mobile Simulator</span>
-                  </button>
-                )}
-
                 {username ? (
                   <button
                     className="sheet-link-btn logout"
@@ -3981,6 +4042,7 @@ function App() {
             feedback={feedbackByMovieId[dialogMovie.id]}
             onFeedback={recordFeedback}
             onRating={recordRating}
+            onWatchlistToggle={handleWatchlistToggle}
             onClose={() => setDialogMovie(null)}
           />
         )}
@@ -3993,47 +4055,16 @@ function App() {
       </div>
     );
 
-    if (isMobileSimulated && !isMobileViewport) {
-      return (
-        <div className="phone-simulator-container">
-          <div className="simulator-controls">
-            <span className="simulator-badge">Simulator Mode</span>
-            <button className="simulator-toggle-btn" type="button" onClick={() => setIsMobileSimulated(false)}>
-              <Play size={14} style={{ transform: "rotate(180deg)" }} />
-              Back to Widescreen
-            </button>
-          </div>
-          <div className="iphone-mockup">
-            <div className="dynamic-island" />
-            <div className="simulator-status-bar">
-              <span>9:41</span>
-              <div className="status-bar-right" style={{ display: "flex", gap: "4px" }}>
-                <Server size={10} />
-                <Activity size={10} />
-                <Database size={10} />
-              </div>
-            </div>
-            {mobileContent}
-            <div className="home-indicator" />
-          </div>
-        </div>
-      );
-    }
-
     return mobileContent;
   }
 
   // ── App Shell Pages (Browse, Search, Dashboard, KG, Eval, Profile, Admin) ─
   if (isAppPage) {
-    const navLinks = [
-      { id: "home", label: "Explore" },
-      { id: "search", label: "Search" },
-      { id: "vector-space", label: "3D Galaxy" },
-      { id: "data-platform", label: "Data Platform" },
-      { id: "dashboard", label: "Dashboard" },
-      { id: "knowledge-graph", label: "Graph" },
-      { id: "evaluation", label: "Evaluation" },
-      { id: "profile", label: "Watchlist" },
+    const isEngineeringShowcase = ["data-platform", "dashboard", "evaluation", "knowledge-graph", "vector-space"].includes(page);
+    const cinemaLinks: { id: AppPage; label: string; action: () => void }[] = [
+      { id: "home", label: "Discover", action: openHome },
+      { id: "search", label: "Search", action: openSearch },
+      { id: "profile", label: "Watchlist", action: () => navigateTo("profile") },
     ];
 
     return (
@@ -4047,24 +4078,24 @@ function App() {
               <button className="brand-logo" type="button" onClick={openHome} aria-label="NOVA Home">NOVA</button>
             </div>
             <nav className="topbar-links" aria-label="Main navigation">
-              {navLinks.map((link, idx) => (
-                <React.Fragment key={link.id}>
-                  {idx === 3 && <span className="topbar-nav-divider" key="div-platform" aria-hidden="true" />}
-                  {idx === 4 && <span className="topbar-nav-divider" key="div-mlops" aria-hidden="true" />}
-                  {idx === 7 && <span className="topbar-nav-divider" key="div-profile" aria-hidden="true" />}
-                  <button
-                    className={`topbar-link ${page === link.id ? "active" : ""}`}
-                    type="button"
-                    onClick={() => {
-                      if (link.id === "home") openHome();
-                      else if (link.id === "search") openSearch();
-                      else navigateTo(link.id as AppPage);
-                    }}
-                  >
-                    {link.label}
-                  </button>
-                </React.Fragment>
+              {cinemaLinks.map((link) => (
+                <button
+                  key={link.id}
+                  className={`topbar-link ${page === link.id ? "active" : ""}`}
+                  type="button"
+                  onClick={link.action}
+                >
+                  {link.label}
+                </button>
               ))}
+              <span className="topbar-nav-divider" aria-hidden="true" />
+              <button
+                className={`topbar-link ${isEngineeringShowcase ? "active" : ""}`}
+                type="button"
+                onClick={() => navigateTo("data-platform")}
+              >
+                Lakehouse & MLOps
+              </button>
             </nav>
           </div>
           <div className="topbar-right">
@@ -4189,6 +4220,52 @@ function App() {
           </div>
         </header>
 
+        {isEngineeringShowcase && (
+          <nav className="showcase-subnav-strip" aria-label="Engineering Showcase Sub-navigation">
+            <span className="showcase-subnav-label">Engineering Suite</span>
+            <button
+              className={`showcase-subnav-tab ${page === "data-platform" ? "active" : ""}`}
+              type="button"
+              onClick={() => navigateTo("data-platform")}
+            >
+              <Database size={14} />
+              <span>Architecture & Delta Lake</span>
+            </button>
+            <button
+              className={`showcase-subnav-tab ${page === "dashboard" ? "active" : ""}`}
+              type="button"
+              onClick={() => navigateTo("dashboard")}
+            >
+              <Activity size={14} />
+              <span>System Telemetry</span>
+            </button>
+            <button
+              className={`showcase-subnav-tab ${page === "evaluation" ? "active" : ""}`}
+              type="button"
+              onClick={() => navigateTo("evaluation")}
+            >
+              <BarChart3 size={14} />
+              <span>Model Evaluation</span>
+            </button>
+            <button
+              className={`showcase-subnav-tab ${page === "knowledge-graph" ? "active" : ""}`}
+              type="button"
+              onClick={() => navigateTo("knowledge-graph")}
+            >
+              <Network size={14} />
+              <span>Knowledge Graph</span>
+            </button>
+            <button
+              className={`showcase-subnav-tab ${page === "vector-space" ? "active" : ""}`}
+              type="button"
+              onClick={() => navigateTo("vector-space")}
+            >
+              <Sparkles size={14} />
+              <span>3D Galaxy</span>
+            </button>
+          </nav>
+        )}
+
         <div className="app-content-area">
           {page === "home" && (
             <HomePage
@@ -4208,6 +4285,7 @@ function App() {
               onNavigate={(p) => setPage(p as AppPage)}
               onHoverMovie={_prefetchMovieIntent}
               onTrailerResolved={handleTrailerResolvedInApp}
+              onToggleWatchlist={handleWatchlistToggle}
             />
           )}
 
@@ -4634,6 +4712,7 @@ function App() {
             feedback={feedbackByMovieId[dialogMovie.id]}
             onFeedback={recordFeedback}
             onRating={recordRating}
+            onWatchlistToggle={handleWatchlistToggle}
             onClose={() => setDialogMovie(null)}
           />
         )}
@@ -4665,8 +4744,14 @@ if ("serviceWorker" in navigator && import.meta.env.PROD) {
   window.addEventListener("load", () => {
     try {
       if (window.self === window.top) {
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          for (const reg of registrations) {
+            reg.update().catch(() => {});
+          }
+        });
+        const swUrl = `${import.meta.env.BASE_URL}sw.js`;
         navigator.serviceWorker
-          .register("/sw.js")
+          .register(swUrl)
           .catch((err) => console.warn("Service Worker registration skipped:", err));
       }
     } catch {

@@ -42,7 +42,9 @@ export type EventType =
   | "click"
   | "rating"
   | "recommendation_request"
-  | "recommendation_impression";
+  | "recommendation_impression"
+  | "watchlist_add"
+  | "watchlist_remove";
 
 export type EventPayload = {
   event_type: EventType;

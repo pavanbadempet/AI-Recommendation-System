@@ -99,12 +99,38 @@ pub struct MovieSearchResult {
     pub similarity_score: f64,
 }
 
+/// Extract significant thematic keywords from overview text.
+pub fn extract_theme_keywords(overview: &str) -> Vec<String> {
+    const STOP_WORDS: &[&str] = &[
+        "this", "that", "with", "from", "have", "they", "will", "would", "there", "their",
+        "about", "which", "when", "make", "time", "into", "year", "some", "them", "other",
+        "take", "than", "then", "just", "also", "after", "most", "been", "where", "much",
+        "very", "your", "were", "what", "life", "world", "story", "find", "must", "only",
+        "over", "even", "more", "first", "such", "through", "down", "back", "while", "between",
+        "before", "being", "both", "each", "under", "during", "who", "whom", "whose", "whose",
+    ];
+
+    let mut themes = Vec::new();
+    for word in overview.split(|c: char| !c.is_alphanumeric()) {
+        let clean = word.trim().to_lowercase();
+        if clean.len() >= 4 && !STOP_WORDS.contains(&clean.as_str()) {
+            if !themes.contains(&clean) {
+                themes.push(clean);
+            }
+        }
+    }
+    themes
+}
+
 /// In-memory movie catalog store with search and showcase indices.
 pub struct MovieCatalog {
     pub movies: Vec<MovieMetadata>,
     pub id_to_index: HashMap<i64, usize>,
     pub showcase_movies: Vec<MovieMetadata>,
     pub title_entries: Vec<MovieTitleEntry>,
+    pub genre_to_rows: HashMap<String, Vec<usize>>,
+    pub decade_to_rows: HashMap<String, Vec<usize>>,
+    pub theme_to_rows: HashMap<String, Vec<usize>>,
 }
 
 /// Well-known YouTube trailer video IDs for popular showcase movies.
@@ -160,12 +186,28 @@ impl MovieCatalog {
 
         let mut id_to_index = HashMap::with_capacity(movies.len());
         let mut title_entries = Vec::with_capacity(movies.len());
+        let mut genre_to_rows: HashMap<String, Vec<usize>> = HashMap::new();
+        let mut decade_to_rows: HashMap<String, Vec<usize>> = HashMap::new();
+        let mut theme_to_rows: HashMap<String, Vec<usize>> = HashMap::new();
 
         for (idx, m) in movies.iter().enumerate() {
             id_to_index.insert(m.id, idx);
 
+            // Inverted index for genres
+            for g in &m.genres {
+                let g_clean = g.trim().to_lowercase();
+                if !g_clean.is_empty() {
+                    genre_to_rows.entry(g_clean).or_default().push(idx);
+                }
+            }
+
+            // Inverted index for decade
             let year_str = if let Some(ref rd) = m.release_date {
                 if rd.len() >= 4 {
+                    if let Ok(yr) = rd[..4].parse::<i32>() {
+                        let dec = format!("{}s", (yr / 10) * 10);
+                        decade_to_rows.entry(dec).or_default().push(idx);
+                    }
                     &rd[..4]
                 } else {
                     ""
@@ -173,6 +215,13 @@ impl MovieCatalog {
             } else {
                 ""
             };
+
+            // Inverted index for theme tags
+            if let Some(ref overview) = m.overview {
+                for theme in extract_theme_keywords(overview) {
+                    theme_to_rows.entry(theme).or_default().push(idx);
+                }
+            }
 
             let formatted_title = if !year_str.is_empty() {
                 if !m.genres.is_empty() {
@@ -209,6 +258,9 @@ impl MovieCatalog {
             id_to_index,
             showcase_movies: showcase,
             title_entries,
+            genre_to_rows,
+            decade_to_rows,
+            theme_to_rows,
         })
     }
 
@@ -414,7 +466,7 @@ impl MovieCatalog {
 mod tests {
     use super::*;
 
-    fn create_test_catalog() -> MovieCatalog {
+    fn create_test_catalog() -> Arc<MovieCatalog> {
         let movies = vec![
             MovieMetadata {
                 id: 1,
@@ -454,22 +506,7 @@ mod tests {
             },
         ];
 
-        let mut id_to_index = HashMap::new();
-        let mut title_entries = Vec::new();
-        for (i, m) in movies.iter().enumerate() {
-            id_to_index.insert(m.id, i);
-            title_entries.push(MovieTitleEntry {
-                id: m.id,
-                title: format!("{} (2010)", m.title),
-            });
-        }
-
-        MovieCatalog {
-            showcase_movies: movies.clone(),
-            movies,
-            id_to_index,
-            title_entries,
-        }
+        MovieCatalog::from_movies(movies)
     }
 
     #[test]
@@ -529,5 +566,21 @@ mod tests {
         assert_eq!(get_known_trailer(1318447), Some("kgv8jf_8dm0"));
         assert_eq!(get_known_trailer(693134), Some("Way9Dexny3w"));
         assert_eq!(get_known_trailer(9999999), None);
+    }
+
+    #[test]
+    fn test_catalog_inverted_indices() {
+        let cat = MovieCatalog::create_synthetic();
+        assert!(!cat.genre_to_rows.is_empty());
+        assert!(!cat.decade_to_rows.is_empty());
+        assert!(!cat.theme_to_rows.is_empty());
+
+        let sf_rows = cat.genre_to_rows.get("science fiction").or_else(|| cat.genre_to_rows.get("action"));
+        assert!(sf_rows.is_some());
+        assert!(!sf_rows.unwrap().is_empty());
+
+        let dec_2010s = cat.decade_to_rows.get("2010s");
+        assert!(dec_2010s.is_some());
+        assert!(!dec_2010s.unwrap().is_empty());
     }
 }

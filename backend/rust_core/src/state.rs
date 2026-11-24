@@ -3,6 +3,7 @@
 use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, VecDeque};
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use std::time::Instant;
 
@@ -17,7 +18,92 @@ pub struct EventRecord {
     #[serde(default)]
     pub movie_id: Option<i64>,
     pub event_type: String,
+    #[serde(default)]
+    pub rating: Option<f64>,
     pub timestamp: u64,
+}
+
+/// User interaction profile maintaining ratings, watchlist, and clicks.
+#[derive(Debug, Clone, Default)]
+pub struct UserProfile {
+    pub rated_movies: Vec<(i64, f64)>, // (movie_id, rating)
+    pub watchlist_movies: Vec<i64>,
+    pub clicked_movies: Vec<i64>,
+    pub live_centroid: Option<Vec<f32>>,
+}
+
+impl UserProfile {
+    pub fn record_interaction(&mut self, event_type: &str, movie_id: i64, rating_opt: Option<f64>) {
+        match event_type {
+            "rating" => {
+                let r = rating_opt.unwrap_or(5.0);
+                if let Some(pos) = self.rated_movies.iter().position(|(id, _)| *id == movie_id) {
+                    self.rated_movies[pos].1 = r;
+                } else {
+                    self.rated_movies.push((movie_id, r));
+                }
+                self.live_centroid = None;
+            }
+            "watchlist_add" => {
+                if !self.watchlist_movies.contains(&movie_id) {
+                    self.watchlist_movies.push(movie_id);
+                }
+                self.live_centroid = None;
+            }
+            "watchlist_remove" => {
+                self.watchlist_movies.retain(|&id| id != movie_id);
+                self.live_centroid = None;
+            }
+            "click" | "view" => {
+                if !self.clicked_movies.contains(&movie_id) {
+                    self.clicked_movies.push(movie_id);
+                }
+                self.live_centroid = None;
+            }
+            _ => {
+                if let Some(r) = rating_opt {
+                    if let Some(pos) = self.rated_movies.iter().position(|(id, _)| *id == movie_id) {
+                        self.rated_movies[pos].1 = r;
+                    } else {
+                        self.rated_movies.push((movie_id, r));
+                    }
+                    self.live_centroid = None;
+                }
+            }
+        }
+    }
+
+    pub fn has_interacted(&self, movie_id: i64) -> bool {
+        self.rated_movies.iter().any(|(id, _)| *id == movie_id)
+            || self.watchlist_movies.contains(&movie_id)
+            || self.clicked_movies.contains(&movie_id)
+    }
+
+    pub fn total_interactions(&self) -> usize {
+        self.rated_movies.len() + self.watchlist_movies.len() + self.clicked_movies.len()
+    }
+}
+
+/// Atomic performance metrics for server telemetry and SLO tracking.
+#[derive(Debug, Default)]
+pub struct ServerMetrics {
+    pub total_requests: AtomicU64,
+    pub total_latency_us: AtomicU64,
+    pub error_count: AtomicU64,
+}
+
+impl ServerMetrics {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn record_request(&self, latency_us: u64, is_error: bool) {
+        self.total_requests.fetch_add(1, Ordering::Relaxed);
+        self.total_latency_us.fetch_add(latency_us, Ordering::Relaxed);
+        if is_error {
+            self.error_count.fetch_add(1, Ordering::Relaxed);
+        }
+    }
 }
 
 /// Global shared state for the Axum web server.
@@ -25,6 +111,8 @@ pub struct AppState {
     pub vector_store: Arc<VectorStore>,
     pub catalog: Arc<MovieCatalog>,
     pub events_buffer: RwLock<VecDeque<EventRecord>>,
+    pub user_profiles: RwLock<HashMap<String, UserProfile>>,
+    pub metrics: ServerMetrics,
     pub tmdb_api_key: Option<String>,
     pub tmdb_trailer_cache: RwLock<HashMap<i64, Option<String>>>,
     pub http_client: reqwest::Client,
@@ -94,6 +182,8 @@ impl AppState {
         };
 
         let events_buffer = RwLock::new(VecDeque::with_capacity(1000));
+        let user_profiles = RwLock::new(HashMap::new());
+        let metrics = ServerMetrics::new();
 
         let tmdb_api_key = std::env::var("TMDB_API_KEY")
             .ok()
@@ -113,6 +203,8 @@ impl AppState {
             vector_store,
             catalog,
             events_buffer,
+            user_profiles,
+            metrics,
             tmdb_api_key,
             tmdb_trailer_cache,
             http_client,
@@ -120,8 +212,14 @@ impl AppState {
         }))
     }
 
-    /// Ingest a telemetry event into the in-memory ring buffer.
+    /// Ingest a telemetry event into the in-memory ring buffer and update live user profiles.
     pub fn record_event(&self, event: EventRecord) {
+        if let Some(movie_id) = event.movie_id {
+            let mut profiles = self.user_profiles.write();
+            let profile = profiles.entry(event.user_id.clone()).or_default();
+            profile.record_interaction(&event.event_type, movie_id, event.rating);
+        }
+
         let mut buffer = self.events_buffer.write();
         if buffer.len() >= 100_000 {
             buffer.pop_front();
@@ -150,11 +248,31 @@ mod tests {
             user_id: "12345".to_string(),
             movie_id: Some(27205),
             event_type: "click".to_string(),
+            rating: None,
             timestamp: 1700000000,
         });
 
         let buf = state.events_buffer.read();
         assert_eq!(buf.len(), 1);
         assert_eq!(buf[0].event_id, "evt_test_1");
+
+        let profiles = state.user_profiles.read();
+        let user = profiles.get("12345").expect("user profile should be recorded");
+        assert!(user.clicked_movies.contains(&27205));
+    }
+
+    #[test]
+    fn test_user_profile_ratings_and_watchlist() {
+        let mut profile = UserProfile::default();
+        profile.record_interaction("rating", 155, Some(4.5));
+        profile.record_interaction("watchlist_add", 27205, None);
+        profile.record_interaction("click", 680, None);
+
+        assert!(profile.has_interacted(155));
+        assert!(profile.has_interacted(27205));
+        assert!(profile.has_interacted(680));
+        assert_eq!(profile.total_interactions(), 3);
+        assert_eq!(profile.rated_movies.len(), 1);
+        assert_eq!(profile.rated_movies[0], (155, 4.5));
     }
 }

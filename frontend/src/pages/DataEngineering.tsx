@@ -52,7 +52,7 @@ export function DataEngineeringPage() {
     setSimStatus(null);
     try {
       const payload = {
-        user_id: "portfolio-recruiter-demo",
+        user_id: "cinema-stream-client",
         movie_id: simMovieId,
         interaction_type: simEventType,
         timestamp: new Date().toISOString(),
@@ -383,7 +383,7 @@ CREATE TABLE IF NOT EXISTS apex.gold.movie_embeddings (
       {/* Tab 2: Streaming Ingestion + Live Simulator */}
       {activeTab === "streaming" && (
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          {/* Live Ingestion Simulator for Recruiters */}
+          {/* Live Streaming Event Ingestion Pipeline */}
           <div style={{ padding: "24px", borderRadius: "16px", background: "linear-gradient(135deg, rgba(6, 182, 212, 0.06) 0%, rgba(16, 185, 129, 0.06) 100%)", border: "1px solid rgba(6, 182, 212, 0.25)", display: "flex", flexDirection: "column", gap: "16px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>

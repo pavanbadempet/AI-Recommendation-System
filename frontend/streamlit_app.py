@@ -1,4 +1,4 @@
-# Movie Recommendation System - Premium UI
+# AI Recommendation System - Premium UI
 # Run: streamlit run app.py
 
 from datetime import datetime, timedelta
@@ -2695,7 +2695,7 @@ elif st.session_state.page == "monitoring_demo":
     st.markdown(
         """
     <div style="text-align: center; margin-top: 30px; color: #666; font-size: 0.8rem;">
-        <p>Real-time monitoring dashboard for Movie Recommendation System data pipeline</p>
+        <p>Real-time monitoring dashboard for AI Recommendation System data pipeline</p>
         <p>Showing simulated data - connect to actual Kafka and Delta Lake for production use</p>
     </div>
     """,

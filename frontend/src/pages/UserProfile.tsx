@@ -266,6 +266,11 @@ export function UserProfilePage({
       const updated = watchlist.filter((m) => m.id !== movieId);
       safeSetLocalStorage(WATCHLIST_STORAGE_KEY, JSON.stringify(updated));
       setWatchlist(updated);
+      if (username) {
+        getUserRecommendations(username, 10)
+          .then((res) => setRecs(res.data ?? []))
+          .catch(() => {});
+      }
     } catch {
       // ignore
     }
