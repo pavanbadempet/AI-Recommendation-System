@@ -1,5 +1,5 @@
 # ==============================================================================
-# Multi-stage Distroless Dockerfile for Movie Recommendation System
+# Multi-stage Distroless Dockerfile for AI Recommendation System
 # Pure Rust Axum Serving Backend + Bun 1.2 React SPA Client
 #
 # Stage 1: Build React 19 SPA static bundle using Bun 1.2 (oven/bun:1.2-alpine)
@@ -73,8 +73,9 @@ COPY --from=rust_builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-ce
 # Copy stripped pure-Rust APEX server static binary
 COPY --from=rust_builder /build/backend/rust_core/target/x86_64-unknown-linux-musl/release/apex_server /app/apex_server
 
-# Copy pre-compiled React SPA assets
+# Copy pre-compiled React SPA assets and offline handbook
 COPY --from=frontend_builder /frontend/dist /app/dist
+COPY book /app/dist/book
 
 # Copy pre-computed vector embeddings and movie metadata catalog (75,253 movies)
 COPY --from=model_fetcher /models /app/models
